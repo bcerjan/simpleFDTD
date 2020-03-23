@@ -3,10 +3,11 @@
 
 #define  ABCSIZECONSTANT    (8)                      // thickness of PML region
 #define  MEDIACONSTANT    (2)                        // number of different media, ie 2: vacuum, metal object
-#define  NUMBEROFITERATIONCONSTANT    (8000)          // Number of timesteps
+#define  NUMBEROFITERATIONCONSTANT    (8192)          // Number of timesteps
 #define  NUMBEROFREGIONS    (5)                      // center(main), front, back, left, right
 
 #define  NUMBERDFTFREQS    (20)                      // Number of frequencies to compute DFTs at
+#define  DFTPADDEDTIME    (16384)
 
 struct RegionDataValues{
   int xStart,yStart,xStop,yStop;
@@ -53,11 +54,11 @@ struct Grid {
   int kList[NUMBERDFTFREQS];       // List storing the wave vectors we are taking the DFTs at
   double wavelengthList[NUMBERDFTFREQS]; // "" wavelengths
 
-  // Testing storing Re/Im of Ey and Hz instead of alternate running sum...
-  double **reEyDFT;
-  double **imEyDFT;
-  double **reHzDFT;
-  double **imHzDFT;
+  // Arrays to store DFT running sums as a function of position and frequency
+  double **reReflDFT;
+  double **imReflDFT;
+  double **reTranDFT;
+  double **imTranDFT;
 
   // E^2 field for plotting:
   double **e2Field;
