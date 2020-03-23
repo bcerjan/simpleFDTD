@@ -196,10 +196,10 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     reflDFT = AllocateMemory1D(numFreqs, 0.0);
     tranDFT = AllocateMemory1D(numFreqs, 0.0);
 
-    reEyDFT = AllocateMemory(numFreqs, ySize, 0.0);
-    imEyDFT = AllocateMemory(numFreqs, ySize, 0.0);
-    reHzDFT = AllocateMemory(numFreqs, ySize, 0.0);
-    imHzDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    reReflDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    imReflDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    reTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    imTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
 
     reflXPos = abcSize + 5;
     tranXPos = xSize - abcSize - 5;
@@ -275,8 +275,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     object_locs = AllocateMemory(xSize, ySize, 0.0); // This really shouldn't be an array of doubles -- we're wasting memory here
 
     // Initialize structure functions:
-    xCenter = (xSize / 2) + 5;
-    yCenter = ySize / 2;
+    xCenter = (xSize / 2) + 5; // In grid units
+    yCenter = ySize / 2; // ""
     structInit(xCenter, yCenter);
 printf("Strucutre Init...\n" );
     // Switch Block to pick structure geometry (default is no object):
