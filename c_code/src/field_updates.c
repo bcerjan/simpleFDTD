@@ -118,22 +118,29 @@ void DFTUpdate (struct Grid *g, int n) {
   yStart = regionData[regionIndex].yStart;
   yStop  = regionData[regionIndex].yStop ;
 
+  /*char tranFilename[100] = "disk_tran_raw.h";
+  FILE *tranDataPtr;
+
+  // Write to header file for use later
+  tranDataPtr = fopen(tranFilename, "a");
+  fprintf(tranDataPtr, "%.17g,\n", ey[tranXPos][75]);
+  fclose(tranDataPtr);*/
+
   for (i = 0; i < NUMBERDFTFREQS; i++) {
     for (j = yStart; j < yStop; j++) {
       kVal = (double )kList[i];
       //temporary = -1.0 * 0.5 * (ey[reflXPos][j]*hz[reflXPos][j]); // Poynting Flux through our line (positive x) (so we negate the result)
       temporary = ey[reflXPos][j];
-      reflDFT[i] += temporary * cos(2*pi*kVal*time/maxTime); // Schneider 5.32
-      reEyDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
-      imEyDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
-      temporary = hz[reflXPos][j];
-      reHzDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
-      imHzDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
+      reReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
+      imReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
+
+      temporary = hey[tranXPos][j];
+      reTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
+      imTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
       //temporary = 0.5 * (ey[tranXPos][j]*hz[tranXPos][j]); // Poynting Flux through our line
-      temporary = ey[tranXPos][j];
-      tranDFT[i] += temporary * cos(2*pi*kVal*time/maxTime);
     } /* jForLoop */
   } /* iForLoop */
+
 
   return;
 }
@@ -214,25 +221,17 @@ void finishDFT (struct Grid *g) {
   // Apply scaling outside of the sum (Schneider 5.32-33)
   for (i = 0 ; i < NUMBERDFTFREQS; i++) {
     for (j = yStart; j < yStop; j++) {
-      reEyDFT[i][j] = reEyDFT[i][j] / (maximumIteration);
-      imEyDFT[i][j] = imEyDFT[i][j] / (maximumIteration - 1);
+      /*reEyDFT[i][j] = reEyDFT[i][j];
+      imEyDFT[i][j] = imEyDFT[i][j];
       reHzDFT[i][j] = reHzDFT[i][j] / (maximumIteration);
-      imHzDFT[i][j] = imHzDFT[i][j] / (maximumIteration - 1);
+      imHzDFT[i][j] = imHzDFT[i][j] / (maximumIteration - 1);*/
 
       // Now store the Poynting flux in positive x-direction as a function of position:
-      temporary = 2 * ( (reEyDFT[i][j] * reHzDFT[i][j]) + (imEyDFT[i][j] * imHzDFT[i][j]) );
-      // Im piece is positive because i * i = -1, but it's the complex conjugate of Im(Hz) -> -1 * -1 = 1
-
-      // Finally do numeric integration (just summing):
-      reflDFT[i] += temporary;
+      reflDFT[i] += ( (reReflDFT[i][j] * reReflDFT[i][j]) + (imReflDFT[i][j] * imReflDFT[i][j]) );
+      tranDFT[i] += ( (reTranDFT[i][j] * reTranDFT[i][j]) + (imTranDFT[i][j] * imTranDFT[i][j]) );
 
     } /* jForLoop */
   } /* iForLoop */
-
-  for (i = 0; i < NUMBERDFTFREQS; i++) {
-    //reflDFT[i] = reflDFT[i] / ( maximumIteration );
-    tranDFT[i] = tranDFT[i] / ( maximumIteration );
-  }
-
+  
   return;
 }
