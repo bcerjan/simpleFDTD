@@ -23,9 +23,10 @@ double ezInc(double time, double location) {
 void lineSource(struct Grid *g, int x_ind, int time) {
   int j;
   double t = time;
-  for (j = 1; j < ySize-1; j++) {
-    ey[x_ind][j] = ezInc(t, 0.0); // Y-Polarized source field
-  }
-
+  if(time < 276) {
+    for (j = 1; j < ySize-1; j++) {
+      ey[x_ind][j] = ezInc(t, 0.0); // Y-Polarized source field
+    } /* jForLoop */
+  } /* if */
   return;
 }
