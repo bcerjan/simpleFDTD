@@ -108,7 +108,7 @@ void DFTUpdate (struct Grid *g, int n) {
   double temporary;
   double time, maxTime, kVal;
   // Need to convert ints to doubles
-  maxTime = (double  )maximumIteration;
+  maxTime = (double  )DFTPADDEDTIME;
   time = (double  )n;
 
   /***********************************************************************/
@@ -134,7 +134,7 @@ void DFTUpdate (struct Grid *g, int n) {
       reReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
-      temporary = hey[tranXPos][j];
+      temporary = ey[tranXPos][j];
       reTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
       //temporary = 0.5 * (ey[tranXPos][j]*hz[tranXPos][j]); // Poynting Flux through our line
@@ -195,7 +195,7 @@ void NormalizeDFT (struct Grid *g) {
 
   // Normalize our DFT's relative to empty run:
   for (i = 0; i < NUMBERDFTFREQS; i++) {
-    reflDFT[i] = reflDFT[i] / ( emptyReflDFT[i] );
+    reflDFT[i] = reflDFT[i] / ( emptyReflDFT[i] ) - 1.0; // -1.0 because there is always reflected light due to the source
     tranDFT[i] = tranDFT[i] / ( emptyTranDFT[i] );
   } /* iForLoop */
 
@@ -232,6 +232,6 @@ void finishDFT (struct Grid *g) {
 
     } /* jForLoop */
   } /* iForLoop */
-  
+
   return;
 }
