@@ -168,6 +168,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     hzy = AllocateMemory1D(boundaryDataSize, 0.0 );        // for the split-field data for hz in the pml regions
 
     e2Field = AllocateMemory(xSize, ySize, 0.0);           // E^2 for plotting
+    edgeMat = AllocateMemory(xSize, ySize, 0.0);
 
     /* Polarization Current Fields */
     jx = AllocateMemory(xSize, ySize, 0.0);
@@ -208,11 +209,12 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     waveMin = (400.0e-9) / dx; // 400 nm
     waveMax = (800.0e-9) / dx; // to 800 nm
 
+    double maxDFTTime = DFTPADDEDTIME; // Since we 0-pad the DFT we have a ficticious time that is longer than the simulation
     // Find frequencies:
     for (i = 0; i < numFreqs; i++) {
       // Calculate evenly spaced frequencies from 400 to 800 nm
       temporary = waveMin + ((double  )i * (waveMax - waveMin) / ((double  )numFreqs - 1));
-      kList[i] = (int  )round(maximumIteration * courantS / temporary); // Schneider 5.29
+      kList[i] = (int  )round(maxDFTTime * courantS / temporary); // Schneider 5.29
 
       // Now convert back to find the "real" wavelength we are working with:
       wavelengthList[i] = maximumIteration * courantS / (double  )kList[i]; // Same, but inverted for wavelength
@@ -290,10 +292,10 @@ printf("Strucutre Init...\n" );
         break;
 
       case 2: // Triangle
-        addTriangle(g, 30.0 * dx);
+        addTriangle(g, 60.0 * dx);
         break;
     } /* switch */
-printf("Strucutre Added 1...\n" );
+
     // Add structure:
     for(i = 0; i < xSize; i++) {
       for (j = 0; j < ySize; j++) {

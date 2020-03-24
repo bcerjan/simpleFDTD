@@ -32,6 +32,7 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(exOld, xSize);
   freeDoublePtr(eyOld, xSize + 1);
   freeDoublePtr(e2Field, xSize);
+  freeDoublePtr(edgeMat, xSize);
   freeDoublePtr(object_locs, xSize);
 
   freeDoublePtr(reReflDFT, NUMBERDFTFREQS);
