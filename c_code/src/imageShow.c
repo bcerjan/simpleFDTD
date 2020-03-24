@@ -6,7 +6,6 @@
 
 /** Function to find walls using arma mat instead of image: **/
 void findMatEdge(struct Grid *g) {
-printf("Inside findMatEdge");
   int i,j,n,k;
 
   //double **out = AllocateMemory(sizeX, sizeY, 0.0);
@@ -111,7 +110,7 @@ void imageShow(struct Grid *g) {
   // Initialize SDL:
   SDL_Init(SDL_INIT_VIDEO);
   // Window:
-  SDL_Window *MainWindow = SDL_CreateWindow("Simulation Window",
+  SDL_Window *MainWindow = SDL_CreateWindow("simpleFDTD",
                                SDL_WINDOWPOS_CENTERED,
                                SDL_WINDOWPOS_CENTERED,
                                WINDOW_WIDTH, WINDOW_HEIGHT,
