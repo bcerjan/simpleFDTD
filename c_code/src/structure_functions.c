@@ -37,8 +37,8 @@ void addRect(struct Grid *g, double width, double length) {
     for (j = 0; j < ySize; j++) {
       tempi = (double )(i - xCent) * dx;
       tempj = (double )(j - yCent) * dx;
-      distanceX = fabs(tempi - width/2.0); // This is offset from "perfect" by half a unit cell
-      distanceY = fabs(tempj - length/2.0); // ""
+      distanceX = fabs(tempi); // This is offset from "perfect" by half a unit cell
+      distanceY = fabs(tempj); // ""
       if(distanceX <= width/2.0 && distanceY <= length/2.0) {
         object_locs[i][j] = 1.0;
       } /* if */
