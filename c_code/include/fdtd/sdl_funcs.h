@@ -3,7 +3,7 @@
 
 #include "fdtd_macro.h"
 
-double **findMatEdge(double **matrix, int sizeX, int sizeY);
+void findMatEdge(struct Grid *g);
 void imageShow(struct Grid *g);
 void PlotField (struct Grid *g, double maximumValue, double minimumValue);
 
