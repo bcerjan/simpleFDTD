@@ -16,7 +16,8 @@ SRC = $(widlcard $(SRC_DIR)/*.c)
 # We don't need all of the objects as some of them are only needed
 # for the binary version of the file
 _OBJ = emscripten_out.o field_updates.o grid_free.o grid_initialization.o \
-       imageShow.o memory_allocation.o ricker.o structure_functions.o
+       imageShow.o memory_allocation.o ricker.o structure_functions.o \
+       array_functions.o
 OBJ = $(patsubst %, $(OBJ_DIR)/%,$(_OBJ))
 
 HTML_TEMPLATE = ../html_templates/simulation_template.html
