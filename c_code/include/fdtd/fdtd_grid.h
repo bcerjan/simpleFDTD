@@ -3,7 +3,7 @@
 
 #define  ABCSIZECONSTANT    (8)                      // thickness of PML region
 #define  MEDIACONSTANT    (2)                        // number of different media, ie 2: vacuum, metal object
-#define  NUMBEROFITERATIONCONSTANT    (8192)          // Number of timesteps
+#define  NUMBEROFITERATIONCONSTANT    (2048)          // Number of timesteps
 #define  NUMBEROFREGIONS    (5)                      // center(main), front, back, left, right
 
 #define  NUMBERDFTFREQS    (20)                      // Number of frequencies to compute DFTs at
@@ -62,6 +62,8 @@ struct Grid {
 
   // E^2 field for plotting:
   double **e2Field;
+  // Matrix containing edge locations:
+  double **edgeMat;
 
   // Array to track where our object is/is not:
   double **object_locs;

@@ -48,13 +48,14 @@
 #define TranDFTG(G) G->tranDFT
 #define KListG(G) G->kList
 #define WavelengthListG(G) G->wavelengthList
-#define ReEyDFTG(G) G->reEyDFT
-#define ImEyDFTG(G) G->imEyDFT
-#define ReHzDFTG(G) G->reHzDFT
-#define ImHzDFTG(G) G->imHzDFT
+#define ReReflDFTG(G) G->reReflDFT
+#define ImReflDFTG(G) G->imReflDFT
+#define ReTranDFTG(G) G->reTranDFT
+#define ImTranDFTG(G) G->imTranDFT
 
 // For plotting:
 #define E2FieldG(G) G->e2Field
+#define EdgeMatG(G) G->edgeMat
 
 // Source values and PML Regions
 #define SourceValG(G) G->sourceValue
@@ -113,13 +114,14 @@
 #define kList KListG(g)
 #define wavelengthList WavelengthListG(g)
 
-#define reEyDFT ReEyDFTG(g)
-#define imEyDFT ImEyDFTG(g)
-#define reHzDFT ReHzDFTG(g)
-#define imHzDFT ImHzDFTG(g)
+#define reReflDFT ReReflDFTG(g)
+#define imReflDFT ImReflDFTG(g)
+#define reTranDFT ReTranDFTG(g)
+#define imTranDFT ImTranDFTG(g)
 
 // For plotting:
 #define e2Field E2FieldG(g)
+#define edgeMat EdgeMatG(g)
 
 // Source values and PML Regions
 #define sourceVal SourceValG(g)
