@@ -5,11 +5,11 @@
 #include <stdlib.h>
 
 /** Function to find walls using arma mat instead of image: **/
-double **findMatEdge(double **matrix, int sizeX, int sizeY) {
-
+void findMatEdge(struct Grid *g) {
+printf("Inside findMatEdge");
   int i,j,n,k;
 
-  double **out = AllocateMemory(sizeX, sizeY, 0.0);
+  //double **out = AllocateMemory(sizeX, sizeY, 0.0);
   double Gx;
   double Gy;
   double gx[3][3];
@@ -40,23 +40,24 @@ double **findMatEdge(double **matrix, int sizeX, int sizeY) {
              {0, 0, 0},
              {-1, -2, -1} };
 */
-  for (i = 1; i < sizeX-3; i++) {
-    for (j = 1; j < sizeY-3; j++) {
+  for (i = 1; i < xSize-3; i++) {
+    for (j = 1; j < ySize-3; j++) {
       Gx = 0.0;
       Gy = 0.0;
       // Manual 2-D convolution:
       for (n = -1; n < 2; n++) { // CHECK ME. MIGHT BE OFF-BY-ONE!!
         for (k = -1; k < 2; k++) {
-          Gx += gx[n][k] * matrix[i+n][j+k];
-          Gy += gy[n][k] * matrix[i+n][j+k];
+          Gx += gx[n+1][k+1] * object_locs[i+n][j+k];
+          Gy += gy[n+1][k+1] * object_locs[i+n][j+k];
         } /* kForLoop */
       } /* nForLoop */
 
-      out[i+1][j+1] = pow(Gx*Gx + Gy*Gy, 0.5);
+      edgeMat[i+1][j+1] = pow(Gx*Gx + Gy*Gy, 0.5);
+      //printf("edgeMat[%i][%i]: %f\n",i+1,j+1,edgeMat[i+1][j+2]);
     } /* jForLoop */
   } /* iForLoop */
 
-  return out;
+  return;
 
 }
 
@@ -103,7 +104,7 @@ void imageShow(struct Grid *g) {
   const double CENTER_X = WINDOW_WIDTH/2.0;
   const double CENTER_Y = WINDOW_HEIGHT/2.0;
 
-  float z;
+  float z,b,r;
 
   unsigned int xc, yc;
 
@@ -135,6 +136,14 @@ void imageShow(struct Grid *g) {
       xc = CENTER_X - j;
       yc = CENTER_Y - i;
       z = (float )e2Field[i][j]; // Get value at this pixel (scaled)
+      b = 0.0;
+      r = 0.0;
+      if (edgeMat[i][j] > 4.0) {
+        b = 160.0;
+        z = 160.0;
+        r = 160.0;
+      }
+      //z = 200.0* (float )object_locs[i][j]; // Get value at this pixel (scaled)
       //z = 125.0;
       //float [r,g,b] = colormap(z)
       // or base[0],base[1],base[2] = colormap(z) or something...
@@ -148,9 +157,9 @@ void imageShow(struct Grid *g) {
           }*/
           //base = ((Uint8 *)pixels) + (4*((j+l)*WINDOW_WIDTH + (i+k)));
           base = ((Uint8 *)pixels) + (4*((j)*WINDOW_WIDTH + (i)));
-          base[0] = 0; // Blue
+          base[0] = b; // Blue
           base[1] = z; // Green
-          base[2] = 0; // Red
+          base[2] = r; // Red
           base[3] = 255; // Opacity? 255 => totally opaque
         //} /* lForLoop */
       //} /* kForLoop */
