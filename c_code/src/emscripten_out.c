@@ -18,15 +18,15 @@ void iterateSimulation(struct Grid *g) {
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, timeStep);
 
-    if (timeStep < 375) {
+    if (timeStep < 350) {
       //printf("Loop step: %i\n",timeStep);
       //printf( "Drawing to screen...\n" );
-      PlotField(g,6.0,0.0);
+      PlotField(g,3.0,0.0);
     }
 
     timeStep++;
     // Check if we're done with the simulation:
-    if (timeStep > 400) {
+    if (timeStep > maximumIteration) {
       // Scale our DFT's by number of time steps:
       finishDFT(g);
       // And scale them based on an empty run:
@@ -55,7 +55,11 @@ int fdtdSim(int metalChoice, int objectChoice) {
 
   InitializeFdtd(g, metalChoice, objectChoice); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
-
+  // prepare matrix of object edges:
+  findMatEdge(g);
+  printf("Found Edges\n");
+  //printf("max edgeMat: %f\n", ArrayMax(edgeMat,xSize,ySize));
+  //printf("min edgeMat: %f\n", ArrayMin(edgeMat,xSize,ySize));
   maximumIteration = NUMBEROFITERATIONCONSTANT;
   interval = 0;
   timeStep = 0;
