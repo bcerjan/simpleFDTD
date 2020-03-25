@@ -217,7 +217,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
       kList[i] = (int  )round(maxDFTTime * courantS / temporary); // Schneider 5.29
 
       // Now convert back to find the "real" wavelength we are working with:
-      wavelengthList[i] = maximumIteration * courantS / (double  )kList[i]; // Same, but inverted for wavelength
+      wavelengthList[i] = maxDFTTime * courantS / (double  )kList[i]; // Same, but inverted for wavelength
       /*printf("kList[%i]: %i\n", i, kList[i] );
       printf("wavelengthList[%i]: %f\n", i, wavelengthList[i] );*/
     } /* iForLoop */
