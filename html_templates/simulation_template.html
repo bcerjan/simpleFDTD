@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.png">
+
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
+
     <!-- Include Bootstrap -->
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
@@ -25,7 +31,7 @@
     </style>
   </head>
   <body>
-
+  <br>
   <div class="container">
     <div class="jumbotron">
       <h1 class="display-4">simpleFDTD</h1>
@@ -138,25 +144,29 @@
 
     </div> <!-- Accordion -->
 
-    <div>
       <hr class="my-4">
       <button type="button" class="btn btn-success" id="runSim">Run Simulation</button>
       <br>
-      <div>
-        <canvas class="emscripten" id="canvas" tabindex=-1 width="142" height="166"></canvas>
+    <div class="row align-middle">
+      <div class="col">
+        <canvas class="emscripten" id="canvas" tabindex=-1 width="142" height="166" aria-label="FDTD Simulation Window"></canvas>
       </div>
 
+     <div class="col">
+       <canvas id="outputData" width="400" height="400" aria-label="Reflection and Transmission Results"></canvas>
+     </div>
+   </div>
       <br>
-
+   <div class="row">
       <div class="progress w-50 emscripten">
         <div class="progress-bar progress-bar-striped bg-success" role="progressbar"
         style="width: 0%" aria-valuenow="0" aria-valuemax="100" id="progress"></div>
       </div>
-
+   </div>
       <hr>
       <textarea class="emscripten" id="output" rows="8"></textarea>
       <hr>
-    </div>
+
   </div> <!-- Container -->
 
     <script type='text/javascript'>
@@ -212,38 +222,53 @@
       // Buttons for simulation running
       document.querySelector('#fdtdDisk')
         .addEventListener('click', function() {
-          console.log('fdtd clicked')
+          console.log('fdtd clicked');
           api.fdtd(0,0);
         });
       document.querySelector('#fdtdRectangle')
         .addEventListener('click', function() {
-          console.log('fdtd clicked')
+          console.log('fdtd clicked');
           api.fdtd(0,1);
+          console.log('fdtd done');
         });
       document.querySelector('#fdtdTriangle')
         .addEventListener('click', function() {
-          console.log('fdtd clicked')
+          console.log('fdtd clicked');
           api.fdtd(0,2);
         });
       document.querySelector('#fdtdEmpty')
         .addEventListener('click', function() {
-          console.log('fdtd clicked')
+          console.log('fdtd clicked');
           api.fdtd(0,-1);
         });
 
-    var funcVar = 0;
-    function testFunc() {
-      console.log("Test Func " + funcVar);
-      funcVar++;
+    const ctx = document.getElementById('outputData').getContext('2d');
+    var data = {
+      datasets: [{
+        label: 'Refl Data',
+        data: [],
+      }, {
+        label: 'Tran Data',
+        data: [{
+          x: 1,
+          y: -1
+        }],
+      }]
     }
-/*
-    function updateProgress(percent) {
-      const bar = $('#progress');
-      bar.html(percent+"%");
-      bar.css("width", percent + "%");
-      bar.attr('aria-valuenow', percent);
-    }
-*/
+    var options = {
+      scales: {
+        xAxes: [{
+          type: 'linear',
+          position: 'bottom'
+        }]
+      }
+    };
+    var outputChart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: options
+    });
+
     </script>
 
     {{{ SCRIPT }}}
