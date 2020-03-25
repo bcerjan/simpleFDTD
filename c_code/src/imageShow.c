@@ -109,6 +109,10 @@ void imageShow(struct Grid *g) {
 
   // Initialize SDL:
   SDL_Init(SDL_INIT_VIDEO);
+
+  // Don't eat all keyboard inputs:
+  SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+  
   // Window:
   SDL_Window *MainWindow = SDL_CreateWindow("simpleFDTD",
                                SDL_WINDOWPOS_CENTERED,
