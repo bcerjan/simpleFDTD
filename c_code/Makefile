@@ -34,7 +34,8 @@ EMSDKFLAGS += $(CXXFLAGS) \
            -s ALLOW_MEMORY_GROWTH=1 \
            --output_eol linux \
            $(EXPORTS) \
-           --profiling-funcs
+           --profiling-funcs \
+					 --js-library ./src/custom_js.js
 
 
 #OPT = -O2
