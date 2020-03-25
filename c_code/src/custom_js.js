@@ -46,6 +46,5 @@ mergeInto(LibraryManager.library, {
 mergeInto(LibraryManager.library, {
   updateChartData: function() {
     outputChart.update();
-    console.log(outputChart);
   }
 });
