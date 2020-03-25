@@ -3,7 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Emscripten-Generated Code</title>
+
+    <!-- Include Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <title>simpleFDTD</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <style>
       .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
       textarea.emscripten { font-family: monospace; width: 80%; }
@@ -11,85 +18,151 @@
       div.emscripten_border { border: 1px solid black; }
       /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
       canvas.emscripten { border: 0px none; background-color: black; }
-
-      .spinner {
-        height: 50px;
-        width: 50px;
-        margin: 0px auto;
-        -webkit-animation: rotation .8s linear infinite;
-        -moz-animation: rotation .8s linear infinite;
-        -o-animation: rotation .8s linear infinite;
-        animation: rotation 0.8s linear infinite;
-        border-left: 10px solid rgb(0,150,240);
-        border-right: 10px solid rgb(0,150,240);
-        border-bottom: 10px solid rgb(0,150,240);
-        border-top: 10px solid rgb(100,0,200);
-        border-radius: 100%;
-        background-color: rgb(200,100,250);
-      }
-      @-webkit-keyframes rotation {
-        from {-webkit-transform: rotate(0deg);}
-        to {-webkit-transform: rotate(360deg);}
-      }
-      @-moz-keyframes rotation {
-        from {-moz-transform: rotate(0deg);}
-        to {-moz-transform: rotate(360deg);}
-      }
-      @-o-keyframes rotation {
-        from {-o-transform: rotate(0deg);}
-        to {-o-transform: rotate(360deg);}
-      }
-      @keyframes rotation {
-        from {transform: rotate(0deg);}
-        to {transform: rotate(360deg);}
+      .card-header {
+        cursor: pointer;
       }
 
     </style>
   </head>
   <body>
-    <hr/>
-    <figure style="overflow:visible;" id="spinner"><div class="spinner"></div><center style="margin-top:0.5em"><strong>emscripten</strong></center></figure>
-    <div class="emscripten" id="status">Downloading...</div>
-    <div class="emscripten">
-      <progress value="0" max="100" id="progress" hidden=1></progress>
-    </div>
-    <div class="emscripten_border">
-      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 width="360" height="224"></canvas>
-    </div>
-    <hr/>
-    <div class="emscripten">
-      <input type="checkbox" id="resize">Resize canvas
-      <input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer
-      &nbsp;&nbsp;&nbsp;
-      <input type="button" value="Fullscreen" onclick="Module.requestFullscreen(document.getElementById('pointerLock').checked,
-                                                                                document.getElementById('resize').checked)">
+
+  <div class="container">
+    <div class="jumbotron">
+      <h1 class="display-4">simpleFDTD</h1>
+      <p class="lead">A browser-based FDTD simulation built using WebAssembly</p>
+      <hr class="my-4">
+      <p>Select a shape, size, material, and environment to get started</p>
     </div>
 
-    <hr/>
-    <textarea class="emscripten" id="output" rows="8"></textarea>
-    <hr>
+    <div class="accordion" id="controlAccordion">
 
-    <button id="fdtdDisk">Run FDTD with a Disk</button>
-    <button id="fdtdRectangle">Run FDTD with a Rectangle</button>
-    <button id="fdtdTriangle">Run FDTD with a Triangle</button>
-    <button id="fdtdEmpty">Run Empty FDTD</button>
+      <div class="card">
+        <div class="card-header" id="shapeHeader" data-toggle="collapse" data-parent="#controlAccordion" data-target="#shapeCollapse">
+          <h2 class="mb-0">
+            <button class="btn btn-link text-decoration-none" type="button" data-toggle="collapse" data-target="#shapeCollapse"
+              aria-controls="shapeCollapse">
+              Object Shape
+            </button>
+          </h2>
+        </div>
+        <div id="shapeCollapse" class="collapse" aria-labelledby="shapeHeader" data-parent="#controlAccordion">
+          <div class="card-body">
+            <div class="btn-group btn-group-toggle" role="group" data-toggle="buttons" aria-label="Material Choices">
+              <label class="btn btn-secondary active">
+                <input type="radio" name="shapeOptions" id="fdtdDisk" checked>Disk
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="shapeOptions" id="fdtdRectangle">Rectangle
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="shapeOptions" id="fdtdTriangle">Triangle
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="shapeOptions" id="fdtdEmpty">Empty
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" id="sizeHeader" data-toggle="collapse" data-parent="#controlAccordion" data-target="#sizeCollapse">
+          <h2 class="mb-0">
+            <button class="btn btn-link text-decoration-none" type="button" data-toggle="collapse" data-target="#sizeCollapse"
+              aria-expanded="true" aria-controls="sizeCollapse">
+              Object Size
+            </button>
+          </h2>
+        </div>
+        <div id="sizeCollapse" class="collapse" aria-labelledby="sizeHeader" data-parent="#controlAccordion">
+          <div class="card-body">
+            <div class="input-group md-3">
+              <input type="text" class="form-control" placeholder="100" arai-label="Object Size" aria-describedby="units">
+              <div class="input-group-append">
+                <span class="input-group-text" id="units">nm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" id="materialHeader" data-toggle="collapse" data-parent="#controlAccordion" data-target="#materialCollapse">
+          <h2 class="mb-0">
+            <button class="btn btn-link text-decoration-none" type="button" data-toggle="collapse" data-target="#materialCollapse"
+              aria-expanded="true" aria-controls="materialCollapse">
+              Object Material
+            </button>
+          </h2>
+        </div>
+        <div id="materialCollapse" class="collapse" aria-labelledby="materialHeader" data-parent="#controlAccordion">
+          <div class="card-body">
+            <div class="btn-group btn-group-toggle" role="group" data-toggle="buttons" aria-label="Material Choices">
+              <label class="btn btn-secondary active">
+                <input type="radio" name="materialOptions" id="materialAl" checked>Aluminum
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="materialOptions" id="materialAu">Gold
+              </label>
+              <label class="btn btn-secondary active">
+                <input type="radio" name="materialOptions" id="materialAg">Silver
+              </label>
+              <label class="btn btn-secondary active">
+                <input type="radio" name="materialOptions" id="materialCu">Copper
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" id="environmentHeader" data-toggle="collapse" data-parent="#controlAccordion" data-target="#environmentCollapse">
+          <h2 class="mb-0">
+            <button class="btn btn-link text-decoration-none" type="button" data-toggle="collapse" data-target="#environmentCollapse"
+              aria-expanded="true" aria-controls="environmentCollapse">
+              Dielectric Environment
+            </button>
+          </h2>
+        </div>
+        <div id="environmentCollapse" class="collapse" aria-labelledby="environmentHeader" data-parent="#controlAccordion">
+          <div class="card-body">
+            <div class="input-group md-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="index">Refractive Index:</span>
+              </div>
+              <input type="text" class="form-control" placeholder="1.0" arai-label="Object environment" aria-describedby="index">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- Accordion -->
+
+    <div>
+      <hr class="my-4">
+      <button type="button" class="btn btn-success" id="runSim">Run Simulation</button>
+      <br>
+      <div>
+        <canvas class="emscripten" id="canvas" tabindex=-1 width="142" height="166"></canvas>
+      </div>
+
+      <br>
+
+      <div class="progress w-50 emscripten">
+        <div class="progress-bar progress-bar-striped bg-success" role="progressbar"
+        style="width: 0%" aria-valuenow="0" aria-valuemax="100" id="progress"></div>
+      </div>
+
+      <hr>
+      <textarea class="emscripten" id="output" rows="8"></textarea>
+      <hr>
+    </div>
+  </div> <!-- Container -->
 
     <script type='text/javascript'>
-      var statusElement = document.getElementById('status');
       var progressElement = document.getElementById('progress');
-      var spinnerElement = document.getElementById('spinner');
       var p = 0; // Pointer needs to be semi-global
-      var imageData;
       var api;
-
-      // Load our default image:
-      const ctx = document.getElementById('canvas').getContext('2d');
-      var img = new Image();
-      img.addEventListener('load', function() {
-        ctx.drawImage(img,0,0);
-        imageData = ctx.getImageData(0,0,img.width,img.height);
-      }, false);
-      img.src = '/ben_test/wifiMap/website/images/floorPlan.png';
 
 
       var Module = {
@@ -126,33 +199,6 @@
 
           return canvas;
         })(),
-        setStatus: function(text) {
-          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-          if (text === Module.setStatus.last.text) return;
-          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-          var now = Date.now();
-          if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
-          Module.setStatus.last.time = now;
-          Module.setStatus.last.text = text;
-          if (m) {
-            text = m[1];
-            progressElement.value = parseInt(m[2])*100;
-            progressElement.max = parseInt(m[4])*100;
-            progressElement.hidden = false;
-            spinnerElement.hidden = false;
-          } else {
-            progressElement.value = null;
-            progressElement.max = null;
-            progressElement.hidden = true;
-            if (!text) spinnerElement.hidden = true;
-          }
-          statusElement.innerHTML = text;
-        },
-        totalDependencies: 0,
-        monitorRunDependencies: function(left) {
-          this.totalDependencies = Math.max(this.totalDependencies, left);
-          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-        },
         onRuntimeInitialized: function() {
           // API for preparing image transfers:
           api = {
@@ -162,15 +208,6 @@
         },
 
       };
-      Module.setStatus('Downloading...');
-      window.onerror = function() {
-        Module.setStatus('Exception thrown, see JavaScript console');
-        spinnerElement.style.display = 'none';
-        Module.setStatus = function(text) {
-          if (text) Module.printErr('[post-exception status] ' + text);
-        };
-      };
-
 
       // Buttons for simulation running
       document.querySelector('#fdtdDisk')
@@ -193,20 +230,24 @@
           console.log('fdtd clicked')
           api.fdtd(0,-1);
         });
-    function grayscale(imgData) {
-      var avg = [];
 
-      for( var i=0; i < imgData.data.length; i += 4 ) {
-        avg.push( (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2])/3.0 );
-      };
-      console.log(Math.max(...avg));
-      console.log(avg.length);
-      return avg;
-
+    var funcVar = 0;
+    function testFunc() {
+      console.log("Test Func " + funcVar);
+      funcVar++;
     }
+/*
+    function updateProgress(percent) {
+      const bar = $('#progress');
+      bar.html(percent+"%");
+      bar.css("width", percent + "%");
+      bar.attr('aria-valuenow', percent);
+    }
+*/
     </script>
 
     {{{ SCRIPT }}}
+
 
   </body>
 </html>
