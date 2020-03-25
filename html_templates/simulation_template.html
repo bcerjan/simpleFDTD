@@ -35,9 +35,10 @@
   <div class="container">
     <div class="jumbotron">
       <h1 class="display-4">simpleFDTD</h1>
-      <p class="lead">A browser-based FDTD simulation built using WebAssembly</p>
+      <p class="lead">A browser-based Finite-Difference Time-Domain (FDTD) simulation built using WebAssembly</p>
       <hr class="my-4">
       <p>Select a shape, size, material, and environment to get started</p>
+      <small class="text-muted">For more information, see <a href="about.html">here</a></small>
     </div>
 
     <div class="accordion" id="controlAccordion">
@@ -229,27 +230,6 @@
           const dielectric = $('#dielectricEnvironment').val();
           api.fdtd(material,shape);
         });
-      /*document.querySelector('#fdtdDisk')
-        .addEventListener('click', function() {
-          console.log('fdtd clicked');
-          api.fdtd(0,0);
-        });
-      document.querySelector('#fdtdRectangle')
-        .addEventListener('click', function() {
-          console.log('fdtd clicked');
-          api.fdtd(0,1);
-          console.log('fdtd done');
-        });
-      document.querySelector('#fdtdTriangle')
-        .addEventListener('click', function() {
-          console.log('fdtd clicked');
-          api.fdtd(0,2);
-        });
-      document.querySelector('#fdtdEmpty')
-        .addEventListener('click', function() {
-          console.log('fdtd clicked');
-          api.fdtd(0,-1);
-        });*/
 
     const ctx = document.getElementById('outputData').getContext('2d');
     var data = {
@@ -284,7 +264,6 @@
     </script>
 
     {{{ SCRIPT }}}
-
 
   </body>
 </html>
