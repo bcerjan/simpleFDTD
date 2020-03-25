@@ -55,16 +55,16 @@
           <div class="card-body">
             <div class="btn-group btn-group-toggle" role="group" data-toggle="buttons" aria-label="Material Choices">
               <label class="btn btn-secondary active">
-                <input type="radio" name="shapeOptions" id="fdtdDisk" checked>Disk
+                <input type="radio" name="shapeOptions" id="fdtdDisk" value="0" checked>Disk
               </label>
               <label class="btn btn-secondary">
-                <input type="radio" name="shapeOptions" id="fdtdRectangle">Rectangle
+                <input type="radio" name="shapeOptions" id="fdtdRectangle" value="1">Rectangle
               </label>
               <label class="btn btn-secondary">
-                <input type="radio" name="shapeOptions" id="fdtdTriangle">Triangle
+                <input type="radio" name="shapeOptions" id="fdtdTriangle" value="2">Triangle
               </label>
               <label class="btn btn-secondary">
-                <input type="radio" name="shapeOptions" id="fdtdEmpty">Empty
+                <input type="radio" name="shapeOptions" id="fdtdEmpty" value="-1">Empty
               </label>
             </div>
           </div>
@@ -83,7 +83,7 @@
         <div id="sizeCollapse" class="collapse" aria-labelledby="sizeHeader" data-parent="#controlAccordion">
           <div class="card-body">
             <div class="input-group md-3">
-              <input type="text" class="form-control" placeholder="100" arai-label="Object Size" aria-describedby="units">
+              <input type="number" class="form-control" id="objectLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
               <div class="input-group-append">
                 <span class="input-group-text" id="units">nm</span>
               </div>
@@ -105,16 +105,16 @@
           <div class="card-body">
             <div class="btn-group btn-group-toggle" role="group" data-toggle="buttons" aria-label="Material Choices">
               <label class="btn btn-secondary active">
-                <input type="radio" name="materialOptions" id="materialAl" checked>Aluminum
+                <input type="radio" name="materialOptions" id="materialAl" value="0" checked>Aluminum
               </label>
               <label class="btn btn-secondary">
-                <input type="radio" name="materialOptions" id="materialAu">Gold
+                <input type="radio" name="materialOptions" id="materialAu" value="1">Gold
               </label>
               <label class="btn btn-secondary active">
-                <input type="radio" name="materialOptions" id="materialAg">Silver
+                <input type="radio" name="materialOptions" id="materialAg" value="2">Silver
               </label>
               <label class="btn btn-secondary active">
-                <input type="radio" name="materialOptions" id="materialCu">Copper
+                <input type="radio" name="materialOptions" id="materialCu" value="3">Copper
               </label>
             </div>
           </div>
@@ -136,7 +136,7 @@
               <div class="input-group-prepend">
                 <span class="input-group-text" id="index">Refractive Index:</span>
               </div>
-              <input type="text" class="form-control" placeholder="1.0" arai-label="Object environment" aria-describedby="index">
+              <input type="number" class="form-control" id="dielectricEnvironment" value="1.0" step="0.1" aria-label="Object dielectric environment" aria-describedby="index">
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@
       <hr class="my-4">
       <button type="button" class="btn btn-success" id="runSim">Run Simulation</button>
       <br>
-    <div class="row align-middle">
+    <div class="row justify-content-center align-items-center">
       <div class="col">
         <canvas class="emscripten" id="canvas" tabindex=-1 width="142" height="166" aria-label="FDTD Simulation Window"></canvas>
       </div>
@@ -220,7 +220,16 @@
       };
 
       // Buttons for simulation running
-      document.querySelector('#fdtdDisk')
+      document.querySelector('#runSim')
+        .addEventListener('click', function() {
+          console.log('Simulation Started');
+          const shape = $('input[name=shapeOptions]:checked').val();
+          const material = $('input[name=materialOptions]:checked').val();
+          const size = $('#objectLength').val();
+          const dielectric = $('#dielectricEnvironment').val();
+          api.fdtd(material,shape);
+        });
+      /*document.querySelector('#fdtdDisk')
         .addEventListener('click', function() {
           console.log('fdtd clicked');
           api.fdtd(0,0);
@@ -240,19 +249,22 @@
         .addEventListener('click', function() {
           console.log('fdtd clicked');
           api.fdtd(0,-1);
-        });
+        });*/
 
     const ctx = document.getElementById('outputData').getContext('2d');
     var data = {
       datasets: [{
         label: 'Refl Data',
         data: [],
+        fill: false,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)'
       }, {
         label: 'Tran Data',
-        data: [{
-          x: 1,
-          y: -1
-        }],
+        data: [],
+        fill: false,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)'
       }]
     }
     var options = {
