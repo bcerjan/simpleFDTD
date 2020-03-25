@@ -125,7 +125,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     //     Grid parameters
     /***********************************************************************/
 
-    xSizeMain = 100;                              // number of main grid cells in x-direction
+    xSizeMain = 126;                              // number of main grid cells in x-direction
     ySizeMain = 150;                               // number of main grid cells in y-direction
     abcSize = ABCSIZECONSTANT;                    // thickness of PML region
     xSize = xSizeMain + 2 * abcSize;              // number of total grid cells in x-direction
@@ -277,7 +277,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     object_locs = AllocateMemory(xSize, ySize, 0.0); // This really shouldn't be an array of doubles -- we're wasting memory here
 
     // Initialize structure functions:
-    xCenter = (xSize / 2) + 5; // In grid units
+    xCenter = (xSize / 2) + 30; // In grid units
     yCenter = ySize / 2; // ""
     structInit(xCenter, yCenter);
 printf("Strucutre Init...\n" );
@@ -292,7 +292,7 @@ printf("Strucutre Init...\n" );
         break;
 
       case 2: // Triangle
-        addTriangle(g, 60.0 * dx);
+        addTriangle(g, 30.0 * dx);
         break;
     } /* switch */
 
