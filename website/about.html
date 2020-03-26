@@ -34,7 +34,8 @@
       right in your browser. While we make no claims that it produces
       publication-quality results, it should be fairly accurate for a wide
       range of parameters (but we make no guarantees) and should definitely
-      be enough to get you started on your research again.
+      be enough to get you started on your research again (or pique your
+      curiousity).
     </p>
     <br>
     <h1 class="display-4">Technical Notes</h1>
@@ -53,7 +54,10 @@
       the event that I needed to run a post-processing FFT (which are
       frequently most efficient for powers of 2), but for the implementation of
       a running DFT any number of steps could be used (provided that the fields
-      have sufficient time to propogate).
+      have sufficient time to propogate). The transmission/reflection results
+      are normalized to a pre-computed run without a structure, which is why
+      you are not allowed to change the total area or number of steps in the
+      simulation.
     </p>
 
     <p>If you're particularly interested (or angry that I
@@ -61,9 +65,17 @@
        <a href="https://github.com/bcerjan/simpleFDTD">GitHub page</a>
        to see how it all fits together. The simulation itself is coded in C
        and has been ported to a browser-compatible format using
-       <a href="emscript.com">emscripten</a> to convert to
-       <a href="webassebmly">WebAssembly</a>.
+       <a href="https://emscripten.org/">emscripten</a> to convert to
+       <a href="https://webassembly.org/">WebAssembly</a>.
     </p>
+
+    <p>If you'd like to use this code to embed a simulation on your site, please
+      do! So long as you respect the (fairly permissive)
+      <a href="license">license</a> and link people back to the GitHub,
+      feel free to use the code as you like.
+    </p>
+
+    <h1 class="display-4">Appreciation</h1>
     <p>This simulation leans heavily on previous work. In particular, I
       appreciate the work by
       <a href="https://www.eecs.wsu.edu/~schneidj/ufdtd/"> John B. Schneider</a>
@@ -71,12 +83,16 @@
       provided sufficient online resources for an experimental physicist to
       cobble together a functioning FDTD simulation. If you're interested in learning more about FDTD simulations, I highly
       recommend reading through John's online book and trying to implement
-      some of it yourself. If you're particularly motivated (or angry that I
-      haven't fixed a bug you found), please stop by the
-      <a href="https://github.com/bcerjan/simpleFDTD">GitHub page</a>
-      to fix my errors.
-      </form>
+      some of it yourself.
     </p>
   </div>
-
+  <br>
+  <footer class="footer">
+   <div class="container-fluid">
+    <span class="text-muted">
+      Find a bug? Want a new feature? Like the site? <a href='mailto:contact@waldocorp.com'>Drop us a line!</a>
+       |  <a href='https://waldocorp.com'>Other Projects</a>
+    </span>
+   </div>
+  </footer>
   </body>
