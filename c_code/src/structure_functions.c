@@ -54,7 +54,8 @@ void addTriangle(struct Grid *g, double length) {
   int i,j;
   double tempi, tempj, line1, line2, d1, d2;
 
-  d1 = length / (2.0 * sin(30.0 * M_PI/180.0)); // Offset distance from center point in positive-x direction
+  //d1 = length / (2.0 * sin(30.0 * M_PI/180.0)); // Offset distance from center point in positive-x direction
+  d1 = tan(30.0 * M_PI/180.0) * length / 2.0;
   d2 = length * sin(60.0 * M_PI/180.0) - d1;
   double pt1[2] = { (xCent * dx) + d1, (yCent * dx) + length/2.0 };
   double pt2[2] = { (xCent * dx) - d2, (yCent * dx) };
