@@ -6,7 +6,7 @@
 #define  NUMBEROFITERATIONCONSTANT    (2048)          // Number of timesteps
 #define  NUMBEROFREGIONS    (5)                      // center(main), front, back, left, right
 
-#define  NUMBERDFTFREQS    (20)                      // Number of frequencies to compute DFTs at
+#define  NUMBERDFTFREQS    (50)                      // Number of frequencies to compute DFTs at
 #define  DFTPADDEDTIME    (16384)
 
 struct RegionDataValues{
