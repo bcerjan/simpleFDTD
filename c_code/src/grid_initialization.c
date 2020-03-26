@@ -125,7 +125,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     //     Grid parameters
     /***********************************************************************/
 
-    xSizeMain = 126;                              // number of main grid cells in x-direction
+    xSizeMain = 150;                              // number of main grid cells in x-direction
     ySizeMain = 150;                               // number of main grid cells in y-direction
     abcSize = ABCSIZECONSTANT;                    // thickness of PML region
     xSize = xSizeMain + 2 * abcSize;              // number of total grid cells in x-direction
@@ -284,7 +284,7 @@ printf("Strucutre Init...\n" );
     // Switch Block to pick structure geometry (default is no object):
     switch (objectChoice) {
       case 0: // Disk
-        addDisk(g, 20.0 * dx); // 10 * dx radius disk
+        addDisk(g, 15.0 * dx); // 10 * dx radius disk
         break;
 
       case 1: // Block
