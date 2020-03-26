@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.png">
+
+    <!-- Include Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <title>About simpleFDTD</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+  </head>
+  <body>
+  <br>
+  <div class="container">
+    <h1 class="display-2">About simpleFDTD</h1>
+    <br>
+    <p>Finite-Difference Time-Domain (FDTD) simulations are one of the most
+      common methods for numerically simulating the
+      <a href="https://en.wikipedia.org/wiki/Wave_equation">wave equation</a>.
+      The canonical example is the motion of a string when you wiggle one end
+      and hold the other fixed, but in this case we are working with light
+      (electromagnetic waves). In particular, the question "If we have a small
+      particle in water, about 100 nm across, what color will it be?" arises
+      with some regularity. It can be annoying to try to find a reference that
+      has your exact geometry, material, and dielectric environment, so this
+      code lets you answer that question by running a simple 2-D simulation
+      right in your browser. While we make no claims that it produces
+      publication-quality results, it should be fairly accurate for a wide
+      range of parameters (but we make no guarantees) and should definitely
+      be enough to get you started on your research again.
+    </p>
+    <br>
+    <h1 class="display-4">Technical Notes</h1>
+    <p>The simulation here is transverse-electric and polarized along the
+      vertical direction (perpendicular to the direction the initial pulse
+      travels). The initial pulse is a Ricker wavelet centered at 600 nm, and
+      the grid step is 10 nm (uniform in X and Y). The grid is terminated by a
+      Berenger split-field PML (coded by Doug Neubauer). The simulation runs
+      for 2048 time steps and "running" discrete Fourier-Transforms (DFTs)
+      are kept to track the reflected and transmitted electric field strengths.
+      Note that while we only run for a
+      few thousand timesteps, we assume that this is sufficient time for the
+      high-frequency response (that we care about) to decay completely. Under
+      this assumption, we then 0-pad our total "running time" to be much longer
+      (16,384 steps). Both of those lengths were picked to be powers of 2 in
+      the event that I needed to run a post-processing FFT (which are
+      frequently most efficient for powers of 2), but for the implementation of
+      a running DFT any number of steps could be used (provided that the fields
+      have sufficient time to propogate).
+    </p>
+
+    <p>If you're particularly interested (or angry that I
+       haven't fixed a bug you found), please stop by the
+       <a href="https://github.com/bcerjan/simpleFDTD">GitHub page</a>
+       to see how it all fits together. The simulation itself is coded in C
+       and has been ported to a browser-compatible format using
+       <a href="emscript.com">emscripten</a> to convert to
+       <a href="webassebmly">WebAssembly</a>.
+    </p>
+    <p>This simulation leans heavily on previous work. In particular, I
+      appreciate the work by
+      <a href="https://www.eecs.wsu.edu/~schneidj/ufdtd/"> John B. Schneider</a>
+      and <a href="https://dougneubauer.com/fdtd/">Doug Neubauer</a> who
+      provided sufficient online resources for an experimental physicist to
+      cobble together a functioning FDTD simulation. If you're interested in learning more about FDTD simulations, I highly
+      recommend reading through John's online book and trying to implement
+      some of it yourself. If you're particularly motivated (or angry that I
+      haven't fixed a bug you found), please stop by the
+      <a href="https://github.com/bcerjan/simpleFDTD">GitHub page</a>
+      to fix my errors.
+      </form>
+    </p>
+  </div>
+
+  </body>

@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.png">
+
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
+
+    <!-- Include Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <title>simpleFDTD</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+      .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+      textarea.emscripten { font-family: monospace; width: 80%; }
+      div.emscripten { text-align: center; }
+      div.emscripten_border { border: 1px solid black; }
+      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+      canvas.emscripten { border: 0px none; background-color: black; }
+      .card-header {
+        cursor: pointer;
+      }
+
+    </style>
+  </head>
+  <body>
+  <br>
+  <div class="container">
+    <div class="jumbotron">
+      <h1 class="display-4">simpleFDTD</h1>
+      <p class="lead">A browser-based Finite-Difference Time-Domain (FDTD) simulation built using WebAssembly</p>
+      <hr class="my-4">
+      <p>Select a shape, size, material, and environment to get started</p>
+      <small class="text-muted">For more information, see <a href="about.html">here</a></small>
+    </div>
+
+    <div class="accordion" id="controlAccordion">
+
+      <div class="card">
+        <div class="card-header" id="shapeHeader" data-toggle="collapse" data-parent="#controlAccordion" data-target="#shapeCollapse">
+          <h2 class="mb-0">
+            <button class="btn btn-link text-decoration-none" type="button" data-toggle="collapse" data-target="#shapeCollapse"
+              aria-controls="shapeCollapse">
+              Object Shape
+            </button>
+          </h2>
+        </div>
+        <div id="shapeCollapse" class="collapse" aria-labelledby="shapeHeader" data-parent="#controlAccordion">
+          <div class="card-body">
+            <div class="btn-group btn-group-toggle" role="group" data-toggle="buttons" aria-label="Material Choices">
+              <label class="btn btn-secondary active">
+                <input type="radio" name="shapeOptions" id="fdtdDisk" value="0" checked>Disk
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="shapeOptions" id="fdtdRectangle" value="1">Rectangle
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="shapeOptions" id="fdtdTriangle" value="2">Triangle
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="shapeOptions" id="fdtdEmpty" value="-1">Empty
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" id="sizeHeader" data-toggle="collapse" data-parent="#controlAccordion" data-target="#sizeCollapse">
+          <h2 class="mb-0">
+            <button class="btn btn-link text-decoration-none" type="button" data-toggle="collapse" data-target="#sizeCollapse"
+              aria-expanded="true" aria-controls="sizeCollapse">
+              Object Size
+            </button>
+          </h2>
+        </div>
+        <div id="sizeCollapse" class="collapse" aria-labelledby="sizeHeader" data-parent="#controlAccordion">
+          <div class="card-body">
+            <div class="input-group md-3">
+              <input type="number" class="form-control" id="objectLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
+              <div class="input-group-append">
+                <span class="input-group-text" id="units">nm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" id="materialHeader" data-toggle="collapse" data-parent="#controlAccordion" data-target="#materialCollapse">
+          <h2 class="mb-0">
+            <button class="btn btn-link text-decoration-none" type="button" data-toggle="collapse" data-target="#materialCollapse"
+              aria-expanded="true" aria-controls="materialCollapse">
+              Object Material
+            </button>
+          </h2>
+        </div>
+        <div id="materialCollapse" class="collapse" aria-labelledby="materialHeader" data-parent="#controlAccordion">
+          <div class="card-body">
+            <div class="btn-group btn-group-toggle" role="group" data-toggle="buttons" aria-label="Material Choices">
+              <label class="btn btn-secondary active">
+                <input type="radio" name="materialOptions" id="materialAl" value="0" checked>Aluminum
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="materialOptions" id="materialAu" value="1">Gold
+              </label>
+              <label class="btn btn-secondary active">
+                <input type="radio" name="materialOptions" id="materialAg" value="2">Silver
+              </label>
+              <label class="btn btn-secondary active">
+                <input type="radio" name="materialOptions" id="materialCu" value="3">Copper
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" id="environmentHeader" data-toggle="collapse" data-parent="#controlAccordion" data-target="#environmentCollapse">
+          <h2 class="mb-0">
+            <button class="btn btn-link text-decoration-none" type="button" data-toggle="collapse" data-target="#environmentCollapse"
+              aria-expanded="true" aria-controls="environmentCollapse">
+              Dielectric Environment
+            </button>
+          </h2>
+        </div>
+        <div id="environmentCollapse" class="collapse" aria-labelledby="environmentHeader" data-parent="#controlAccordion">
+          <div class="card-body">
+            <div class="input-group md-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="index">Refractive Index:</span>
+              </div>
+              <input type="number" class="form-control" id="dielectricEnvironment" value="1.0" step="0.1" aria-label="Object dielectric environment" aria-describedby="index">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- Accordion -->
+
+      <hr class="my-4">
+      <button type="button" class="btn btn-success" id="runSim">Run Simulation</button>
+      <br>
+    <div class="row justify-content-center align-items-center">
+      <div class="col">
+        <canvas class="emscripten" id="canvas" tabindex=-1 width="142" height="166" aria-label="FDTD Simulation Window"></canvas>
+      </div>
+
+     <div class="col">
+       <canvas id="outputData" width="400" height="400" aria-label="Reflection and Transmission Results"></canvas>
+     </div>
+   </div>
+      <br>
+   <div class="row">
+      <div class="progress w-50 emscripten">
+        <div class="progress-bar progress-bar-striped bg-success" role="progressbar"
+        style="width: 0%" aria-valuenow="0" aria-valuemax="100" id="progress"></div>
+      </div>
+   </div>
+      <hr>
+      <textarea class="emscripten" id="output" rows="8"></textarea>
+      <hr>
+
+  </div> <!-- Container -->
+
+    <script type='text/javascript'>
+      var progressElement = document.getElementById('progress');
+      var p = 0; // Pointer needs to be semi-global
+      var api;
+
+
+      var Module = {
+        preRun: [],
+        postRun: [],
+        print: (function() {
+          var element = document.getElementById('output');
+          if (element) element.value = ''; // clear browser cache
+          return function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            // These replacements are necessary if you render to raw HTML
+            //text = text.replace(/&/g, "&amp;");
+            //text = text.replace(/</g, "&lt;");
+            //text = text.replace(/>/g, "&gt;");
+            //text = text.replace('\n', '<br>', 'g');
+            console.log(text);
+            if (element) {
+              element.value += text + "\n";
+              element.scrollTop = element.scrollHeight; // focus on bottom
+            }
+          };
+        })(),
+        printErr: function(text) {
+          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+          console.error(text);
+        },
+        canvas: (function() {
+          var canvas = document.getElementById('canvas');
+
+          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+          // application robust, you may want to override this behavior before shipping!
+          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+          canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+          return canvas;
+        })(),
+        onRuntimeInitialized: function() {
+          // API for preparing image transfers:
+          api = {
+            fdtd: Module.cwrap('fdtdSim','number', ['number','number']),
+          };
+          console.log('api defined...');
+        },
+
+      };
+
+      // Buttons for simulation running
+      document.querySelector('#runSim')
+        .addEventListener('click', function() {
+          console.log('Simulation Started');
+          const shape = $('input[name=shapeOptions]:checked').val();
+          const material = $('input[name=materialOptions]:checked').val();
+          const size = $('#objectLength').val();
+          const dielectric = $('#dielectricEnvironment').val();
+          clearChart(outputChart);
+          updateProgress(0);
+          api.fdtd(material,shape);
+        });
+
+    const ctx = document.getElementById('outputData').getContext('2d');
+    var data = {
+      datasets: [{
+        label: 'Refl Data',
+        data: [],
+        fill: false,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)'
+      }, {
+        label: 'Tran Data',
+        data: [],
+        fill: false,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)'
+      }]
+    }
+    var options = {
+      scales: {
+        xAxes: [{
+          type: 'linear',
+          position: 'bottom'
+        }]
+      }
+    };
+    var outputChart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: options
+    });
+
+    function updateProgress(percent) {
+      percent = percent.toFixed(3);
+      const bar = document.querySelector('#progress');
+      bar.innerHTML = percent+"%";
+      bar.style.width = percent + "%";
+      bar.setAttribute('aria-valuenow', percent);
+    };
+
+    function clearChart(chart) {
+      chart.data.datasets.forEach((dataset) => {
+        dataset.data = [];
+      });
+      chart.update();
+    };
+
+    </script>
+
+    <script async type="text/javascript" src="simulation.js"></script>
+
+  </body>
+</html>
+
+
