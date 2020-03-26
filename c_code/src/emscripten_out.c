@@ -9,6 +9,16 @@
 #include "emscripten.h"
 #include <stdio.h>
 
+// JS function call to update progress bar
+extern void updateProgress(float percent);
+
+// JS func to pass data to our chart:
+extern void addReflData(double waveLength, double value);
+extern void addTranData(double waveLength, double value);
+
+// And to update the chart:
+extern void updateChartData();
+
 void iterateSimulation(struct Grid *g) {
     //printf("Loop step: %i\timeStep",timeStep);
     HFieldUpdate(g, timeStep);
@@ -18,13 +28,17 @@ void iterateSimulation(struct Grid *g) {
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, timeStep);
 
-    if (timeStep < 350) {
+    if (timeStep < 400) {
       //printf("Loop step: %i\n",timeStep);
       //printf( "Drawing to screen...\n" );
       PlotField(g,3.0,0.0);
     }
 
     timeStep++;
+    if (timeStep % 200 == 0) {
+      updateProgress(100.0 * (float )timeStep / (float )maximumIteration);
+    }
+
     // Check if we're done with the simulation:
     if (timeStep > maximumIteration) {
       // Scale our DFT's by number of time steps:
@@ -33,16 +47,20 @@ void iterateSimulation(struct Grid *g) {
       NormalizeDFT(g);
 
       for (int n = 0; n < NUMBERDFTFREQS; n++) {
+        addReflData(wavelengthList[n], reflDFT[n]);
+        addTranData(wavelengthList[n], tranDFT[n]);
         printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
         printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
       }
-      printf( "Finished loop\n" );
 
+      updateChartData();
+
+      printf( "Finished loop\n" );
+      updateProgress(100.0); // Finish Progress bar now that we're done
       freeGrid(g);
       emscripten_cancel_main_loop(); // Cancel the loop when we run out of steps
     } /* ifCondition */
 }
-
 
 int fdtdSim(int metalChoice, int objectChoice) {
   printf( "Started main...\n" );
