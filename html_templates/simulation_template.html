@@ -228,6 +228,8 @@
           const material = $('input[name=materialOptions]:checked').val();
           const size = $('#objectLength').val();
           const dielectric = $('#dielectricEnvironment').val();
+          clearChart(outputChart);
+          updateProgress(0);
           api.fdtd(material,shape);
         });
 
@@ -260,6 +262,21 @@
       data: data,
       options: options
     });
+
+    function updateProgress(percent) {
+      percent = percent.toFixed(3);
+      const bar = document.querySelector('#progress');
+      bar.innerHTML = percent+"%";
+      bar.style.width = percent + "%";
+      bar.setAttribute('aria-valuenow', percent);
+    };
+
+    function clearChart(chart) {
+      chart.data.datasets.forEach((dataset) => {
+        dataset.data = [];
+      });
+      chart.update();
+    };
 
     </script>
 
