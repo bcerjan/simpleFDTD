@@ -118,14 +118,6 @@ void DFTUpdate (struct Grid *g, int n) {
   yStart = regionData[regionIndex].yStart;
   yStop  = regionData[regionIndex].yStop ;
 
-  /*char tranFilename[100] = "disk_tran_raw.h";
-  FILE *tranDataPtr;
-
-  // Write to header file for use later
-  tranDataPtr = fopen(tranFilename, "a");
-  fprintf(tranDataPtr, "%.17g,\n", ey[tranXPos][75]);
-  fclose(tranDataPtr);*/
-
   for (i = 0; i < NUMBERDFTFREQS; i++) {
     for (j = yStart; j < yStop; j++) {
       kVal = (double )kList[i];

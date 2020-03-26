@@ -34,20 +34,13 @@ int main() {
     lineSource(g, ABCSIZECONSTANT + 20, n);
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
-    /*if (outInterval == 50) {
-      eymax = ArrayMax(ey, xSize, ySize);
-      eymin = ArrayMin(ey, xSize, ySize);
-      jymax = ArrayMax(jy, xSize, ySize);
-      double time = n;
-      printf("time step: %i\n", n);
-      //printf("source value: %f\n", ezInc(time, 0.0));
-      printf("eymax: %f\n", eymax);
-      printf("eymin: %f\n", eymin);
-      printf("jymax: %f\n", jymax);
-      printf("jy[65][25]: %f\n", jy[65][25]);
-      printf("-------------------\n");
-      interval = 0;
-    }*/
+    /*char tranFilename[100] = "disk_tran_raw.h";
+    FILE *tranDataPtr;
+
+    // Write to header file for use later
+    tranDataPtr = fopen(tranFilename, "a");
+    fprintf(tranDataPtr, "%.17g,\n", ey[tranXPos][75]);
+    fclose(tranDataPtr);*/
     interval++;
   } /* nForLoop */
 
