@@ -35,13 +35,21 @@ int main() {
     lineSource(g, ABCSIZECONSTANT + 20, n);
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
-    /*char tranFilename[100] = "empty_tran_raw.h";
+    char tranFilename[100] = "test_output/empty_tran_raw.h";
     FILE *tranDataPtr;
 
     // Write to header file for use later
     tranDataPtr = fopen(tranFilename, "a");
     fprintf(tranDataPtr, "%.17g,\n", ey[tranXPos][75]);
-    fclose(tranDataPtr);*/
+    fclose(tranDataPtr);
+
+    char reflFilename[100] = "test_output/empty_refl_raw.h";
+    FILE *reflDataPtr;
+
+    // Write to header file for use later
+    reflDataPtr = fopen(reflFilename, "a");
+    fprintf(reflDataPtr, "%.17g,\n", ey[reflXPos][75]);
+    fclose(reflDataPtr);
     interval++;
   } /* nForLoop */
 
