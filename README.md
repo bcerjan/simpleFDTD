@@ -3,10 +3,10 @@ An embeddable 2D FDTD simulation for approximate results in the visible region.
 
 The goal of this project is to make a simple, user-friendly, and embeddable 2D FDTD simulation using emscripten to compile to [WebAssembly](https://webassembly.org/). This allows the computation to be run in the user's browser, rather than on the server hosting the page allowing the server to run smoothly and serve simulations even under high load.
 
-To see an example of the generated web page, see [here](https://easyfdtd.waldocorp.com).
+To see an example of the generated web page, see [here](https://simplefdtd.waldocorp.com).
 
 ## Embedding On Your Site:
-To use on your site (subject to the [license](license url here)) just download the three files in the `website` directory and then adjust them as you see fit for your site. It is strongly recommended that you only edit the `.html` file directly unless you know what you are doing.
+To use on your site (subject to the [license](https://github.com/bcerjan/simpleFDTD/blob/master/LICENSE.txt)) just download the three files in the `website` directory and then adjust them as you see fit for your site. It is strongly recommended that you only edit the `.html` file directly unless you know what you are doing.
 
 ## Compiling:
 To compile, a (perhaps inelegant) combination of `make` and `cmake` is used. `CMake` is used for compiling to executables to run for testing / debugging, while `make` is used to generate the final `.wasm, .html,` and `.js` files.
