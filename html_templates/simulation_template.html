@@ -23,7 +23,7 @@
       div.emscripten { text-align: center; }
       div.emscripten_border { border: 1px solid black; }
       /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
-      canvas.emscripten { border: 0px none; background-color: black; }
+      canvas.emscripten { border: 2px solid #000000; background-color: white; }
       .card-header {
         cursor: pointer;
       }
@@ -32,6 +32,12 @@
   </head>
   <body>
   <br>
+  <div class="container">
+    <div class="alert alert-warning" role="alert">
+      This page is not currently returning accurate results, so if you manage
+      to get here by accident, don't trust what you see.
+    </div>
+  </div>
   <div class="container">
     <div class="jumbotron">
       <h1 class="display-4">simpleFDTD</h1>
@@ -169,12 +175,13 @@
       <hr>
 
   </div> <!-- Container -->
-  
+
   <footer class="footer">
    <div class="container-fluid">
     <span class="text-muted">
       Find a bug? Want a new feature? Like the site? <a href='mailto:contact@waldocorp.com'>Drop us a line!</a>
        |  <a href='https://waldocorp.com'>Other Projects</a>
+       |  <a href="https://github.com/bcerjan/simpleFDTD">GitHub Page</a>
     </span>
    </div>
   </footer>
@@ -223,7 +230,7 @@
         onRuntimeInitialized: function() {
           // API for preparing image transfers:
           api = {
-            fdtd: Module.cwrap('fdtdSim','number', ['number','number']),
+            fdtd: Module.cwrap('fdtdSim','number', ['number','number','number','number']),
           };
           console.log('api defined...');
         },
@@ -237,10 +244,10 @@
           const shape = $('input[name=shapeOptions]:checked').val();
           const material = $('input[name=materialOptions]:checked').val();
           const size = $('#objectLength').val();
-          const dielectric = $('#dielectricEnvironment').val();
+          const indexN = $('#dielectricEnvironment').val();
           clearChart(outputChart);
-          updateProgress(0);
-          api.fdtd(material,shape);
+          updateProgressBar(0);
+          api.fdtd(material,shape,size,indexN);
         });
 
     const ctx = document.getElementById('outputData').getContext('2d');
@@ -273,7 +280,7 @@
       options: options
     });
 
-    function updateProgress(percent) {
+    function updateProgressBar(percent) {
       percent = percent.toFixed(3);
       const bar = document.querySelector('#progress');
       bar.innerHTML = percent+"%";
