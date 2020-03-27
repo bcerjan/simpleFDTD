@@ -1,6 +1,7 @@
 #include "SDL.h"
 #include "fdtd_proto.h"
 #include "sdl_funcs.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -107,7 +108,8 @@ void PlotField (struct Grid *g, double maximumValue, double minimumValue) {
   scaleValue = 256.0 / (maximumValue - minimumValue);
   for (i = 0; i < xSize; i++) {
     for (j = 0; j < ySize; j++) {
-      e2Field[i][j] = scaleValue * ( ex[i][j]*ex[i][j] + ey[i][j]*ey[i][j] );
+      //e2Field[i][j] = scaleValue * ( ex[i][j]*ex[i][j] + ey[i][j]*ey[i][j] );
+      e2Field[i][j] = ( ex[i][j]*ex[i][j] + ey[i][j]*ey[i][j] );
     } /* xForLoop */
   } /* yForLoop */
 
@@ -115,10 +117,40 @@ void PlotField (struct Grid *g, double maximumValue, double minimumValue) {
 
 }
 
+/** Function to perform color mapping using HSV -> RGB transform **/
+/** buffer is preallocated by: float buffer[3] = {0}; **/
+/** z is assumed to be positive **/
+float fnFunc(float v, float s, float k){
+  return v - v*s*fmaxf(0.0, fminf(k, fminf(4-k,1.0) ));
+}
 
+void colorMap(float *buffer, float z) {
+  const float s = 1.0; // saturation
+  const float v = 1.0; // value
+  const float h_min = 180.0;
+  const float h_max = 360.0;
+  float h;
+  if(z <= 0.01) {h = h_min;}
+  else if(z >= 2.5) {h = h_max;}
+  else {h = h_min + (h_max - h_min)*0.5*(z);}
+
+  // see: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
+  //float chroma = v * s; // Chroma Value
+  //float hprime = h / 60.0;
+  //float bigX = chroma * (1.0 - abs( (hprime % 2) - 1.0 ));
+  //buffer[0] =
+
+  float k5 = fmodf( 5.0 + (h/60.0), 6.0 );
+  float k3 = fmodf( 3.0 + (h/60.0), 6.0 );
+  float k1 = fmodf( 1.0 + (h/60.0), 6.0 );
+  buffer[0] = 255.0 * fnFunc(v,s,k5); // Red
+  buffer[1] = 255.0 * fnFunc(v,s,k3); // Green
+  buffer[2] = 255.0 * fnFunc(v,s,k1); // Blue
+
+}
 /** Function to visualize standard C array using SDL **/
 /** Scales the size of the array so that 1 pixel in the array -> 4 pixels
-    in the image **/
+    in the image NOT WORKING DOES NOT SCALE**/
 
 void imageShow(struct Grid *g) {
   // Initialization:
@@ -138,7 +170,7 @@ void imageShow(struct Grid *g) {
   const double CENTER_X = WINDOW_WIDTH/2.0;
   const double CENTER_Y = WINDOW_HEIGHT/2.0;
 
-  float z,b,r;
+  float green,z,blue,red,buffer[3];
 
   unsigned int xc, yc;
 
@@ -156,12 +188,14 @@ void imageShow(struct Grid *g) {
       xc = CENTER_X - j;
       yc = CENTER_Y - i;
       z = (float )e2Field[i][j]; // Get value at this pixel (scaled)
-      b = 0.0;
-      r = 0.0;
+      colorMap(buffer, z);
+      red = buffer[0];
+      green = buffer[1];
+      blue = buffer[2];
       if (edgeMat[i][j] > 4.0) {
-        b = 160.0;
-        z = 160.0;
-        r = 160.0;
+        blue = 160.0;
+        green = 160.0;
+        red = 160.0;
       }
       //z = 200.0* (float )object_locs[i][j]; // Get value at this pixel (scaled)
       //z = 125.0;
@@ -177,9 +211,9 @@ void imageShow(struct Grid *g) {
           }*/
           //base = ((Uint8 *)pixels) + (4*((j+l)*WINDOW_WIDTH + (i+k)));
           base = ((Uint8 *)pixels) + (4*((j)*WINDOW_WIDTH + (i)));
-          base[0] = b; // Blue
-          base[1] = z; // Green
-          base[2] = r; // Red
+          base[0] = blue; // Blue
+          base[1] = green; // Green
+          base[2] = red; // Red
           base[3] = 255; // Opacity? 255 => totally opaque
         //} /* lForLoop */
       //} /* kForLoop */
