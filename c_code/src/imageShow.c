@@ -119,20 +119,20 @@ void PlotField (struct Grid *g, double maximumValue, double minimumValue) {
 
 /** Function to perform color mapping using HSV -> RGB transform **/
 /** buffer is preallocated by: float buffer[3] = {0}; **/
-/** z is assumed to be positive **/
+/** z is assumed to be in [-1,1] **/
 float fnFunc(float v, float s, float k){
   return v - v*s*fmaxf(0.0, fminf(k, fminf(4-k,1.0) ));
 }
 
 void colorMap(float *buffer, float z) {
-  const float s = 1.0; // saturation
+  //const float s = 1.0; // saturation
+  const float s = fabs(z/1.35);
   const float v = 1.0; // value
-  const float h_min = 180.0;
-  const float h_max = 360.0;
+  const float h_neg = 240.0;
+  const float h_pos = 0.0;
   float h;
-  if(z <= 0.01) {h = h_min;}
-  else if(z >= 2.5) {h = h_max;}
-  else {h = h_min + (h_max - h_min)*0.5*(z);}
+  if(z < 0.0) {h = h_neg;}
+  else {h = h_pos;}
 
   // see: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
   //float chroma = v * s; // Chroma Value
@@ -187,15 +187,16 @@ void imageShow(struct Grid *g) {
       //printf( "[i][j]: [%i][%i]\n", i,j );
       xc = CENTER_X - j;
       yc = CENTER_Y - i;
-      z = (float )e2Field[i][j]; // Get value at this pixel (scaled)
+      //z = (float )e2Field[i][j]; // Get value at this pixel (scaled)
+      z = (float )ey[i][j]; // Get value at this pixel (scaled)
       colorMap(buffer, z);
       red = buffer[0];
       green = buffer[1];
       blue = buffer[2];
       if (edgeMat[i][j] > 4.0) {
-        blue = 160.0;
-        green = 160.0;
-        red = 160.0;
+        blue = 200.0;
+        green = 200.0;
+        red = 200.0;
       }
       //z = 200.0* (float )object_locs[i][j]; // Get value at this pixel (scaled)
       //z = 125.0;
