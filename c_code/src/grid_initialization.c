@@ -12,53 +12,57 @@
 struct Grid *g : The grid struct we are working with currently
 int metalChoice : 0 = Al, 1 = Au, 2 = Ag, 3 = Cu, other = SiO2
 int objectChoice : 0 = Disk, 1 = Rectangle, 2 = triangle, other = no structure
+double objectSize : Object size (in nm)
+double environmentIndex : Refractive Index of the environment
 */
 
-void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
+void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
+  double objectSize, double environmentIndex )
 {
     // Permittivity here is epsilon infinity now that everything is a Drude material
     double tempPermittivity, tempConductivity, tempPermeability, tempResistivity;
     double wPlasma, gDamping;
 
-
+    // Data from: http://www.wave-scattering.com/drudefit.html
+    // Might need to be adjusted....
 //printf( "Heading to switch\n" );
     // Switch block to determine what metal we're using:
     switch(metalChoice)
     {
       case 0: // Aluminum
         tempPermittivity = 1.0;
-        tempConductivity = 1.0e+7;
+        tempConductivity = 3.77e+7;
         tempPermeability = 1.0;
-        tempResistivity = 0.0;
-        wPlasma = 1.0e+15; // WRONG
-        gDamping = 1.0e+14; // WRONG
+        tempResistivity = 2.65e-8;
+        wPlasma = 3.57e+15;
+        gDamping = 19.79e+12;
         break;
 
       case 1: // Gold
         tempPermittivity = 1.0;
-        tempConductivity = 1.0e+7;
+        tempConductivity = 4.11e+7;
         tempPermeability = 1.0;
-        tempResistivity = 0.0;
-        wPlasma = 1.0e+15; // WRONG
-        gDamping = 1.0e+14; // WRONG
+        tempResistivity = 2.44e-8;
+        wPlasma = 2.183e+15;
+        gDamping = 6.46e+12;
         break;
 
       case 2: // Silver
         tempPermittivity = 1.0;
-        tempConductivity = 1.0e+7;
+        tempConductivity = 6.30e+7;
         tempPermeability = 1.0;
-        tempResistivity = 0.0;
-        wPlasma = 1.0e+15; // WRONG
-        gDamping = 1.0e+14; // WRONG
+        tempResistivity = 1.59e-8;
+        wPlasma = 2.18e+15;
+        gDamping = 4.353e+12;
         break;
 
       case 3: // Copper
         tempPermittivity = 1.0;
-        tempConductivity = 1.0e+7;
+        tempConductivity = 5.69e+7;
         tempPermeability = 1.0;
-        tempResistivity = 0.0;
-        wPlasma = 1.0e+15; // WRONG
-        gDamping = 1.0e+14; // WRONG
+        tempResistivity = 1.68e-8;
+        wPlasma = 1.914e+15; // WRONG
+        gDamping = 8.34e+12; // WRONG
         break;
 
       default : // CHANGE TO SOMETHING RATIONAL
@@ -76,7 +80,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     double  mediaDamping[MEDIACONSTANT] = {0.0, gDamping}; // Damping constant
     /* End of Drude Metal Addition */
 
-    double  mediaPermittivity[MEDIACONSTANT] = {1.0, tempPermittivity};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
+    double  mediaPermittivity[MEDIACONSTANT] = {sqrt(environmentIndex), tempPermittivity};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
     double  mediaConductivity[MEDIACONSTANT] = {0.0, tempConductivity}; // sig,
     double  mediaPermeability[MEDIACONSTANT] = {1.0, tempPermeability};    // mur
     double  mediaResistivity[MEDIACONSTANT] = {0.0, tempResistivity};     // sim
@@ -116,6 +120,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
 
     // Set grid spacing:
     dx = 10.0e-9; // 10 nm
+    double dxnm = dx*1e9; // Grid step size in nm
     dt = dx / (2.0 * speedOfLight);
     courantS = (dt * speedOfLight) / dx; // Changed from original -- might break things?
 //printf( "dx: %f\n", dx );
@@ -284,15 +289,15 @@ printf("Strucutre Init...\n" );
     // Switch Block to pick structure geometry (default is no object):
     switch (objectChoice) {
       case 0: // Disk
-        addDisk(g, 15.0 * dx); // 10 * dx radius disk
+        addDisk(g, objectSize * dx/(2.0 * dxnm)); // 10 * dx radius disk
         break;
 
       case 1: // Block
-        addRect(g, 10.0 * dx, 50.0 * dx);
+        addRect(g, 10.0 * dx, objectSize * dx/dxnm);
         break;
 
       case 2: // Triangle
-        addTriangle(g, 30.0 * dx);
+        addTriangle(g, objectSize * dx/dxnm);
         break;
     } /* switch */
 

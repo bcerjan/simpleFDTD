@@ -20,6 +20,10 @@ extern void addTranData(double waveLength, double value);
 extern void updateChartData();
 
 void iterateSimulation(struct Grid *g) {
+    // If first iteration, initialize SDL stuff:
+    if (timeStep < 1) {
+      imageInit(g);
+    }
     //printf("Loop step: %i\timeStep",timeStep);
     HFieldUpdate(g, timeStep);
     EFieldUpdate(g);
@@ -28,10 +32,10 @@ void iterateSimulation(struct Grid *g) {
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, timeStep);
 
-    if (timeStep < 400) {
+    if (timeStep < 700) {
       //printf("Loop step: %i\n",timeStep);
       //printf( "Drawing to screen...\n" );
-      PlotField(g,3.0,0.0);
+      PlotField(g,2.5,0.0);
     }
 
     timeStep++;
@@ -49,20 +53,20 @@ void iterateSimulation(struct Grid *g) {
       for (int n = 0; n < NUMBERDFTFREQS; n++) {
         addReflData(wavelengthList[n], reflDFT[n]);
         addTranData(wavelengthList[n], tranDFT[n]);
-        printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
-        printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
+        //printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
+        //printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
       }
 
       updateChartData();
 
       printf( "Finished loop\n" );
-      updateProgress(100.0); // Finish Progress bar now that we're done
+      //updateProgress(100.0); // Finish Progress bar now that we're done
       freeGrid(g);
       emscripten_cancel_main_loop(); // Cancel the loop when we run out of steps
     } /* ifCondition */
 }
 
-int fdtdSim(int metalChoice, int objectChoice) {
+int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environmentIndex) {
   printf( "Started main...\n" );
 
   //struct Grid *g = malloc(sizeof(struct Grid));
@@ -71,13 +75,15 @@ int fdtdSim(int metalChoice, int objectChoice) {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, metalChoice, objectChoice); // First int for metal, second for object shape
+  InitializeFdtd(g, metalChoice, objectChoice, objectSize, environmentIndex); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
   // prepare matrix of object edges:
   findMatEdge(g);
   printf("Found Edges\n");
-  //printf("max edgeMat: %f\n", ArrayMax(edgeMat,xSize,ySize));
-  //printf("min edgeMat: %f\n", ArrayMin(edgeMat,xSize,ySize));
+
+  // Initialize animation / SDL:
+
+
   maximumIteration = NUMBEROFITERATIONCONSTANT;
   interval = 0;
   timeStep = 0;
