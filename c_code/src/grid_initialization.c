@@ -125,7 +125,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice)
     //     Grid parameters
     /***********************************************************************/
 
-    xSizeMain = 150;                              // number of main grid cells in x-direction
+    xSizeMain = 126;                              // number of main grid cells in x-direction
     ySizeMain = 150;                               // number of main grid cells in y-direction
     abcSize = ABCSIZECONSTANT;                    // thickness of PML region
     xSize = xSizeMain + 2 * abcSize;              // number of total grid cells in x-direction
