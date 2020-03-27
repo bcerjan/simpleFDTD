@@ -60,7 +60,7 @@ void iterateSimulation(struct Grid *g) {
       updateChartData();
 
       printf( "Finished loop\n" );
-      //updateProgress(100.0); // Finish Progress bar now that we're done
+      updateProgress(100.0); // Finish Progress bar now that we're done
       freeGrid(g);
       emscripten_cancel_main_loop(); // Cancel the loop when we run out of steps
     } /* ifCondition */
