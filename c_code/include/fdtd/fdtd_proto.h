@@ -3,7 +3,7 @@
 
 #include "fdtd_grid.h"
 
-void InitializeFdtd(struct Grid *g, int metalChoice, int objectChoice);
+void InitializeFdtd(struct Grid *g, int metalChoice, int objectChoice, double objectSize, double environmentIndex);
 void freeGrid(struct Grid *g);
 double **AllocateMemory(int imax, int jmax, double initialValue);
 double *AllocateMemory1D(int size, double initialValue);
