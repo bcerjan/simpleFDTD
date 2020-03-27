@@ -4,6 +4,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* Constants for SDL Rendering, set by imageInit */
+static SDL_Window *MainWindow;
+static SDL_Renderer *renderer;
+
+void imageInit(struct Grid *g) {
+
+  const unsigned int WINDOW_WIDTH = xSize ;
+  const unsigned int WINDOW_HEIGHT = ySize ;
+  // Initialize SDL:
+  SDL_Init(SDL_INIT_VIDEO);
+
+  // Don't eat all keyboard inputs:
+  SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+
+  // Window:
+  MainWindow = SDL_CreateWindow("simpleFDTD",
+                               SDL_WINDOWPOS_CENTERED,
+                               SDL_WINDOWPOS_CENTERED,
+                               WINDOW_WIDTH, WINDOW_HEIGHT,
+                               SDL_WINDOW_SHOWN
+                               );
+
+  // Renderer
+  renderer = SDL_CreateRenderer(MainWindow, -1, SDL_RENDERER_PRESENTVSYNC);
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer); // Make scene Black
+
+  return;
+}
+
+void imageFree() {
+  SDL_DestroyRenderer(renderer);
+  return;
+}
+
 /** Function to find walls using arma mat instead of image: **/
 void findMatEdge(struct Grid *g) {
   int i,j,n,k;
@@ -95,7 +130,7 @@ void imageShow(struct Grid *g) {
 
   //const unsigned int WINDOW_WIDTH = xSize * scaleFactor;
   //const unsigned int WINDOW_HEIGHT = ySize * scaleFactor;
-//printf("width: %i\n", WINDOW_WIDTH);
+  //printf("width: %i\n", WINDOW_WIDTH);
   //printf("height: %i\n", WINDOW_HEIGHT);
   const unsigned int WINDOW_WIDTH = xSize ;
   const unsigned int WINDOW_HEIGHT = ySize ;
@@ -107,25 +142,7 @@ void imageShow(struct Grid *g) {
 
   unsigned int xc, yc;
 
-  // Initialize SDL:
-  SDL_Init(SDL_INIT_VIDEO);
 
-  // Don't eat all keyboard inputs:
-  SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
-  
-  // Window:
-  SDL_Window *MainWindow = SDL_CreateWindow("simpleFDTD",
-                               SDL_WINDOWPOS_CENTERED,
-                               SDL_WINDOWPOS_CENTERED,
-                               WINDOW_WIDTH, WINDOW_HEIGHT,
-                               SDL_WINDOW_SHOWN
-                               );
-
-  // Renderer
-  SDL_Renderer *renderer = SDL_CreateRenderer(MainWindow, -1, 0);
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
-  SDL_RenderClear(renderer); // Make scene Black
 
   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                               SDL_TEXTUREACCESS_STREAMING,
