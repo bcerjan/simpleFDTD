@@ -140,15 +140,25 @@ void DFTUpdate (struct Grid *g, int n) {
   for (i = 0; i < NUMBERDFTFREQS; i++) {
     for (j = yStart; j < yStop; j++) {
       kVal = (double )kList[i];
-      //temporary = -1.0 * 0.5 * (ey[reflXPos][j]*hz[reflXPos][j]); // Poynting Flux through our line (positive x) (so we negate the result)
+
+      // Firt do Ey accumulations:
       temporary = ey[reflXPos][j];
-      reReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
-      imReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
+      reEyReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
+      imEyReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
       temporary = ey[tranXPos][j];
-      reTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
-      imTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
-      //temporary = 0.5 * (ey[tranXPos][j]*hz[tranXPos][j]); // Poynting Flux through our line
+      reEyTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
+      imEyTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
+
+      // Then Hz accumulations:
+      temporary = hz[reflXPos][j];
+      reHzReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
+      imHzReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
+
+      temporary = hz[tranXPos][j];
+      reHzTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
+      imHzTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
+
     } /* jForLoop */
   } /* iForLoop */
 
@@ -157,8 +167,10 @@ void DFTUpdate (struct Grid *g, int n) {
 }
 
 // Function to write header files for our DFT normalization
+// For the transmitted wave, we only need to store P(w), but for the
+// reflected wave, we need to store Ey(w,x) and Hz(w,x) for later analysis
 void WriteDFTFile (struct Grid *g) {
-  int i;
+  int i,j;
   char reflFilename[100] = "../include/fdtd/empty_refl_data.h";
   char tranFilename[100] = "../include/fdtd/empty_tran_data.h";
   FILE *reflDataPtr, *tranDataPtr;
@@ -166,6 +178,37 @@ void WriteDFTFile (struct Grid *g) {
   // Write to header file for use later
   reflDataPtr = fopen(reflFilename, "w");
   tranDataPtr = fopen(tranFilename, "w");
+
+  // Step 0: Add licensing text:
+  fprintf(reflDataPtr, "/**\n \
+      Copyright (c) 2020 Ben Cerjan\n\n \
+      This file is part of simpleFDTD.\n\n \
+      simpleFDTD is free software: you can redistribute it and/or modify \
+      it under the terms of the GNU Affero General Public License as published by \
+      the Free Software Foundation, either version 3 of the License, or \
+      (at your option) any later version.\n\n \
+      simpleFDTD is distributed in the hope that it will be useful, \
+      but WITHOUT ANY WARRANTY; without even the implied warranty of \
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
+      GNU Affero General Public License for more details.\n\n \
+      You should have received a copy of the GNU Affero General Public License \
+      along with simpleFDTD.  If not, see <https://www.gnu.org/licenses/>.\n \
+      **/\n\n");
+
+    fprintf(tranDataPtr, "/**\n \
+        Copyright (c) 2020 Ben Cerjan\n\n \
+        This file is part of simpleFDTD.\n\n \
+        simpleFDTD is free software: you can redistribute it and/or modify \
+        it under the terms of the GNU Affero General Public License as published by \
+        the Free Software Foundation, either version 3 of the License, or \
+        (at your option) any later version.\n\n \
+        simpleFDTD is distributed in the hope that it will be useful, \
+        but WITHOUT ANY WARRANTY; without even the implied warranty of \
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
+        GNU Affero General Public License for more details.\n\n \
+        You should have received a copy of the GNU Affero General Public License \
+        along with simpleFDTD.  If not, see <https://www.gnu.org/licenses/>.\n \
+        **/\n\n");
 
   // First add blocking definitions (just in case...)
   fprintf(reflDataPtr, "#ifndef REFL_EMPTY_DATA\n#define REFL_EMPTY_DATA\n");
@@ -177,70 +220,113 @@ void WriteDFTFile (struct Grid *g) {
   fprintf(tranDataPtr, "#define tranSteps %i\n", maximumIteration);
   fprintf(tranDataPtr, "#define tranFreqs %i\n", NUMBERDFTFREQS);
 
-  // Now open our arrays:
-  fprintf(reflDataPtr, "static const double emptyReflDFT[%i] = {\n", NUMBERDFTFREQS );
+  // Do the Transmittance array first because it's simpler:
   fprintf(tranDataPtr, "static const double emptyTranDFT[%i] = {\n", NUMBERDFTFREQS );
 
-  // Then define our arrays:
-
+  // Then define the values:
   for (i = 0; i < NUMBERDFTFREQS; i++) {
-    fprintf(reflDataPtr, "%.17g,\n", reflDFT[i]);
     fprintf(tranDataPtr, "%.17g,\n", tranDFT[i]);
   } /* iForLoop */
 
-  // End the arrays and if block:
-  fprintf(reflDataPtr, "};\n#endif" );
+  // End the array / if block
   fprintf(tranDataPtr, "};\n#endif" );
-
-  fclose(reflDataPtr);
   fclose(tranDataPtr);
+
+  // For Reflectance data, we need four arrays, two for Re/Im(Ey(w,x)) and
+  // two for Re/Im(Hz(w,x))
+  fprintf(reflDataPtr, "static const double emptyReEyRefl[%i][%i] = {\n{\n", NUMBERDFTFREQS, ySize );
+
+  // Loop for Re(Ey)
+  for (i = 0; i < NUMBERDFTFREQS; i++){
+    for (j = 0; j < ySize; j++) {
+      fprintf(reflDataPtr, "%.17g,\n", reEyReflDFT[i][j]);
+    } /* jForLoop */
+    fprintf(reflDataPtr, "},\n{")
+  } /* iForLoop */
+
+  // End this array, start next one, Im(Ey):
+  fprintf(reflDataPtr, "};\nstatic const double emptyImEyRefl[%i][%i] = {\n{\n", NUMBERDFTFREQS, ySize );
+
+  // Loop for Im(Ey)
+  for (i = 0; i < NUMBERDFTFREQS; i++){
+    for (j = 0; j < ySize; j++) {
+      fprintf(reflDataPtr, "%.17g,\n", imEyReflDFT[i][j]);
+    } /* jForLoop */
+    fprintf(reflDataPtr, "},\n{")
+  } /* iForLoop */
+
+  // End this array, start next one, Im(Ey):
+  fprintf(reflDataPtr, "};\nstatic const double emptyReHzRefl[%i][%i] = {\n{\n", NUMBERDFTFREQS, ySize );
+
+  // Loop for Re(Hz)
+  for (i = 0; i < NUMBERDFTFREQS; i++){
+    for (j = 0; j < ySize; j++) {
+      fprintf(reflDataPtr, "%.17g,\n", reHzReflDFT[i][j]);
+    } /* jForLoop */
+    fprintf(reflDataPtr, "},\n{")
+  } /* iForLoop */
+
+  // End this array, start next one, Im(Hz):
+  fprintf(reflDataPtr, "};\nstatic const double emptyImHzRefl[%i][%i] = {\n{\n", NUMBERDFTFREQS, ySize );
+
+  // Loop for Re(Hz)
+  for (i = 0; i < NUMBERDFTFREQS; i++){
+    for (j = 0; j < ySize; j++) {
+      fprintf(reflDataPtr, "%.17g,\n", imHzReflDFT[i][j]);
+    } /* jForLoop */
+    fprintf(reflDataPtr, "},\n{")
+  } /* iForLoop */
+
+  // End the array:
+  fprintf(reflDataPtr, "};\n" );
+  fprintf(reflDataPtr, "#endif"); // End if block
+  fclose(reflDataPtr);
 
   return;
 }
 
-// Function that normalizes DFT results based on stored data:
-void NormalizeDFT (struct Grid *g) {
-  int i;
-  //double emptyReflDFT[NUMBERDFTFREQS];
-  //double emptyTranDFT[NUMBERDFTFREQS];
+// Function that normalizes DFT results based on stored data for both
+// reflected and transmitted fields:
+void finishFullDFT (struct Grid *g) {
+  int i,j;
+  int regionIndex = 0;    // center (main) grid
+  int yStart = regionData[regionIndex].yStart;
+  int yStop  = regionData[regionIndex].yStop ;
+  double reEy,imEy,reHz,imHz;
 
-  // Normalize our DFT's relative to empty run:
+  // First do Transmission as it is simpler:
   for (i = 0; i < NUMBERDFTFREQS; i++) {
-    reflDFT[i] = reflDFT[i] / ( emptyReflDFT[i] ) - 1.0; // -1.0 because there is always reflected light due to the source
     tranDFT[i] = tranDFT[i] / ( emptyTranDFT[i] );
+  } /* iForLoop */
+
+  // Now, we need to compute the reflected flux accounting for the intial fields:
+  // See: https://meep.readthedocs.io/en/latest/Introduction/#transmittancereflectance-spectra
+  for (i = 0; i < NUMBERDFTFREQS; i++) {
+    for (j = yStart; j < yStop; j++) {
+      reEy = reEyReflDFT[i][j] - emptyReEyRefl[i][j];
+      imEy = imEyReflDFT[i][j] - emptyImEyRefl[i][j];
+      reHz = reHzReflDFT[i][j] - emptyReHzRefl[i][j];
+      imHz = imHzReflDFT[i][j] - emptyImHyRefl[i][j];
+      reflDFT[i] += -1.0 * ( (reEy * reHz) + (imEy * imHz) ); // -1 is because we are pointing in the negative x direction 
+    } /* jForLoop */
   } /* iForLoop */
 
   return;
 }
 
-// Normalize by number of steps taken
-void finishDFT (struct Grid *g) {
+// Convert Ey(w) and Hz(w) to P(w) for transmitted fields:
+void finishEmptyDFT (struct Grid *g) {
   int i,j;
-  double temporary;
 
   int regionIndex = 0;    // center (main) grid
   int yStart = regionData[regionIndex].yStart;
   int yStop  = regionData[regionIndex].yStop ;
 
-/*
-  for (i = 0; i < NUMBERDFTFREQS; i++) {
-    reflDFT[i] = reflDFT[i] / ( maximumIteration );
-    tranDFT[i] = tranDFT[i] / ( maximumIteration );
-  }*/ /* iForLoop */
 
-  // For Direct flux calculation:
-  // Apply scaling outside of the sum (Schneider 5.32-33)
+  // Poynting flux calculation Integral of (Ey* x Hz):
   for (i = 0 ; i < NUMBERDFTFREQS; i++) {
     for (j = yStart; j < yStop; j++) {
-      /*reEyDFT[i][j] = reEyDFT[i][j];
-      imEyDFT[i][j] = imEyDFT[i][j];
-      reHzDFT[i][j] = reHzDFT[i][j] / (maximumIteration);
-      imHzDFT[i][j] = imHzDFT[i][j] / (maximumIteration - 1);*/
-
-      // Now store the Poynting flux in positive x-direction as a function of position:
-      reflDFT[i] += ( (reReflDFT[i][j] * reReflDFT[i][j]) + (imReflDFT[i][j] * imReflDFT[i][j]) );
-      tranDFT[i] += ( (reTranDFT[i][j] * reTranDFT[i][j]) + (imTranDFT[i][j] * imTranDFT[i][j]) );
-
+      tranDFT[i] += ( (reEyTranDFT[i][j] * reHzTranDFT[i][j]) + (imHzTranDFT[i][j] * imEyTranDFT[i][j]) );
     } /* jForLoop */
   } /* iForLoop */
 
