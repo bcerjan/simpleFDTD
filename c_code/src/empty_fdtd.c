@@ -72,15 +72,12 @@ int main() {
     interval++;
   } /* nForLoop */
 
-  // Scale our DFT's by number of time steps:
-  finishDFT(g);
+  // Finish taking the DFT:
+  finishEmptyDFT(g);
 
-  for (n = 0; n < NUMBERDFTFREQS; n++) {
-    printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
-    printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
-  }
+
   printf( "Finished loop\n" );
-  //printf("%f\n", ey[70][10] );
+  // Output our fields:
   WriteDFTFile(g);
 
   freeGrid(g);

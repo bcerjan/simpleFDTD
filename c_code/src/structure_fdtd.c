@@ -73,17 +73,14 @@ int main() {
     interval++;
   } /* nForLoop */
 
-  // Scale our DFT's by number of time steps:
-  finishDFT(g);
-  NormalizeDFT(g);
+  // Scale our DFT's by the empty run:
+  finishFullDFT(g);
 
   for (n = 0; n < NUMBERDFTFREQS; n++) {
     printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
     printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
   }
   printf( "Finished loop\n" );
-  //printf("%f\n", ey[70][10] );
-  //WriteDFTFile(g);
 
   freeGrid(g);
   return 0;
