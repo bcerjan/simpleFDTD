@@ -54,10 +54,14 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(edgeMat, xSize);
   freeDoublePtr(object_locs, xSize);
 
-  freeDoublePtr(reReflDFT, NUMBERDFTFREQS);
-  freeDoublePtr(imReflDFT, NUMBERDFTFREQS);
-  freeDoublePtr(reTranDFT, NUMBERDFTFREQS);
-  freeDoublePtr(imTranDFT, NUMBERDFTFREQS);
+  freeDoublePtr(reEyReflDFT, NUMBERDFTFREQS);
+  freeDoublePtr(imEyReflDFT, NUMBERDFTFREQS);
+  freeDoublePtr(reEyTranDFT, NUMBERDFTFREQS);
+  freeDoublePtr(imEyTranDFT, NUMBERDFTFREQS);
+  freeDoublePtr(reHzReflDFT, NUMBERDFTFREQS);
+  freeDoublePtr(imHzReflDFT, NUMBERDFTFREQS);
+  freeDoublePtr(reHzTranDFT, NUMBERDFTFREQS);
+  freeDoublePtr(imHzTranDFT, NUMBERDFTFREQS);
 
   // Now, all individual pointers:
   free(hzy);

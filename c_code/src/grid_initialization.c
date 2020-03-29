@@ -221,10 +221,15 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     reflDFT = AllocateMemory1D(numFreqs, 0.0);
     tranDFT = AllocateMemory1D(numFreqs, 0.0);
 
-    reReflDFT = AllocateMemory(numFreqs, ySize, 0.0);
-    imReflDFT = AllocateMemory(numFreqs, ySize, 0.0);
-    reTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
-    imTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    reEyReflDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    imEyReflDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    reEyTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    imEyTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
+
+    reHzReflDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    imHzReflDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    reHzTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
+    imHzTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
 
     reflXPos = abcSize + 5;
     tranXPos = xSize - abcSize - 5;
