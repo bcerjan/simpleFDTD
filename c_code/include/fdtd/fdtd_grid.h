@@ -74,10 +74,17 @@ struct Grid {
   double wavelengthList[NUMBERDFTFREQS]; // "" wavelengths
 
   // Arrays to store DFT running sums as a function of position and frequency
-  double **reReflDFT;
-  double **imReflDFT;
-  double **reTranDFT;
-  double **imTranDFT;
+  // Need to store Ey and Hz at each point on the line we are integrating over
+
+  double **reEyReflDFT;
+  double **imEyReflDFT;
+  double **reEyTranDFT;
+  double **imEyTranDFT;
+
+  double **reHzReflDFT;
+  double **imHzReflDFT;
+  double **reHzTranDFT;
+  double **imHzTranDFT;
 
   // E^2 field for plotting:
   double **e2Field;
