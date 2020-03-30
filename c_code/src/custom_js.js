@@ -73,5 +73,6 @@ mergeInto(LibraryManager.library, {
 mergeInto(LibraryManager.library, {
   enableButton: function() {
     runSim.disabled = false;
+    runSim.innerHTML = "Run Simulation";
   }
 });
