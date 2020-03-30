@@ -38,6 +38,9 @@ extern void addTranData(double waveLength, double value);
 // And to update the chart:
 extern void updateChartData();
 
+// To Enable "Run Simulation" button:
+extern void enableButton();
+
 void iterateSimulation(struct Grid *g) {
     // If first iteration, initialize SDL stuff:
     if (timeStep < 1) {
@@ -64,16 +67,15 @@ void iterateSimulation(struct Grid *g) {
 
     // Check if we're done with the simulation:
     if (timeStep > maximumIteration) {
-      // Scale our DFT's by number of time steps:
-      finishDFT(g);
-      // And scale them based on an empty run:
-      NormalizeDFT(g);
+      printf("reEyReflDFT[5][75]: %f\n", reEyReflDFT[5][75] );
+      // Finish the DFT calculations, accounting for empty run:
+      finishFullDFT(g);
 
       for (int n = 0; n < NUMBERDFTFREQS; n++) {
-        addReflData(wavelengthList[n], reflDFT[n]);
-        addTranData(wavelengthList[n], tranDFT[n]);
-        //printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
-        //printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
+        addReflData(wavelengthList[n]*dx*1e9, reflDFT[n]); // Convert back to nm from ppw
+        addTranData(wavelengthList[n]*dx*1e9, tranDFT[n]); // ""
+        printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
+        printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
       }
 
       updateChartData();
@@ -81,6 +83,7 @@ void iterateSimulation(struct Grid *g) {
       printf( "Finished loop\n" );
       updateProgress(100.0); // Finish Progress bar now that we're done
       freeGrid(g);
+      enableButton();
       emscripten_cancel_main_loop(); // Cancel the loop when we run out of steps
     } /* ifCondition */
 }
