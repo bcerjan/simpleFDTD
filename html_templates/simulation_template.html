@@ -152,7 +152,11 @@
     </div> <!-- Accordion -->
 
       <hr class="my-4">
-      <button type="button" class="btn btn-success" id="runSim">Run Simulation</button>
+      <div class="form-group col-md-6">
+        <button type="button" class="btn btn-success" id="runSim"
+        aria-describedby="runSimNote">Run Simulation</button>
+        <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1.5 minutes</small>
+      </div>
       <br>
     <div class="row justify-content-center align-items-center">
       <div class="col">
@@ -247,22 +251,24 @@
           const indexN = $('#dielectricEnvironment').val();
           clearChart(outputChart);
           updateProgressBar(0);
+          document.querySelector('#runSim').disabled = true;
+          document.querySelector('#runSim').innerHTML = "Running...";
           api.fdtd(material,shape,size,indexN);
         });
 
     const ctx = document.getElementById('outputData').getContext('2d');
     var data = {
       datasets: [{
-        label: 'Refl Data',
+        label: 'Reflection',
         data: [],
         fill: false,
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        backgroundColor: 'rgba(75, 192, 192, 0.8)',
         borderColor: 'rgba(75, 192, 192, 1)'
       }, {
-        label: 'Tran Data',
+        label: 'Transmission',
         data: [],
         fill: false,
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        backgroundColor: 'rgba(255, 99, 132, 0.8)',
         borderColor: 'rgba(255, 99, 132, 1)'
       }]
     }
@@ -270,7 +276,23 @@
       scales: {
         xAxes: [{
           type: 'linear',
-          position: 'bottom'
+          position: 'bottom',
+          scaleLabel: {
+            display: true,
+            labelString: 'Wavelength (nm)',
+            fontSize: 16
+          },
+          ticks: {
+            suggestedMin: 350,
+            suggestedMax: 850
+          }
+        }],
+        yAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: 'Relative R/T',
+            fontSize: 16
+          }
         }]
       }
     };

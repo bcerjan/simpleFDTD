@@ -67,10 +67,16 @@
 #define TranDFTG(G) G->tranDFT
 #define KListG(G) G->kList
 #define WavelengthListG(G) G->wavelengthList
-#define ReReflDFTG(G) G->reReflDFT
-#define ImReflDFTG(G) G->imReflDFT
-#define ReTranDFTG(G) G->reTranDFT
-#define ImTranDFTG(G) G->imTranDFT
+
+#define ReEyReflDFTG(G) G->reEyReflDFT
+#define ImEyReflDFTG(G) G->imEyReflDFT
+#define ReEyTranDFTG(G) G->reEyTranDFT
+#define ImEyTranDFTG(G) G->imEyTranDFT
+
+#define ReHzReflDFTG(G) G->reHzReflDFT
+#define ImHzReflDFTG(G) G->imHzReflDFT
+#define ReHzTranDFTG(G) G->reHzTranDFT
+#define ImHzTranDFTG(G) G->imHzTranDFT
 
 // For plotting:
 #define E2FieldG(G) G->e2Field
@@ -133,10 +139,15 @@
 #define kList KListG(g)
 #define wavelengthList WavelengthListG(g)
 
-#define reReflDFT ReReflDFTG(g)
-#define imReflDFT ImReflDFTG(g)
-#define reTranDFT ReTranDFTG(g)
-#define imTranDFT ImTranDFTG(g)
+#define reEyReflDFT ReEyReflDFTG(g)
+#define imEyReflDFT ImEyReflDFTG(g)
+#define reEyTranDFT ReEyTranDFTG(g)
+#define imEyTranDFT ImEyTranDFTG(g)
+
+#define reHzReflDFT ReHzReflDFTG(g)
+#define imHzReflDFT ImHzReflDFTG(g)
+#define reHzTranDFT ReHzTranDFTG(g)
+#define imHzTranDFT ImHzTranDFTG(g)
 
 // For plotting:
 #define e2Field E2FieldG(g)

@@ -47,7 +47,7 @@ int main() {
   int outInterval = 0;
 
   for (n = 0; n < maximumIteration; n++) {
-//  for (n = 0; n < 15; n++) {
+  //for (n = 0; n < 15; n++) {
     HFieldUpdate(g, n);
     EFieldUpdate(g);
     JFieldUpdate(g);
@@ -72,15 +72,12 @@ int main() {
     interval++;
   } /* nForLoop */
 
-  // Scale our DFT's by number of time steps:
-  finishDFT(g);
+  // Finish taking the DFT:
+  finishEmptyDFT(g);
 
-  for (n = 0; n < NUMBERDFTFREQS; n++) {
-    printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
-    printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
-  }
+
   printf( "Finished loop\n" );
-  //printf("%f\n", ey[70][10] );
+  // Output our fields:
   WriteDFTFile(g);
 
   freeGrid(g);
