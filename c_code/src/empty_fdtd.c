@@ -47,7 +47,7 @@ int main() {
   int outInterval = 0;
 
   for (n = 0; n < maximumIteration; n++) {
-//  for (n = 0; n < 15; n++) {
+  //for (n = 0; n < 15; n++) {
     HFieldUpdate(g, n);
     EFieldUpdate(g);
     JFieldUpdate(g);
