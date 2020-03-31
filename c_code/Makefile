@@ -57,7 +57,7 @@ EMSDKFLAGS += $(CXXFLAGS) \
 					 --js-library ./src/custom_js.js
 
 
-#OPT = -O2
+OPT = -O2
 
 CFLAGS += -Wall $(OPT)
 
