@@ -50,11 +50,11 @@ void iterateSimulation(struct Grid *g) {
     HFieldUpdate(g, timeStep);
     EFieldUpdate(g);
     JFieldUpdate(g);
-    lineSource(g, 30, timeStep);
+    lineSource(g, ABCSIZECONSTANT + 20, timeStep);
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, timeStep);
 
-    if (timeStep < 700) {
+    if (timeStep < 1200) {
       //printf("Loop step: %i\n",timeStep);
       //printf( "Drawing to screen...\n" );
       PlotField(g,2.5,0.0);
