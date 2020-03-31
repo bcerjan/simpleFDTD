@@ -37,7 +37,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, 0, 100.0, 1.0); // First int for metal, second for object shape
+  InitializeFdtd(g, 0, 1, 2000.0, 1.0); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -78,7 +78,7 @@ int main() {
 
   for (n = 0; n < NUMBERDFTFREQS; n++) {
     printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
-    printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
+    //printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
   }
   printf( "Finished loop\n" );
 
