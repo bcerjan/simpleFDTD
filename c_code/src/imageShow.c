@@ -211,7 +211,7 @@ void imageShow(struct Grid *g) {
       red = buffer[0];
       green = buffer[1];
       blue = buffer[2];
-      if (edgeMat[i][j] > 0.2) {
+      if (edgeMat[i][j] > 2.5) {
         blue = 200.0;
         green = 200.0;
         red = 200.0;
