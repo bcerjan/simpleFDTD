@@ -54,7 +54,7 @@ void iterateSimulation(struct Grid *g) {
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, timeStep);
 
-    if (timeStep < 1200) {
+    if (timeStep < 1500) {
       //printf("Loop step: %i\n",timeStep);
       //printf( "Drawing to screen...\n" );
       PlotField(g,2.5,0.0);
