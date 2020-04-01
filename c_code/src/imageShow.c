@@ -66,8 +66,8 @@ void findMatEdge(struct Grid *g) {
   //double **out = AllocateMemory(sizeX, sizeY, 0.0);
   double Gx;
   double Gy;
-  double gx[3][3];
-  double gy[3][3];
+  double gx[3][3] = {0};
+  double gy[3][3] = {0};
 
   // Specify Sobel Operators:
   gx[0][0] = -1.0;
@@ -107,7 +107,6 @@ void findMatEdge(struct Grid *g) {
       } /* nForLoop */
 
       edgeMat[i+1][j+1] = pow(Gx*Gx + Gy*Gy, 0.5);
-      //printf("edgeMat[%i][%i]: %f\n",i+1,j+1,edgeMat[i+1][j+2]);
     } /* jForLoop */
   } /* iForLoop */
 
@@ -212,7 +211,7 @@ void imageShow(struct Grid *g) {
       red = buffer[0];
       green = buffer[1];
       blue = buffer[2];
-      if (edgeMat[i][j] > 4.0) {
+      if (edgeMat[i][j] > 0.2) {
         blue = 200.0;
         green = 200.0;
         red = 200.0;
