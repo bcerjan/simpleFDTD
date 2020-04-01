@@ -22,7 +22,7 @@
 
 #define  ABCSIZECONSTANT    (8)                      // thickness of PML region
 #define  MEDIACONSTANT    (2)                        // number of different media, ie 2: vacuum, metal object
-#define  NUMBEROFITERATIONCONSTANT    (2048)          // Number of timesteps
+#define  NUMBEROFITERATIONCONSTANT    (3000)          // Number of timesteps
 #define  NUMBEROFREGIONS    (5)                      // center(main), front, back, left, right
 
 #define  NUMBERDFTFREQS    (50)                      // Number of frequencies to compute DFTs at
