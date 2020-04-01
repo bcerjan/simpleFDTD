@@ -49,7 +49,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     switch(metalChoice)
     {
       case 0: // Aluminum
-        tempPermittivity = 1.0;
+        tempPermittivity = 0.0864;
         tempConductivity = 3.77e+7;
         tempPermeability = 1.0;
         tempResistivity = 2.65e-8;
@@ -58,7 +58,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
         break;
 
       case 1: // Gold
-        tempPermittivity = 1.0;
+        tempPermittivity = 6.909;
         tempConductivity = 4.11e+7;
         tempPermeability = 1.0;
         tempResistivity = 2.44e-8;
@@ -67,7 +67,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
         break;
 
       case 2: // Silver
-        tempPermittivity = 1.0;
+        tempPermittivity = 0.114;
         tempConductivity = 6.30e+7;
         tempPermeability = 1.0;
         tempResistivity = 1.59e-8;
