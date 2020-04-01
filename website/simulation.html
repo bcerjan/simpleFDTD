@@ -117,11 +117,14 @@
               <label class="btn btn-secondary">
                 <input type="radio" name="materialOptions" id="materialAu" value="1">Gold
               </label>
-              <label class="btn btn-secondary active">
+              <label class="btn btn-secondary">
                 <input type="radio" name="materialOptions" id="materialAg" value="2">Silver
               </label>
-              <label class="btn btn-secondary active">
+              <label class="btn btn-secondary">
                 <input type="radio" name="materialOptions" id="materialCu" value="3">Copper
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="materialOptions" id="materialCu" value="4">Silica
               </label>
             </div>
           </div>
@@ -155,12 +158,12 @@
       <div class="form-group col-md-6">
         <button type="button" class="btn btn-success" id="runSim"
         aria-describedby="runSimNote">Run Simulation</button>
-        <small id="runSimNote" class="form-text text-muted">On most computers this takes ~2 minutes</small>
+        <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1 minute</small>
       </div>
       <br>
     <div class="row justify-content-center align-items-center">
       <div class="col">
-        <canvas class="emscripten" id="canvas" tabindex=-1 width="266" height="166" aria-label="FDTD Simulation Window"></canvas>
+        <canvas class="emscripten" id="canvas" tabindex=-1 width="316" height="266" aria-label="FDTD Simulation Window"></canvas>
       </div>
 
      <div class="col">
@@ -290,7 +293,7 @@
         yAxes: [{
           scaleLabel: {
             display: true,
-            labelString: 'Relative R/T',
+            labelString: 'Relative R or T',
             fontSize: 16
           }
         }]
