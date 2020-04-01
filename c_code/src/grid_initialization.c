@@ -84,6 +84,15 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
         gDamping = 8.34e+12; // WRONG
         break;
 
+      case 4: // Silica
+        tempPermittivity = 2.136;
+        tempConductivity = 0.0;
+        tempPermeability = 1.0;
+        tempResistivity = 0.0;
+        wPlasma = 0.0; // WRONG
+        gDamping = 0.0; // WRONG
+        break;
+
       default : // CHANGE TO SOMETHING RATIONAL
         tempPermittivity = 1.0;
         tempConductivity = 1.0e+7;
@@ -99,7 +108,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     double  mediaDamping[MEDIACONSTANT] = {0.0, gDamping}; // Damping constant
     /* End of Drude Metal Addition */
 
-    double  mediaPermittivity[MEDIACONSTANT] = {sqrt(environmentIndex), tempPermittivity};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
+    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, tempPermittivity};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
     double  mediaConductivity[MEDIACONSTANT] = {0.0, tempConductivity}; // sig,
     double  mediaPermeability[MEDIACONSTANT] = {1.0, tempPermeability};    // mur
     double  mediaResistivity[MEDIACONSTANT] = {0.0, tempResistivity};     // sim
@@ -149,8 +158,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Grid parameters
     /***********************************************************************/
 
-    xSizeMain = 250;                              // number of main grid cells in x-direction
-    ySizeMain = 150;                               // number of main grid cells in y-direction
+    xSizeMain = 300;                              // number of main grid cells in x-direction
+    ySizeMain = 250;                               // number of main grid cells in y-direction
     abcSize = ABCSIZECONSTANT;                    // thickness of PML region
     xSize = xSizeMain + 2 * abcSize;              // number of total grid cells in x-direction
     ySize = ySizeMain + 2 * abcSize;              // number of total grid cells in y-direction
@@ -317,7 +326,7 @@ printf("Strucutre Init...\n" );
         break;
 
       case 1: // Block
-        addRect(g, 10.0 * dx, objectSize * dx/dxnm);
+        addRect(g, 20.0 * dx, objectSize * dx/dxnm);
         break;
 
       case 2: // Triangle
