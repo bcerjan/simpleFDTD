@@ -159,7 +159,7 @@
           <div class="col">
             <button type="button" class="btn btn-success" id="runSim"
             aria-describedby="runSimNote">Run Simulation</button>
-            <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1 minute</small>
+            <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1.5 minutes</small>
           </div>
           <div class="col">
             <button type="button" class="btn btn-info" id="normData"
@@ -264,6 +264,8 @@
           updateProgressBar(0);
           document.querySelector('#runSim').disabled = true;
           document.querySelector('#normData').disabled = true;
+          document.querySelector('#normData').value = 'norm';
+          document.querySelector('#normData').innerHTML = 'Normalize Data';
           document.querySelector('#runSim').innerHTML = "Running...";
           api.fdtd(material,shape,size,indexN);
         });
