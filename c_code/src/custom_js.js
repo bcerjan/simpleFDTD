@@ -65,7 +65,6 @@ mergeInto(LibraryManager.library, {
 mergeInto(LibraryManager.library, {
   updateChartData: function() {
     outputChart.update();
-    console.log(outputChart);
   }
 });
 
@@ -73,6 +72,7 @@ mergeInto(LibraryManager.library, {
 mergeInto(LibraryManager.library, {
   enableButton: function() {
     runSim.disabled = false;
+    normData.disabled = false;
     runSim.innerHTML = "Run Simulation";
   }
 });
