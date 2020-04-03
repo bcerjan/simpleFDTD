@@ -24,6 +24,7 @@
 #include "fdtd_proto.h"
 #include "ezinc.h"
 #include "structure_funcs.h"
+#include "material_data.h"
 
 /* Function to initialize our Grid and it's associated constants */
 
@@ -38,80 +39,17 @@ double environmentIndex : Refractive Index of the environment
 void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
   double objectSize, double environmentIndex )
 {
-    // Permittivity here is epsilon infinity now that everything is a Drude material
-    double tempPermittivity, tempConductivity, tempPermeability, tempResistivity;
-    double wPlasma, gDamping;
-
-    // Data from: http://www.wave-scattering.com/drudefit.html
-    // Might need to be adjusted....
-//printf( "Heading to switch\n" );
-    // Switch block to determine what metal we're using:
-    switch(metalChoice)
-    {
-      case 0: // Aluminum
-        tempPermittivity = 0.0864;
-        tempConductivity = 3.77e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 2.65e-8;
-        wPlasma = 3.57e+15;
-        gDamping = 19.79e+12;
-        break;
-
-      case 1: // Gold
-        tempPermittivity = 6.909;
-        tempConductivity = 4.11e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 2.44e-8;
-        wPlasma = 2.183e+15;
-        gDamping = 6.46e+12;
-        break;
-
-      case 2: // Silver
-        tempPermittivity = 0.114;
-        tempConductivity = 6.30e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 1.59e-8;
-        wPlasma = 2.18e+15;
-        gDamping = 4.353e+12;
-        break;
-
-      case 3: // Copper
-        tempPermittivity = 1.0;
-        tempConductivity = 5.69e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 1.68e-8;
-        wPlasma = 1.914e+15; // WRONG
-        gDamping = 8.34e+12; // WRONG
-        break;
-
-      case 4: // Silica
-        tempPermittivity = 2.136;
-        tempConductivity = 0.0;
-        tempPermeability = 1.0;
-        tempResistivity = 0.0;
-        wPlasma = 0.0; // WRONG
-        gDamping = 0.0; // WRONG
-        break;
-
-      default : // CHANGE TO SOMETHING RATIONAL
-        tempPermittivity = 1.0;
-        tempConductivity = 1.0e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 0.0;
-        wPlasma = 1.0e+15; // WRONG
-        gDamping = 1.0e+14; // WRONG
-    } /* Switch Block */
 
     /* Added for Drude metals so we can treat both the vacuum and object as "Drude"
        materials */
-    double  mediaPlasma[MEDIACONSTANT] = {0.0, wPlasma}; // Plasma frequency
-    double  mediaDamping[MEDIACONSTANT] = {0.0, gDamping}; // Damping constant
+    double  mediaPlasma[MEDIACONSTANT] = {0.0, materialData[metalChoice][4]}; // Plasma frequency
+    double  mediaDamping[MEDIACONSTANT] = {0.0, materialData[metalChoice][5]}; // Damping constant
     /* End of Drude Metal Addition */
 
-    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, tempPermittivity};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
-    double  mediaConductivity[MEDIACONSTANT] = {0.0, tempConductivity}; // sig,
-    double  mediaPermeability[MEDIACONSTANT] = {1.0, tempPermeability};    // mur
-    double  mediaResistivity[MEDIACONSTANT] = {0.0, tempResistivity};     // sim
+    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, materialData[metalChoice][0]};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
+    double  mediaConductivity[MEDIACONSTANT] = {0.0, materialData[metalChoice][1]}; // sig,
+    double  mediaPermeability[MEDIACONSTANT] = {1.0, materialData[metalChoice][2]};    // mur
+    double  mediaResistivity[MEDIACONSTANT] = {0.0, materialData[metalChoice][3]};     // sim
     double  mediaCa[MEDIACONSTANT];
     double  mediaCb[MEDIACONSTANT];
     double  mediaDa[MEDIACONSTANT];
