@@ -34,8 +34,8 @@
   <br>
   <div class="container">
     <div class="alert alert-warning" role="alert">
-      This page is not currently returning accurate results, so if you manage
-      to get here by accident, don't trust what you see.
+      Reults for silica are (reasonably) accurate, but the metals don't seem
+      to be working quite as expected yet. YMMV.
     </div>
   </div>
   <div class="container">
@@ -155,11 +155,19 @@
     </div> <!-- Accordion -->
 
       <hr class="my-4">
-      <div class="form-group col-md-6">
-        <button type="button" class="btn btn-success" id="runSim"
-        aria-describedby="runSimNote">Run Simulation</button>
-        <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1 minute</small>
-      </div>
+        <div class="form-group row justify-content-between">
+          <div class="col">
+            <button type="button" class="btn btn-success" id="runSim"
+            aria-describedby="runSimNote">Run Simulation</button>
+            <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1 minute</small>
+          </div>
+          <div class="col">
+            <button type="button" class="btn btn-info" id="normData"
+            aria-describedby="normDataNote" value="norm">Normalize Data</button>
+            <small id="normDataNote" class="form-text text-muted"></small>
+          </div>
+        </div>
+
       <br>
     <div class="row justify-content-center align-items-center">
       <div class="col">
@@ -255,9 +263,23 @@
           clearChart(outputChart);
           updateProgressBar(0);
           document.querySelector('#runSim').disabled = true;
+          document.querySelector('#normData').disabled = true;
           document.querySelector('#runSim').innerHTML = "Running...";
           api.fdtd(material,shape,size,indexN);
         });
+        // Normalize Data
+        document.querySelector('#normData')
+          .addEventListener('click', function() {
+            if( this.value == 'norm') {
+              normalizeChart(outputChart);
+              this.innerHTML = 'de-Normalize';
+              this.value = 'scale'
+            } else {
+              unNormalizeChart(outputChart);
+              this.innerHTML = 'Normalize Data';
+              this.value = 'norm'
+            }
+          });
 
     const ctx = document.getElementById('outputData').getContext('2d');
     var data = {
@@ -295,6 +317,10 @@
             display: true,
             labelString: 'Relative R or T',
             fontSize: 16
+          },
+          ticks: {
+            suggestedMin: 0,
+            suggestedMax: 1
           }
         }]
       }
@@ -319,6 +345,45 @@
       });
       chart.update();
     };
+
+    // Variables for storage for when we de-normalize
+    var maxVals = [0, 0];
+    function normalizeChart(chart) {
+      chart.data.datasets.forEach((dataset, index) => {
+          maxVals[index] = findDataMax(dataset);
+          divideData(dataset, maxVals[index]);
+        });
+        chart.update();
+    }
+
+    function unNormalizeChart(chart) {
+      chart.data.datasets.forEach((dataset, index) => {
+          multiplyData(dataset, maxVals[index]);
+        });
+        chart.update();
+    }
+
+    function findDataMax(dataset) {
+      var max = 0;
+      dataset.data.forEach((element) => {
+        if(element.y > max) {
+          max = element.y;
+        }
+      })
+      return max;
+    }
+
+    function divideData(dataset, divisor) {
+      dataset.data.forEach((element) => {
+        element.y = element.y / divisor;
+      });
+    }
+
+    function multiplyData(dataset, multiplier) {
+      dataset.data.forEach((element) => {
+        element.y = element.y * multiplier;
+      });
+    }
 
     </script>
 
