@@ -74,8 +74,8 @@ void iterateSimulation(struct Grid *g) {
       for (int n = 0; n < NUMBERDFTFREQS; n++) {
         addReflData(wavelengthList[n]*dx*1e9, reflDFT[n]); // Convert back to nm from ppw
         addTranData(wavelengthList[n]*dx*1e9, tranDFT[n]); // ""
-        printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
-        printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
+        //printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
+        //printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
       }
 
       updateChartData();
