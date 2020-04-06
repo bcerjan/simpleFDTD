@@ -22,10 +22,55 @@
 #include <math.h>
 #include "fdtd_macro.h"
 #include "fdtd_proto.h"
-#include "ezinc.h"
 #include "structure_funcs.h"
+#include "ezinc.h"
 #include "material_data.h"
 
+
+
+/* Functions to get material data (or create it) from our stored file */
+double getMatPlasma(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][4];
+  } else {
+    return 0.0;
+  } /* if Block */
+}
+double getMatDamping(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][5];
+  } else {
+    return 0.0;
+  } /* if Block */
+}
+double getMatPermittivity(int metalChoice, double objectIndex) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][0];
+  } else {
+    return objectIndex*objectIndex;
+  } /* if Block */
+}
+double getMatConductivity(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][1];
+  } else {
+    return 0.0;
+  } /* if Block */
+}
+double getMatPermeability(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][2];
+  } else {
+    return 1.0;
+  }
+}
+double getMatResistivity(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][3];
+  } else {
+    return 0.0;
+  } /* if Block */
+}
 /* Function to initialize our Grid and it's associated constants */
 
 /* Inputs:
@@ -37,19 +82,23 @@ double environmentIndex : Refractive Index of the environment
 */
 
 void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
-  double objectSize, double environmentIndex )
+  double objectSize, double environmentIndex, double objectIndex )
 {
+    // if custom dielelectric we need to read the permittivity:
+    if( metalChoice >= 0 ) {
+
+    }
 
     /* Added for Drude metals so we can treat both the vacuum and object as "Drude"
        materials */
-    double  mediaPlasma[MEDIACONSTANT] = {0.0, materialData[metalChoice][4]}; // Plasma frequency
-    double  mediaDamping[MEDIACONSTANT] = {0.0, materialData[metalChoice][5]}; // Damping constant
+    double  mediaPlasma[MEDIACONSTANT] = {0.0, getMatPlasma(metalChoice)}; // Plasma frequency
+    double  mediaDamping[MEDIACONSTANT] = {0.0, getMatDamping(metalChoice)}; // Damping constant
     /* End of Drude Metal Addition */
 
-    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, materialData[metalChoice][0]};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
-    double  mediaConductivity[MEDIACONSTANT] = {0.0, materialData[metalChoice][1]}; // sig,
-    double  mediaPermeability[MEDIACONSTANT] = {1.0, materialData[metalChoice][2]};    // mur
-    double  mediaResistivity[MEDIACONSTANT] = {0.0, materialData[metalChoice][3]};     // sim
+    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, getMatPermittivity(metalChoice, objectIndex)};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
+    double  mediaConductivity[MEDIACONSTANT] = {0.0, getMatConductivity(metalChoice)}; // sig,
+    double  mediaPermeability[MEDIACONSTANT] = {1.0, getMatPermeability(metalChoice)};    // mur
+    double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity(metalChoice)};     // sim
     double  mediaCa[MEDIACONSTANT];
     double  mediaCb[MEDIACONSTANT];
     double  mediaDa[MEDIACONSTANT];
