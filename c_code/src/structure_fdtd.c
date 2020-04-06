@@ -37,7 +37,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, 1, 20000.0, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 0, 1, 20000.0, 1.0, 0.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
