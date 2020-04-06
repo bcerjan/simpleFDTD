@@ -50,11 +50,11 @@ void iterateSimulation(struct Grid *g) {
     HFieldUpdate(g, timeStep);
     EFieldUpdate(g);
     JFieldUpdate(g);
-    lineSource(g, 30, timeStep);
+    lineSource(g, ABCSIZECONSTANT + 20, timeStep);
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, timeStep);
 
-    if (timeStep < 700) {
+    if (timeStep < 1500) {
       //printf("Loop step: %i\n",timeStep);
       //printf( "Drawing to screen...\n" );
       PlotField(g,2.5,0.0);
@@ -74,8 +74,6 @@ void iterateSimulation(struct Grid *g) {
       for (int n = 0; n < NUMBERDFTFREQS; n++) {
         addReflData(wavelengthList[n]*dx*1e9, reflDFT[n]); // Convert back to nm from ppw
         addTranData(wavelengthList[n]*dx*1e9, tranDFT[n]); // ""
-        printf("reflDFT[%i]: %f\n",n,reflDFT[n] );
-        printf("tranDFT[%i]: %f\n",n,tranDFT[n] );
       }
 
       updateChartData();
@@ -88,7 +86,7 @@ void iterateSimulation(struct Grid *g) {
     } /* ifCondition */
 }
 
-int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environmentIndex) {
+int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environmentIndex, double objectIndex) {
   printf( "Started main...\n" );
 
   //struct Grid *g = malloc(sizeof(struct Grid));
@@ -97,7 +95,7 @@ int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environ
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, metalChoice, objectChoice, objectSize, environmentIndex); // First int for metal, second for object shape
+  InitializeFdtd(g, metalChoice, objectChoice, objectSize, environmentIndex, objectIndex); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
   // prepare matrix of object edges:
   findMatEdge(g);

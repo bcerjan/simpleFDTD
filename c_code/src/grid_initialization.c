@@ -22,9 +22,55 @@
 #include <math.h>
 #include "fdtd_macro.h"
 #include "fdtd_proto.h"
-#include "ezinc.h"
 #include "structure_funcs.h"
+#include "ezinc.h"
+#include "material_data.h"
 
+
+
+/* Functions to get material data (or create it) from our stored file */
+double getMatPlasma(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][4];
+  } else {
+    return 0.0;
+  } /* if Block */
+}
+double getMatDamping(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][5];
+  } else {
+    return 0.0;
+  } /* if Block */
+}
+double getMatPermittivity(int metalChoice, double objectIndex) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][0];
+  } else {
+    return objectIndex*objectIndex;
+  } /* if Block */
+}
+double getMatConductivity(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][1];
+  } else {
+    return 0.0;
+  } /* if Block */
+}
+double getMatPermeability(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][2];
+  } else {
+    return 1.0;
+  }
+}
+double getMatResistivity(int metalChoice) {
+  if ( metalChoice >= 0 ) {
+    return materialData[metalChoice][3];
+  } else {
+    return 0.0;
+  } /* if Block */
+}
 /* Function to initialize our Grid and it's associated constants */
 
 /* Inputs:
@@ -36,73 +82,23 @@ double environmentIndex : Refractive Index of the environment
 */
 
 void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
-  double objectSize, double environmentIndex )
+  double objectSize, double environmentIndex, double objectIndex )
 {
-    // Permittivity here is epsilon infinity now that everything is a Drude material
-    double tempPermittivity, tempConductivity, tempPermeability, tempResistivity;
-    double wPlasma, gDamping;
+    // if custom dielelectric we need to read the permittivity:
+    if( metalChoice >= 0 ) {
 
-    // Data from: http://www.wave-scattering.com/drudefit.html
-    // Might need to be adjusted....
-//printf( "Heading to switch\n" );
-    // Switch block to determine what metal we're using:
-    switch(metalChoice)
-    {
-      case 0: // Aluminum
-        tempPermittivity = 1.0;
-        tempConductivity = 3.77e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 2.65e-8;
-        wPlasma = 3.57e+15;
-        gDamping = 19.79e+12;
-        break;
-
-      case 1: // Gold
-        tempPermittivity = 1.0;
-        tempConductivity = 4.11e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 2.44e-8;
-        wPlasma = 2.183e+15;
-        gDamping = 6.46e+12;
-        break;
-
-      case 2: // Silver
-        tempPermittivity = 1.0;
-        tempConductivity = 6.30e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 1.59e-8;
-        wPlasma = 2.18e+15;
-        gDamping = 4.353e+12;
-        break;
-
-      case 3: // Copper
-        tempPermittivity = 1.0;
-        tempConductivity = 5.69e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 1.68e-8;
-        wPlasma = 1.914e+15; // WRONG
-        gDamping = 8.34e+12; // WRONG
-        break;
-
-      default : // CHANGE TO SOMETHING RATIONAL
-        tempPermittivity = 1.0;
-        tempConductivity = 1.0e+7;
-        tempPermeability = 1.0;
-        tempResistivity = 0.0;
-        wPlasma = 1.0e+15; // WRONG
-        gDamping = 1.0e+14; // WRONG
-    } /* Switch Block */
+    }
 
     /* Added for Drude metals so we can treat both the vacuum and object as "Drude"
        materials */
-    double  mediaPlasma[MEDIACONSTANT] = {0.0, wPlasma}; // Plasma frequency
-    double  mediaDamping[MEDIACONSTANT] = {0.0, gDamping}; // Damping constant
+    double  mediaPlasma[MEDIACONSTANT] = {0.0, getMatPlasma(metalChoice)}; // Plasma frequency
+    double  mediaDamping[MEDIACONSTANT] = {0.0, getMatDamping(metalChoice)}; // Damping constant
     /* End of Drude Metal Addition */
 
-    double  mediaPermittivity[MEDIACONSTANT] = {sqrt(environmentIndex), tempPermittivity};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
-    double  mediaConductivity[MEDIACONSTANT] = {0.0, tempConductivity}; // sig,
-    double  mediaPermeability[MEDIACONSTANT] = {1.0, tempPermeability};    // mur
-    double  mediaResistivity[MEDIACONSTANT] = {0.0, tempResistivity};     // sim
+    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, getMatPermittivity(metalChoice, objectIndex)};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
+    double  mediaConductivity[MEDIACONSTANT] = {0.0, getMatConductivity(metalChoice)}; // sig,
+    double  mediaPermeability[MEDIACONSTANT] = {1.0, getMatPermeability(metalChoice)};    // mur
+    double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity(metalChoice)};     // sim
     double  mediaCa[MEDIACONSTANT];
     double  mediaCb[MEDIACONSTANT];
     double  mediaDa[MEDIACONSTANT];
@@ -149,8 +145,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Grid parameters
     /***********************************************************************/
 
-    xSizeMain = 126;                              // number of main grid cells in x-direction
-    ySizeMain = 150;                               // number of main grid cells in y-direction
+    xSizeMain = 300;                              // number of main grid cells in x-direction
+    ySizeMain = 250;                               // number of main grid cells in y-direction
     abcSize = ABCSIZECONSTANT;                    // thickness of PML region
     xSize = xSizeMain + 2 * abcSize;              // number of total grid cells in x-direction
     ySize = ySizeMain + 2 * abcSize;              // number of total grid cells in y-direction
@@ -306,7 +302,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     object_locs = AllocateMemory(xSize, ySize, 0.0); // This really shouldn't be an array of doubles -- we're wasting memory here
 
     // Initialize structure functions:
-    xCenter = (xSize / 2) + 30; // In grid units
+    xCenter = xSize - abcSize - 30; // In grid units
     yCenter = ySize / 2; // ""
     structInit(xCenter, yCenter);
 printf("Strucutre Init...\n" );
@@ -317,7 +313,7 @@ printf("Strucutre Init...\n" );
         break;
 
       case 1: // Block
-        addRect(g, 10.0 * dx, objectSize * dx/dxnm);
+        addRect(g, 20.0 * dx, objectSize * dx/dxnm);
         break;
 
       case 2: // Triangle

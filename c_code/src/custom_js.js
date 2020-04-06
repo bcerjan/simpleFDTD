@@ -76,3 +76,12 @@ mergeInto(LibraryManager.library, {
     runSim.innerHTML = "Run Simulation";
   }
 });
+
+// Function to re-enable "Run Simulation" button after we finish:
+mergeInto(LibraryManager.library, {
+  enableButton: function() {
+    runSim.disabled = false;
+    normData.disabled = false;
+    runSim.innerHTML = "Run Simulation";
+  }
+});
