@@ -22,7 +22,7 @@
 
 #include "fdtd_grid.h"
 
-void InitializeFdtd(struct Grid *g, int metalChoice, int objectChoice, double objectSize, double environmentIndex);
+void InitializeFdtd(struct Grid *g, int metalChoice, int objectChoice, double objectSize, double environmentIndex, double objectIndex);
 void freeGrid(struct Grid *g);
 double **AllocateMemory(int imax, int jmax, double initialValue);
 double *AllocateMemory1D(int size, double initialValue);
