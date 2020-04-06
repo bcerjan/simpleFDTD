@@ -65,6 +65,15 @@ mergeInto(LibraryManager.library, {
 mergeInto(LibraryManager.library, {
   updateChartData: function() {
     outputChart.update();
+    console.log(outputChart);
+  }
+});
+
+// Function to re-enable "Run Simulation" button after we finish:
+mergeInto(LibraryManager.library, {
+  enableButton: function() {
+    runSim.disabled = false;
+    runSim.innerHTML = "Run Simulation";
   }
 });
 
