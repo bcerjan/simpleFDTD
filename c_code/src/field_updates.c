@@ -121,7 +121,7 @@ void JFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
   return;
 }
 
-void DFTUpdate (struct Grid *g, int n) {
+void DFTUpdate (struct Grid *g, int n, double environmentIndex) {
   int regionIndex,yStart,yStop;
   int i,j;
   double temporary;
@@ -141,12 +141,12 @@ void DFTUpdate (struct Grid *g, int n) {
     for (j = yStart; j < yStop; j++) {
       kVal = (double )kList[i];
 
-      // Firt do Ey accumulations:
+      // First do Ey accumulations:
       temporary = ey[reflXPos][j];
       reEyReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imEyReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
-      temporary = ey[tranXPos][j];
+      temporary = ey[tranXPos][j] / pow(environmentIndex, 0.5);
       reEyTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imEyTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
@@ -155,7 +155,7 @@ void DFTUpdate (struct Grid *g, int n) {
       reHzReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imHzReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
-      temporary = hz[tranXPos][j];
+      temporary = hz[tranXPos][j] / pow(environmentIndex, 0.5);
       reHzTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imHzTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
@@ -330,6 +330,11 @@ void finishFullDFT (struct Grid *g) {
 
   // Now, we need to compute the reflected flux accounting for the intial fields:
   // See: https://meep.readthedocs.io/en/latest/Introduction/#transmittancereflectance-spectra
+
+  /* Division by environmentIndex is a hack to let a single calibration run (at
+     index = 1.0) stand in for all possible environments. This means that all
+    results for non-unity environmental index are off by a few percent. */
+
   for (i = 0; i < NUMBERDFTFREQS; i++) {
     for (j = yStart; j < yStop; j++) {
       reEy = reEyReflDFT[i][j] - emptyReEyRefl[i][j];
