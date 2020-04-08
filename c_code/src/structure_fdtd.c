@@ -30,14 +30,14 @@ int main() {
   printf( "Started main...\n" );
 
   double exmax, exmin, eymax, eymin, jymax;
-
+  double environmentIndex = 2.5;
   //struct Grid *g = malloc(sizeof(struct Grid));
   struct Grid *g;
   g = AllocateGridMemory();
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, 1, 20000.0, 1.0, 0.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 0, -1, 20000.0, environmentIndex, 0.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -52,7 +52,7 @@ int main() {
     JFieldUpdate(g);
     lineSource(g, ABCSIZECONSTANT + 20, n);
     //printf("ey at src: %f\n", ey[20][25]);
-    DFTUpdate(g, n);
+    DFTUpdate(g, n, environmentIndex);
 
     char tranFilename[100] = "test_output/disk_tran_raw.h";
     FILE *tranDataPtr;
