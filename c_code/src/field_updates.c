@@ -146,7 +146,7 @@ void DFTUpdate (struct Grid *g, int n, double environmentIndex) {
       reEyReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imEyReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
-      temporary = ey[tranXPos][j] / pow(environmentIndex, 0.5);
+      temporary = ey[tranXPos][j];
       reEyTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imEyTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
@@ -155,7 +155,7 @@ void DFTUpdate (struct Grid *g, int n, double environmentIndex) {
       reHzReflDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imHzReflDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
-      temporary = hz[tranXPos][j] / pow(environmentIndex, 0.5);
+      temporary = hz[tranXPos][j];
       reHzTranDFT[i][j] += temporary * cos(2*pi*kVal*time/maxTime);
       imHzTranDFT[i][j] -= temporary * sin(2*pi*kVal*time/maxTime);
 
