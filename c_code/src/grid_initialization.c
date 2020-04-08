@@ -137,7 +137,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     dx = 10.0e-9; // 10 nm
     double dxnm = dx*1e9; // Grid step size in nm
     dt = dx / (2.0 * speedOfLight);
-    courantS = (dt * speedOfLight) / dx; // Changed from original -- might break things?
+    courantS = (dt * speedOfLight) / (dx); // Changed from original -- might break things?
 //printf( "dx: %f\n", dx );
 //printf( "dt: %f\n", dt );
 //printf( "courantS: %f\n", courantS );
@@ -176,7 +176,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Wave excitation
     /***********************************************************************/
 
-    ezIncInit(g);
+    ezIncInit(g, environmentIndex);
 
     /***********************************************************************/
     //     Field arrays
