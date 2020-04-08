@@ -24,7 +24,7 @@ static double indexN, cdtds, ppw = 0.0;
 
 /* Initialize Variables for source */
 void ezIncInit(struct Grid *g, double environmentIndex) {
-  ppw = 6e-7 / (dx); // Fixed source at 600 nm wavlength
+  ppw = (6e-7) / (dx); // Fixed source at 600 nm wavlength
   cdtds = courantS;
   indexN = environmentIndex;
 
@@ -44,7 +44,7 @@ double ezInc(double time, double location) {
 void lineSource(struct Grid *g, int x_ind, int time) {
   int j;
   double t = time;
-  if(time < 376) {
+  if(time < 500) {
     for (j = 0; j < ySize; j++) {
       ey[x_ind][j] = ezInc(t, 0.0); // Y-Polarized source field
     } /* jForLoop */
