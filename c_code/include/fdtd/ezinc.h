@@ -24,7 +24,7 @@
 
 
 double ezInc(double time, double location);
-void ezIncInit(struct Grid *g);
+void ezIncInit(struct Grid *g, double environmentIndex);
 void lineSource(struct Grid *g, int x_ind, int time);
 
 #endif
