@@ -33,14 +33,14 @@ double getMatPlasma(int metalChoice) {
   if ( metalChoice >= 0 ) {
     return materialData[metalChoice][4];
   } else {
-    return 0.0;
+    return HUGE_VAL;
   } /* if Block */
 }
 double getMatDamping(int metalChoice) {
   if ( metalChoice >= 0 ) {
     return materialData[metalChoice][5];
   } else {
-    return 0.0;
+    return HUGE_VAL;
   } /* if Block */
 }
 double getMatPermittivity(int metalChoice, double objectIndex) {
@@ -84,15 +84,12 @@ double environmentIndex : Refractive Index of the environment
 void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
   double objectSize, double environmentIndex, double objectIndex )
 {
-    // if custom dielelectric we need to read the permittivity:
-    if( metalChoice >= 0 ) {
 
-    }
 
     /* Added for Drude metals so we can treat both the vacuum and object as "Drude"
        materials */
-    double  mediaPlasma[MEDIACONSTANT] = {0.0, getMatPlasma(metalChoice)}; // Plasma frequency
-    double  mediaDamping[MEDIACONSTANT] = {0.0, getMatDamping(metalChoice)}; // Damping constant
+    double  mediaPlasma[MEDIACONSTANT] = {HUGE_VAL, getMatPlasma(metalChoice)}; // Plasma frequency
+    double  mediaDamping[MEDIACONSTANT] = {HUGE_VAL, getMatDamping(metalChoice)}; // Damping constant
     /* End of Drude Metal Addition */
 
     double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, getMatPermittivity(metalChoice, objectIndex)};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
@@ -198,11 +195,15 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     /* Pre-compute values that will be placed in to cjj and cje */
     double cjjTemp[media], cjeTemp[media];
+    double nDamping;
 
     for (i = 0; i < media; i++) { // Schneider 10.57, 10.58, and 10.54 for Ng conversion
-        cjjTemp[i] = (1.0 - (mediaDamping[i] * dt)/2.0) / (1.0 + (mediaDamping[i] * dt)/2.0);
+        nDamping = 1.0 / (mediaDamping[i] * dt);
+        temporary = 1.0 / (2.0 * nDamping);
+        cjjTemp[i] = (1.0 - temporary) / (1.0 + temporary);
         // Extra dx on Cje is due to 10.58 having been multiplied through by dx to cancel it out when expressed in it's more traditional form
-        cjeTemp[i] = dx*(1.0 / (1.0 + (mediaDamping[i] * dt)/2.0)) * (electricalPermittivity0*mediaPlasma[i]*mediaPlasma[i]*dt*2.0*M_PI*M_PI);
+        cjeTemp[i] = dx * (1.0 / (1.0 + temporary)) * \
+         (2.0*courantS*M_PI*M_PI) / (electricalImpedance0 * pow(mediaPlasma[i],2.0));
     } /* iForLoop */
 
     /*printf("cjjTemp[0]: %.5e\n", cjjTemp[0]);
@@ -243,8 +244,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
       // Now convert back to find the "real" wavelength we are working with:
       wavelengthList[i] = maxDFTTime * courantS / (double  )kList[i]; // Same, but inverted for wavelength
-      /*printf("kList[%i]: %i\n", i, kList[i] );
-      printf("wavelengthList[%i]: %f\n", i, wavelengthList[i] );*/
+      //printf("kList[%i]: %i\n", i, kList[i] );
+      //printf("wavelengthList[%i]: %f\n", i, wavelengthList[i] );
     } /* iForLoop */
 
     /***********************************************************************/
@@ -266,9 +267,14 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
         mediaCa[i] = (1.0 - temp1 - temp2) / (1.0 + temp1 + temp2);                                          // See Schneider 10.62
         mediaCb[i] = temp3 / (1.0 + temp1 + temp2);                                                          // ""
 
+        /* Original H updates
         temporary  = dt *  mediaResistivity[i] / (2.0 * magneticPermeability0 * mediaPermeability[i]);       // Taflove1995
         mediaDa[i] = (1.0 - temporary) / (1.0 + temporary);                                                  // ditto
         mediaDb[i] = dt / (magneticPermeability0 * mediaPermeability[i] * dx * (1.0 + temporary));           // ditto
+        */
+        //temporary = mediaConductivity[i] * dt / (2.0 * electricalPermittivity0 * mediaPermittivity[i]); // Schneider 8.13 - 8.18
+        mediaDa[i] = 1.0; // assuming magnetic conductivity is 0
+        mediaDb[i] = dt / (dx * magneticPermeability0 * mediaPermeability[i]);
     } /* iForLoop */
 
 
