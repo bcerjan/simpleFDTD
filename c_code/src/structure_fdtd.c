@@ -86,6 +86,7 @@ int main() {
     fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
     fclose(reflHzDataPtr);
 
+    //printf("max ey: %f\n", ArrayMax(ey,xSize,ySize));
     interval++;
   } /* nForLoop */
 
