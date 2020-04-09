@@ -52,7 +52,7 @@ void iterateSimulation(struct Grid *g) {
     JFieldUpdate(g);
     lineSource(g, ABCSIZECONSTANT + 20, timeStep);
     //printf("ey at src: %f\n", ey[20][25]);
-    DFTUpdate(g, timeStep, 1.5);
+    DFTUpdate(g, timeStep, 2.5);
 
     if (timeStep < 1500) {
       //printf("Loop step: %i\n",timeStep);
