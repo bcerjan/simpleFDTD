@@ -51,6 +51,7 @@
 #define CourantSG(G) G->courantS
 #define PiG(G) G->pi
 #define SpeedOfLightG(G) G->speedOfLight
+#define EnvIndexG(G) G->envIndex
 
 // Drude Metals (Polarization Current)
 #define JxG(G) G->jx
@@ -122,6 +123,7 @@
 #define courantS CourantSG(g)
 #define pi PiG(g)
 #define speedOfLight SpeedOfLightG(g)
+#define envIndex EnvIndexG(g)
 
 // Drude Metals (Polarization Current)
 #define jx JxG(g)

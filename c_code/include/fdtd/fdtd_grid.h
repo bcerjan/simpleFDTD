@@ -43,6 +43,7 @@ struct Grid {
   int  xSource, ySource;                 // location of z-directed hard source
 
   double dx,dt,courantS,speedOfLight,pi;
+  double envIndex; // Refractive index of the environment 
 
   double  **ex;      // the fields
   double  **ey;      //  ""
@@ -88,6 +89,7 @@ struct Grid {
 
   // E^2 field for plotting:
   double **e2Field;
+
   // Matrix containing edge locations:
   double **edgeMat;
 
