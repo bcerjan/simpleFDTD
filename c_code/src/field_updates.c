@@ -314,10 +314,7 @@ void WriteDFTFile (struct Grid *g) {
 void flattenPhase(double **reField, double **imField, int numFreqs, int length) {
   int i,j;
   double phase,reComp,imComp;
-  printf("Before Flattening:\n");
-  printf("ey/hz[0][75] re: %f\n", reField[0][75] );
-  printf("ey/hz[0][75] im: %f\n", imField[0][75] );
-  printf("ey/hz[0][75] phase: %f\n", atan2(imField[0][75], reField[0][75]) );
+
   for (i = 0; i < numFreqs; i++) {
     for (j = 0; j < length; j++) {
       // Fix current components so we can update actual fields in place
@@ -331,11 +328,6 @@ void flattenPhase(double **reField, double **imField, int numFreqs, int length) 
       imField[i][j] = imComp * cos(phase) - reComp * sin(phase);
     }
   }
-
-  printf("After Flattening:\n");
-  printf("ey/hz[0][75] re: %f\n", reField[0][75] );
-  printf("ey/hz[0][75] im: %f\n", imField[0][75] );
-  printf("ey/hz[0][75] phase: %f\n", atan2(imField[0][75], reField[0][75]) );
   return;
 }
 
@@ -366,8 +358,6 @@ void finishFullDFT (struct Grid *g) {
 
   // Flatten phase profile for reflected waves so we can use a single calibration run
   // This is a bit of a hack, as you "should" use two runs with the same background
-  printf("outside ey[0][75] re: %f\n", reEyReflDFT[0][75] );
-  printf("outside ey[0][75] im: %f\n", imEyReflDFT[0][75] );
   flattenPhase(reEyReflDFT, imEyReflDFT, NUMBERDFTFREQS, ySize);
   flattenPhase(reHzReflDFT, imHzReflDFT, NUMBERDFTFREQS, ySize);
 
