@@ -30,7 +30,7 @@ int main() {
   printf( "Started main...\n" );
 
   double exmax, exmin, eymax, eymin, jymax;
-  double environmentIndex = 2.5;
+  double environmentIndex = 1.5;
   //struct Grid *g = malloc(sizeof(struct Grid));
   struct Grid *g;
   g = AllocateGridMemory();
@@ -45,14 +45,15 @@ int main() {
   int n;
   int outInterval = 0;
 
-  for (n = 0; n < maximumIteration; n++) {
-//  for (n = 0; n < 15; n++) {
+//  for (n = 0; n < maximumIteration; n++) {
+  for (n = 0; n < 550; n++) {
     HFieldUpdate(g, n);
     EFieldUpdate(g);
     JFieldUpdate(g);
     lineSource(g, ABCSIZECONSTANT + 20, n);
+    //lineSource(g, xSize/2, n);
     //printf("ey at src: %f\n", ey[20][25]);
-    DFTUpdate(g, n, environmentIndex);
+    DFTUpdate(g, n);
 
     char tranEyFilename[100] = "test_output/structure_tran_raw_ey.h";
     FILE *tranEyDataPtr;
@@ -94,7 +95,7 @@ int main() {
   finishFullDFT(g);
 
   for (n = 0; n < NUMBERDFTFREQS; n++) {
-    printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
+    //printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
     //printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
   }
   printf( "Finished loop\n" );

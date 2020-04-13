@@ -53,7 +53,7 @@ int main() {
     JFieldUpdate(g);
     lineSource(g, ABCSIZECONSTANT + 20, n);
     //printf("ey at src: %f\n", ey[20][25]);
-    DFTUpdate(g, n, 1.0);
+    DFTUpdate(g, n);
     char tranEyFilename[100] = "test_output/empty_tran_raw_ey.h";
     FILE *tranEyDataPtr;
 
