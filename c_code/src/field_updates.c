@@ -121,7 +121,7 @@ void JFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
   return;
 }
 
-void DFTUpdate (struct Grid *g, int n, double environmentIndex) {
+void DFTUpdate (struct Grid *g, int n) {
   int regionIndex,yStart,yStop;
   int i,j;
   double temporary;
@@ -306,6 +306,28 @@ void WriteDFTFile (struct Grid *g) {
   return;
 }
 
+// Function to flatten the phase profile of an input FFT spectrum
+// Only currently used in finishFullDFT
+void flattenPhase(double **reField, double **imField, int numFreqs, int length) {
+  int i,j;
+  double phase;
+  printf("ey/hz[0][75] re: %f\n", reField[0][75] );
+  printf("ey/hz[0][75] im: %f\n", imField[0][75] );
+  printf("ey/hz[0][75] phase: %f\n", atan2(imField[0][75], reField[0][75]) );
+  for (i = 0; i < numFreqs; i++) {
+    for (j = 0; j < length; j++) {
+      // Calculate phase angle at this frequency and location
+      phase = atan2(imField[i][j], reField[i][j]);
+      // Flatten phase profile so we can use a single calibration run
+      // These are expansions of: F[f,pos] * exp( -i * phase ) <- note the minus
+      reField[i][j] = reField[i][j] * cos(phase) + imField[i][j] * sin(phase);
+      imField[i][j] = imField[i][j] * cos(phase) - reField[i][j] * sin(phase);
+    }
+  }
+
+  return;
+}
+
 // Function that normalizes DFT results based on stored data for both
 // reflected and transmitted fields:
 void finishFullDFT (struct Grid *g) {
@@ -325,15 +347,22 @@ void finishFullDFT (struct Grid *g) {
       tranDFT[i] += ( (reEyTranDFT[i][j] * reHzTranDFT[i][j]) + (imHzTranDFT[i][j] * imEyTranDFT[i][j]) );
     } /* jForLoop */
 
-    tranDFT[i] = tranDFT[i] / ( emptyTranDFT[i] ); // Normalize to empty run
+    /* Now we normalize based on the empty run data. The multiplication by the
+       environment index is to roughly adjust for the difference in dispersion
+       due to the different background index. */
+    tranDFT[i] = tranDFT[i] / ( emptyTranDFT[i] * envIndex );
   } /* iForLoop */
+
+  // Flatten phase profile for reflected waves so we can use a single calibration run
+  // This is a bit of a hack, as you "should" use two runs with the same background
+  printf("outside ey[0][75] re: %f\n", reEyReflDFT[0][75] );
+  printf("outside ey[0][75] im: %f\n", imEyReflDFT[0][75] );
+  flattenPhase(reEyReflDFT, imEyReflDFT, NUMBERDFTFREQS, ySize);
+  flattenPhase(reHzReflDFT, imHzReflDFT, NUMBERDFTFREQS, ySize);
+
 
   // Now, we need to compute the reflected flux accounting for the intial fields:
   // See: https://meep.readthedocs.io/en/latest/Introduction/#transmittancereflectance-spectra
-
-  /* Division by environmentIndex is a hack to let a single calibration run (at
-     index = 1.0) stand in for all possible environments. This means that all
-    results for non-unity environmental index are off by a few percent. */
 
   for (i = 0; i < NUMBERDFTFREQS; i++) {
     for (j = yStart; j < yStop; j++) {
@@ -357,6 +386,9 @@ void finishEmptyDFT (struct Grid *g) {
   int yStart = regionData[regionIndex].yStart;
   int yStop  = regionData[regionIndex].yStop ;
 
+  // Store phase-flattened fields as we need them to be that way later on
+  flattenPhase(reEyReflDFT, imEyReflDFT, NUMBERDFTFREQS, ySize);
+  flattenPhase(reHzReflDFT, imHzReflDFT, NUMBERDFTFREQS, ySize);
 
   // Poynting flux calculation Integral of (Ey* x Hz):
   for (i = 0 ; i < NUMBERDFTFREQS; i++) {
