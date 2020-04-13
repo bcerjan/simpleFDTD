@@ -156,7 +156,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     xSource = 15 + abcSize;                       //location of z-directed hard source
     ySource = ySize / 2;                          //location of z-directed hard source
 
-
+    envIndex = environmentIndex;                  // Background refractive index
 
     maximumIteration = NUMBEROFITERATIONCONSTANT;                 //total number of time steps
 
@@ -281,14 +281,14 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     /***********************************************************************/
     //     Grid Coefficients
     /***********************************************************************/
-    /*printf("mediaCa[0]: %f\n", mediaCa[0]);
+    printf("mediaCa[0]: %f\n", mediaCa[0]);
     printf("mediaCa[1]: %f\n", mediaCa[1]);
     printf("mediaCb[0]: %f\n", mediaCb[0]);
     printf("mediaCb[1]: %f\n", mediaCb[1]);
     printf("mediaDa[0]: %f\n", mediaDa[0]);
     printf("mediaDa[1]: %f\n", mediaDa[1]);
     printf("mediaDb[0]: %f\n", mediaDb[0]);
-    printf("mediaDb[1]: %f\n", mediaDb[1]);*/
+    printf("mediaDb[1]: %f\n", mediaDb[1]);
     //     Initialize entire grid to free space
 
     caex = AllocateMemory(xSize, ySize, mediaCa[0] );     // note: don't need to allocate for pec region, as it is not evaluated
