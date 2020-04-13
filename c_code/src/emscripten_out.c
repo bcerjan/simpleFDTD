@@ -52,7 +52,7 @@ void iterateSimulation(struct Grid *g) {
     JFieldUpdate(g);
     lineSource(g, ABCSIZECONSTANT + 20, timeStep);
     //printf("ey at src: %f\n", ey[20][25]);
-    DFTUpdate(g, timeStep, 2.5);
+    DFTUpdate(g, timeStep);
 
     if (timeStep < 1500) {
       //printf("Loop step: %i\n",timeStep);
@@ -67,7 +67,6 @@ void iterateSimulation(struct Grid *g) {
 
     // Check if we're done with the simulation:
     if (timeStep > maximumIteration) {
-      printf("reEyReflDFT[5][75]: %f\n", reEyReflDFT[5][75] );
       // Finish the DFT calculations, accounting for empty run:
       finishFullDFT(g);
 
@@ -80,7 +79,8 @@ void iterateSimulation(struct Grid *g) {
 
       printf( "Finished loop\n" );
       updateProgress(100.0); // Finish Progress bar now that we're done
-      freeGrid(g);
+      freeGrid(g); // Free Grid struct
+      imageFree(); // Free the SDL renderer
       enableButton();
       emscripten_cancel_main_loop(); // Cancel the loop when we run out of steps
     } /* ifCondition */
