@@ -40,7 +40,7 @@ double getMatDamping(int metalChoice) {
   if ( metalChoice >= 0 ) {
     return materialData[metalChoice][5];
   } else {
-    return HUGE_VAL;
+    return 0.0;
   } /* if Block */
 }
 double getMatPermittivity(int metalChoice, double objectIndex) {
@@ -89,7 +89,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     /* Added for Drude metals so we can treat both the vacuum and object as "Drude"
        materials */
     double  mediaPlasma[MEDIACONSTANT] = {HUGE_VAL, getMatPlasma(metalChoice)}; // Plasma frequency
-    double  mediaDamping[MEDIACONSTANT] = {HUGE_VAL, getMatDamping(metalChoice)}; // Damping constant
+    double  mediaDamping[MEDIACONSTANT] = {0.0, getMatDamping(metalChoice)}; // Damping constant
     /* End of Drude Metal Addition */
 
     double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, getMatPermittivity(metalChoice, objectIndex)};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
