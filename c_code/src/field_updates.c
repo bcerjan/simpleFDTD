@@ -326,8 +326,8 @@ void flattenPhase(double **reField, double **imField, int numFreqs, int length) 
       // These are expansions of: F[f,pos] * exp( -i * phase ) <- note the minus
       reField[i][j] = reComp * cos(phase) + imComp * sin(phase);
       imField[i][j] = imComp * cos(phase) - reComp * sin(phase);
-    }
-  }
+    } /* jForLoop */
+  } /* iForLoop */
   return;
 }
 
