@@ -45,8 +45,8 @@ int main() {
   int n;
   int outInterval = 0;
 
-//  for (n = 0; n < maximumIteration; n++) {
-  for (n = 0; n < 550; n++) {
+  for (n = 0; n < maximumIteration; n++) {
+//  for (n = 0; n < 550; n++) {
     HFieldUpdate(g, n);
     EFieldUpdate(g);
     JFieldUpdate(g);
@@ -95,8 +95,8 @@ int main() {
   finishFullDFT(g);
 
   for (n = 0; n < NUMBERDFTFREQS; n++) {
-    //printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
-    //printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
+    printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
+    printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
   }
   printf( "Finished loop\n" );
 
