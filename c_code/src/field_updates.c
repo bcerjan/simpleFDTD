@@ -307,24 +307,35 @@ void WriteDFTFile (struct Grid *g) {
 }
 
 // Function to flatten the phase profile of an input FFT spectrum
-// Only currently used in finishFullDFT
+// Only currently used in finishEmptyDFT and finishFullDFT
+// We could honestly replace this with just complexField[i][j] == abs(complexField[i][j])
+// because that's what we're doing anyway by setting the phase to 0.
+// ----> Is this a problem? <-----
 void flattenPhase(double **reField, double **imField, int numFreqs, int length) {
   int i,j;
-  double phase;
+  double phase,reComp,imComp;
+  printf("Before Flattening:\n");
   printf("ey/hz[0][75] re: %f\n", reField[0][75] );
   printf("ey/hz[0][75] im: %f\n", imField[0][75] );
   printf("ey/hz[0][75] phase: %f\n", atan2(imField[0][75], reField[0][75]) );
   for (i = 0; i < numFreqs; i++) {
     for (j = 0; j < length; j++) {
+      // Fix current components so we can update actual fields in place
+      reComp = reField[i][j];
+      imComp = imField[i][j];
       // Calculate phase angle at this frequency and location
-      phase = atan2(imField[i][j], reField[i][j]);
+      phase = atan2(imComp, reComp);
       // Flatten phase profile so we can use a single calibration run
       // These are expansions of: F[f,pos] * exp( -i * phase ) <- note the minus
-      reField[i][j] = reField[i][j] * cos(phase) + imField[i][j] * sin(phase);
-      imField[i][j] = imField[i][j] * cos(phase) - reField[i][j] * sin(phase);
+      reField[i][j] = reComp * cos(phase) + imComp * sin(phase);
+      imField[i][j] = imComp * cos(phase) - reComp * sin(phase);
     }
   }
 
+  printf("After Flattening:\n");
+  printf("ey/hz[0][75] re: %f\n", reField[0][75] );
+  printf("ey/hz[0][75] im: %f\n", imField[0][75] );
+  printf("ey/hz[0][75] phase: %f\n", atan2(imField[0][75], reField[0][75]) );
   return;
 }
 
