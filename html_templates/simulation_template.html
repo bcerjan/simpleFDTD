@@ -34,8 +34,10 @@
   <br>
   <div class="container">
     <div class="alert alert-warning" role="alert">
-      Reults for silica are (reasonably) accurate, but the metals don't seem
-      to be working quite as expected yet. YMMV.
+      Non-unity background index gives incorrect results.
+
+      Reults for silica are (reasonably) accurate, but the fits for the metals
+      aren't as good as you might like (yet). YMMV.
     </div>
   </div>
   <div class="container">
@@ -127,11 +129,9 @@
                 <input type="radio" name="materialOptions" id="materialSilica" value="4">Silica
               </label>
               <label class="btn btn-secondary">
-                <div class="input-group-prepend text-right">
                     <input type="radio" name="materialOptions" id="materialDielectric" value="-1">Custom Dielectric (n):
-                </div>
               </label>
-              <input type="number" id="objectIndex" class="form-control" aria-label="Custom Refractive Index" value="1.0" step="0.05">
+              <input type="number" id="objectIndex" class="form-control" aria-label="Custom Refractive Index" value="1.5" step="0.05">
             </div>
           </div>
         </div>
@@ -153,6 +153,9 @@
                 <span class="input-group-text" id="index">Refractive Index:</span>
               </div>
               <input type="number" class="form-control" id="dielectricEnvironment" value="1.0" step="0.1" aria-label="Object dielectric environment" aria-describedby="index">
+              <small id="environmentNote" class="form-text text-muted w-100">
+                Note that Transmission data will be off by ~1.25% &#xd7; (index - 1.0)
+                (i.e. an index of 2 will be off by 1.25%). Also n < 1.0 is not recommended. </small>
             </div>
           </div>
         </div>
@@ -365,7 +368,9 @@
           maxVals[index] = findDataMax(dataset);
           divideData(dataset, maxVals[index]);
         });
-        chart.update();
+      const label = chart.options.scales.yAxes[0].scaleLabel;
+      label.labelString = 'Normalized R or T';
+      chart.update();
     }
 
     function unNormalizeChart(chart) {
@@ -373,7 +378,9 @@
           multiplyData(dataset, maxVals[index]);
           addData(dataset, minVals[index]);
         });
-        chart.update();
+      const label = chart.options.scales.yAxes[0].scaleLabel;
+      label.labelString = 'Relative R or T';
+      chart.update();
     }
 
     function findDataMax(dataset) {
