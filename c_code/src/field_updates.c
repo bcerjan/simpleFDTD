@@ -166,154 +166,16 @@ void DFTUpdate (struct Grid *g, int n) {
   return;
 }
 
-// Function to write header files for our DFT normalization
-// For the transmitted wave, we only need to store P(w), but for the
-// reflected wave, we need to store Ey(w,x) and Hz(w,x) for later analysis
-void WriteDFTFile (struct Grid *g) {
-  int i,j;
-  char reflFilename[100] = "../include/fdtd/empty_refl_data.h";
-  char tranFilename[100] = "../include/fdtd/empty_tran_data.h";
-  FILE *reflDataPtr, *tranDataPtr;
-
-  // Write to header file for use later
-  reflDataPtr = fopen(reflFilename, "w");
-  tranDataPtr = fopen(tranFilename, "w");
-
-  // Step 0: Add licensing text:
-  fprintf(reflDataPtr, "/**\n \
-    Copyright (c) 2020 Ben Cerjan\n\n \
-    This file is part of simpleFDTD.\n\n \
-    simpleFDTD is free software: you can redistribute it and/or modify\n \
-    it under the terms of the GNU Affero General Public License as published by\n \
-    the Free Software Foundation, either version 3 of the License, or\n \
-    (at your option) any later version.\n\n \
-    simpleFDTD is distributed in the hope that it will be useful,\n \
-    but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
-    GNU Affero General Public License for more details.\n\n \
-    You should have received a copy of the GNU Affero General Public License\n \
-    along with simpleFDTD.  If not, see <https://www.gnu.org/licenses/>.\n \
-**/\n\n");
-
-  fprintf(tranDataPtr, "/**\n \
-    Copyright (c) 2020 Ben Cerjan\n\n \
-    This file is part of simpleFDTD.\n\n \
-    simpleFDTD is free software: you can redistribute it and/or modify\n \
-    it under the terms of the GNU Affero General Public License as published by\n \
-    the Free Software Foundation, either version 3 of the License, or\n \
-    (at your option) any later version.\n\n \
-    simpleFDTD is distributed in the hope that it will be useful,\n \
-    but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
-    GNU Affero General Public License for more details.\n\n \
-    You should have received a copy of the GNU Affero General Public License\n \
-    along with simpleFDTD.  If not, see <https://www.gnu.org/licenses/>.\n \
-**/\n\n");
-
-  // First add blocking definitions (just in case...)
-  fprintf(reflDataPtr, "#ifndef REFL_EMPTY_DATA\n#define REFL_EMPTY_DATA\n");
-  fprintf(tranDataPtr, "#ifndef TRAN_EMPTY_DATA\n#define TRAN_EMPTY_DATA\n");
-
-  // Second add lines for number of freqs and time steps:
-  fprintf(reflDataPtr, "#define reflSteps %i\n", maximumIteration);
-  fprintf(reflDataPtr, "#define reflFreqs %i\n", NUMBERDFTFREQS);
-  fprintf(tranDataPtr, "#define tranSteps %i\n", maximumIteration);
-  fprintf(tranDataPtr, "#define tranFreqs %i\n", NUMBERDFTFREQS);
-
-  // Do the Transmittance and Reflected Flux arrays first because they're simpler:
-  fprintf(tranDataPtr, "static const double emptyTranDFT[%i] = {\n", NUMBERDFTFREQS );
-  fprintf(reflDataPtr, "static const double emptyReflDFT[%i] = {\n", NUMBERDFTFREQS );
-
-  // Then define the values:
-  for (i = 0; i < NUMBERDFTFREQS; i++) {
-    fprintf(tranDataPtr, "%.17g,\n", tranDFT[i]);
-    fprintf(reflDataPtr, "%.17g,\n", reflDFT[i]);
-  } /* iForLoop */
-
-  // End the array / if block for transmitted data
-  fprintf(tranDataPtr, "};\n#endif" );
-  fclose(tranDataPtr);
-
-  // End our array for the reflected data:
-  fprintf(reflDataPtr, "};\n");
-
-  // For Reflectance data, we need four arrays, two for Re/Im(Ey(w,x)) and
-  // two for Re/Im(Hz(w,x))
-  fprintf(reflDataPtr, "static const double emptyReEyRefl[%i][%i] = {\n{\n", NUMBERDFTFREQS, ySize );
-
-  // Loop for Re(Ey)
-  for (i = 0; i < NUMBERDFTFREQS; i++){
-    for (j = 0; j < ySize; j++) {
-      fprintf(reflDataPtr, "%.17g,\n", reEyReflDFT[i][j]);
-    } /* jForLoop */
-    if ( i < NUMBERDFTFREQS - 1 ) {
-      fprintf(reflDataPtr, "},\n{");
-    } else {
-      fprintf(reflDataPtr, "}};\n" );
-    } /* if */
-  } /* iForLoop */
-
-  // End this array, start next one, Im(Ey):
-  fprintf(reflDataPtr, "\nstatic const double emptyImEyRefl[%i][%i] = {\n{\n", NUMBERDFTFREQS, ySize );
-
-  // Loop for Im(Ey)
-  for (i = 0; i < NUMBERDFTFREQS; i++){
-    for (j = 0; j < ySize; j++) {
-      fprintf(reflDataPtr, "%.17g,\n", imEyReflDFT[i][j]);
-    } /* jForLoop */
-    if ( i < NUMBERDFTFREQS - 1 ) {
-      fprintf(reflDataPtr, "},\n{");
-    } else {
-      fprintf(reflDataPtr, "}};\n" );
-    } /* if */
-  } /* iForLoop */
-
-  // End this array, start next one, Im(Ey):
-  fprintf(reflDataPtr, "\nstatic const double emptyReHzRefl[%i][%i] = {\n{\n", NUMBERDFTFREQS, ySize );
-
-  // Loop for Re(Hz)
-  for (i = 0; i < NUMBERDFTFREQS; i++){
-    for (j = 0; j < ySize; j++) {
-      fprintf(reflDataPtr, "%.17g,\n", reHzReflDFT[i][j]);
-    } /* jForLoop */
-    if ( i < NUMBERDFTFREQS - 1 ) {
-      fprintf(reflDataPtr, "},\n{");
-    } else {
-      fprintf(reflDataPtr, "}};\n" );
-    } /* if */
-  } /* iForLoop */
-
-  // End this array, start next one, Im(Hz):
-  fprintf(reflDataPtr, "\nstatic const double emptyImHzRefl[%i][%i] = {\n{\n", NUMBERDFTFREQS, ySize );
-
-  // Loop for Re(Hz)
-  for (i = 0; i < NUMBERDFTFREQS; i++){
-    for (j = 0; j < ySize; j++) {
-      fprintf(reflDataPtr, "%.17g,\n", imHzReflDFT[i][j]);
-    } /* jForLoop */
-    if ( i < NUMBERDFTFREQS - 1 ) {
-      fprintf(reflDataPtr, "},\n{");
-    } else {
-      fprintf(reflDataPtr, "}};\n" );
-    } /* if */
-  } /* iForLoop */
-
-  // End the array:
-  fprintf(reflDataPtr, "\n" );
-  fprintf(reflDataPtr, "#endif"); // End if block
-  fclose(reflDataPtr);
-
-  return;
-}
-
 // Function to flatten the phase profile of an input FFT spectrum
 // Only currently used in finishEmptyDFT and finishFullDFT
 // We could honestly replace this with just complexField[i][j] == abs(complexField[i][j])
 // because that's what we're doing anyway by setting the phase to 0.
 // ----> Is this a problem? <-----
-void flattenPhase(double **reField, double **imField, int numFreqs, int length) {
+// Not used right now, as it breaks things (and is probably a bad idea anyway...)
+void flattenPhase(double **reField, double **imField, int numFreqs,
+  int length, double targetPhase) {
   int i,j;
-  double phase,reComp,imComp;
+  double phase,reComp,imComp,phaseAdjustment;
 
   for (i = 0; i < numFreqs; i++) {
     for (j = 0; j < length; j++) {
@@ -322,10 +184,11 @@ void flattenPhase(double **reField, double **imField, int numFreqs, int length) 
       imComp = imField[i][j];
       // Calculate phase angle at this frequency and location
       phase = atan2(imComp, reComp);
+      phaseAdjustment = targetPhase - phase;
       // Flatten phase profile so we can use a single calibration run
       // These are expansions of: F[f,pos] * exp( -i * phase ) <- note the minus
-      reField[i][j] = reComp * cos(phase) + imComp * sin(phase);
-      imField[i][j] = imComp * cos(phase) - reComp * sin(phase);
+      reField[i][j] = reComp * cos(phaseAdjustment) + imComp * sin(phaseAdjustment);
+      imField[i][j] = imComp * cos(phaseAdjustment) - reComp * sin(phaseAdjustment);
     } /* jForLoop */
   } /* iForLoop */
   return;
@@ -350,30 +213,22 @@ void finishFullDFT (struct Grid *g) {
       tranDFT[i] += ( (reEyTranDFT[i][j] * reHzTranDFT[i][j]) + (imHzTranDFT[i][j] * imEyTranDFT[i][j]) );
     } /* jForLoop */
 
-    /* Now we normalize based on the empty run data. The multiplication by the
-       environment index is to roughly adjust for the difference in dispersion
-       due to the different background index. */
-    tranDFT[i] = tranDFT[i] / ( emptyTranDFT[i] * envIndex );
+    /* Now we normalize based on the empty run data for the background requested. */
+    tranDFT[i] = tranDFT[i] / ( emptyTranDFT[refractiveIndexIndex][i] );
   } /* iForLoop */
-
-  // Flatten phase profile for reflected waves so we can use a single calibration run
-  // This is a bit of a hack, as you "should" use two runs with the same background
-  flattenPhase(reEyReflDFT, imEyReflDFT, NUMBERDFTFREQS, ySize);
-  flattenPhase(reHzReflDFT, imHzReflDFT, NUMBERDFTFREQS, ySize);
-
 
   // Now, we need to compute the reflected flux accounting for the intial fields:
   // See: https://meep.readthedocs.io/en/latest/Introduction/#transmittancereflectance-spectra
 
   for (i = 0; i < NUMBERDFTFREQS; i++) {
     for (j = yStart; j < yStop; j++) {
-      reEy = reEyReflDFT[i][j] - emptyReEyRefl[i][j];
-      imEy = imEyReflDFT[i][j] - emptyImEyRefl[i][j];
-      reHz = reHzReflDFT[i][j] - emptyReHzRefl[i][j];
-      imHz = imHzReflDFT[i][j] - emptyImHzRefl[i][j];
+      reEy = reEyReflDFT[i][j] - emptyReEyRefl[refractiveIndexIndex][i];
+      imEy = imEyReflDFT[i][j] - emptyImEyRefl[refractiveIndexIndex][i];
+      reHz = reHzReflDFT[i][j] - emptyReHzRefl[refractiveIndexIndex][i];
+      imHz = imHzReflDFT[i][j] - emptyImHzRefl[refractiveIndexIndex][i];
       reflDFT[i] -=  ( (reEy * reHz) + (imEy * imHz) ); // -= is because we are pointing in the negative x direction
     } /* jForLoop */
-    reflDFT[i] = reflDFT[i] / emptyReflDFT[i]; // Normalize to empty run
+    reflDFT[i] = reflDFT[i] / emptyReflDFT[refractiveIndexIndex][i]; // Normalize to empty run
   } /* iForLoop */
 
   return;
@@ -386,10 +241,6 @@ void finishEmptyDFT (struct Grid *g) {
   int regionIndex = 0;    // center (main) grid
   int yStart = regionData[regionIndex].yStart;
   int yStop  = regionData[regionIndex].yStop ;
-
-  // Store phase-flattened fields as we need them to be that way later on
-  flattenPhase(reEyReflDFT, imEyReflDFT, NUMBERDFTFREQS, ySize);
-  flattenPhase(reHzReflDFT, imHzReflDFT, NUMBERDFTFREQS, ySize);
 
   // Poynting flux calculation Integral of (Ey* x Hz):
   for (i = 0 ; i < NUMBERDFTFREQS; i++) {
