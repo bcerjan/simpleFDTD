@@ -43,7 +43,7 @@ struct Grid {
   int  xSource, ySource;                 // location of z-directed hard source
 
   double dx,dt,courantS,speedOfLight,pi;
-  double envIndex; // Refractive index of the environment 
+  double envIndex; // Refractive index of the environment
 
   double  **ex;      // the fields
   double  **ey;      //  ""
@@ -95,6 +95,9 @@ struct Grid {
 
   // Array to track where our object is/is not:
   double **object_locs;
+
+  // Index for our "empty" runs to track what index we're using now:
+  int refractiveIndexIndex; // unfortunately named...
 
   double  sourceValue[NUMBEROFITERATIONCONSTANT];  // holds the pre-calculated values of the source, for the run of the simulation
 

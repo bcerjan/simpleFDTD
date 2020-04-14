@@ -88,6 +88,7 @@
 #define RegionDataG(G) G->regionData
 
 #define ObjectLocsG(G) G->object_locs
+#define RefractiveIndexIndexG(G) G->refractiveIndexIndex
 
 // Variables for tracking loop state in emscripten
 #define TimeStepG(G) G->timeStep
@@ -160,6 +161,7 @@
 #define regionData RegionDataG(g)
 
 #define object_locs ObjectLocsG(g)
+#define refractiveIndexIndex RefractiveIndexIndexG(g)
 
 // For emscripten animation:
 #define timeStep TimeStepG(g)
