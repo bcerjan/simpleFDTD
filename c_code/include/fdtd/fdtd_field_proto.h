@@ -27,7 +27,6 @@ void HFieldUpdate(struct Grid *g, int n);
 void JFieldUpdate(struct Grid *g);
 void DFTUpdate(struct Grid *g, int n);
 
-void WriteDFTFile(struct Grid *g);
 void finishFullDFT(struct Grid *g);
 void finishEmptyDFT(struct Grid *g);
 
