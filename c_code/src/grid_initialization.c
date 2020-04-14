@@ -71,6 +71,18 @@ double getMatResistivity(int metalChoice) {
     return 0.0;
   } /* if Block */
 }
+
+// Function to get the index we're using to reference our "empty" runs by
+// this is, unfortunately, the index of the (refractive) index.
+int getIndexIndex(double environmentIndex) {
+  if (environmentIndex > 4.0) {
+    environmentIndex = 4.0;
+  } else if (environmentIndex < 1.0) {
+    environmentIndex = 1.0;
+  } /* if Block */
+
+  return lround(environmentIndex*10.0) - 10;
+}
 /* Function to initialize our Grid and it's associated constants */
 
 /* Inputs:
@@ -168,6 +180,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     /***********************************************************************/
 
     media = MEDIACONSTANT;        // number of different medias, ie 2: vacuum, metallicCylinder
+
+    refractiveIndexIndex = getIndexIndex(environmentIndex);
 
     /***********************************************************************/
     //     Wave excitation
