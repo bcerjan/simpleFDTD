@@ -24,6 +24,7 @@
 #include "fdtd_proto.h"
 #include "array_proto.h"
 #include "fdtd_field_proto.h"
+#include "output_funcs.h"
 #include "ezinc.h"
 #include <stdio.h>
 
@@ -54,7 +55,7 @@ int main() {
     lineSource(g, ABCSIZECONSTANT + 20, n);
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
-    char tranEyFilename[100] = "test_output/empty_tran_raw_ey.h";
+    /*char tranEyFilename[100] = "test_output/empty_tran_raw_ey.h";
     FILE *tranEyDataPtr;
 
     // Write to header file for use later
@@ -84,7 +85,7 @@ int main() {
     // Write to header file for use later
     reflHzDataPtr = fopen(reflHzFilename, "a");
     fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
-    fclose(reflHzDataPtr);
+    fclose(reflHzDataPtr);*/
 
     interval++;
   } /* nForLoop */
@@ -95,7 +96,7 @@ int main() {
 
   printf( "Finished loop\n" );
   // Output our fields:
-  WriteDFTFile(g);
+  //WriteDFTFile(g);
 
   freeGrid(g);
   return 0;
