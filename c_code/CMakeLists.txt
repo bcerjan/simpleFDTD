@@ -26,6 +26,10 @@ project( fdtdWidget )
 #flags
 set(CMAKE_CXX_FLAGS)
 
+# Build-type Optimizations
+SET (DEBUG_OPTIONS "-Wall -Wextra -g")
+SET (RELEASE_OPTIONS "-O2")
+
 #files
 
 #include
@@ -46,6 +50,10 @@ SET (EMPTY_TARGET
           ./src/empty_fdtd.c
      )
 
+SET (MULTIPLE_TARGET
+         ./src/multiple_empty.c
+    )
+
 SET (STRUCTURE_TARGET
           ./src/structure_fdtd.c
      )
@@ -59,8 +67,15 @@ SET (TEST_TARGET
 add_executable( empty ${COMMON_SRCS} ${EMPTY_TARGET} )
 add_executable( structure ${COMMON_SRCS} ${STRUCTURE_TARGET} )
 add_executable( test_mem ${COMMON_SRCS} ${TEST_TARGET} )
+add_executable( multi ${COMMON_SRCS} ${MULTIPLE_TARGET} )
 
 #link libraries
 target_link_libraries(empty m)
 target_link_libraries(structure m)
 target_link_libraries(test_mem m)
+target_link_libraries(multi m)
+
+
+# Finally apply our additional changes:
+target_compile_options(multi PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
+target_compile_options(multi PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
