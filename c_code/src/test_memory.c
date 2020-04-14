@@ -96,7 +96,7 @@ int main()
   struct Grid *g;
   g = AllocateGridMemory();
 
-  InitializeFdtd(g, 0, 0, 100.0, 1.0);
+  InitializeFdtd(g, 0, 0, 100.0, 1.0, 1.0);
 
   findMatEdge(g);
 

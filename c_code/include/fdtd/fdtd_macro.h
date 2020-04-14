@@ -51,6 +51,7 @@
 #define CourantSG(G) G->courantS
 #define PiG(G) G->pi
 #define SpeedOfLightG(G) G->speedOfLight
+#define EnvIndexG(G) G->envIndex
 
 // Drude Metals (Polarization Current)
 #define JxG(G) G->jx
@@ -87,6 +88,7 @@
 #define RegionDataG(G) G->regionData
 
 #define ObjectLocsG(G) G->object_locs
+#define RefractiveIndexIndexG(G) G->refractiveIndexIndex
 
 // Variables for tracking loop state in emscripten
 #define TimeStepG(G) G->timeStep
@@ -122,6 +124,7 @@
 #define courantS CourantSG(g)
 #define pi PiG(g)
 #define speedOfLight SpeedOfLightG(g)
+#define envIndex EnvIndexG(g)
 
 // Drude Metals (Polarization Current)
 #define jx JxG(g)
@@ -158,6 +161,7 @@
 #define regionData RegionDataG(g)
 
 #define object_locs ObjectLocsG(g)
+#define refractiveIndexIndex RefractiveIndexIndexG(g)
 
 // For emscripten animation:
 #define timeStep TimeStepG(g)

@@ -34,8 +34,8 @@
   <br>
   <div class="container">
     <div class="alert alert-warning" role="alert">
-      Reults for silica are (reasonably) accurate, but the metals don't seem
-      to be working quite as expected yet. YMMV.
+      Reults for silica are (reasonably) accurate, but the fits for the metals
+      aren't as good as you might like (yet). YMMV.
     </div>
   </div>
   <div class="container">
@@ -127,11 +127,9 @@
                 <input type="radio" name="materialOptions" id="materialSilica" value="4">Silica
               </label>
               <label class="btn btn-secondary">
-                <div class="input-group-prepend text-right">
                     <input type="radio" name="materialOptions" id="materialDielectric" value="-1">Custom Dielectric (n):
-                </div>
               </label>
-              <input type="number" id="objectIndex" class="form-control" aria-label="Custom Refractive Index" value="1.0" step="0.05">
+              <input type="number" id="objectIndex" class="form-control" aria-label="Custom Refractive Index" value="1.5" step="0.05">
             </div>
           </div>
         </div>
@@ -153,6 +151,8 @@
                 <span class="input-group-text" id="index">Refractive Index:</span>
               </div>
               <input type="number" class="form-control" id="dielectricEnvironment" value="1.0" step="0.1" aria-label="Object dielectric environment" aria-describedby="index">
+              <small id="environmentNote" class="form-text text-muted w-100">
+                Pre-computed data is only available from 1.0 to 4.0 in increments of 0.1 (hence the restrictions).</small>
             </div>
           </div>
         </div>
@@ -365,7 +365,9 @@
           maxVals[index] = findDataMax(dataset);
           divideData(dataset, maxVals[index]);
         });
-        chart.update();
+      const label = chart.options.scales.yAxes[0].scaleLabel;
+      label.labelString = 'Normalized R or T';
+      chart.update();
     }
 
     function unNormalizeChart(chart) {
@@ -373,7 +375,9 @@
           multiplyData(dataset, maxVals[index]);
           addData(dataset, minVals[index]);
         });
-        chart.update();
+      const label = chart.options.scales.yAxes[0].scaleLabel;
+      label.labelString = 'Relative R or T';
+      chart.update();
     }
 
     function findDataMax(dataset) {
@@ -420,6 +424,30 @@
       });
     }
 
+    // Function for limiting allowed values in Dielectric Environment
+    // see: https://stackoverflow.com/a/469362
+    // Restricts input for the given textbox to the given inputFilter function.
+    function setInputFilter(textbox, inputFilter) {
+      ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function(event) {
+        textbox.addEventListener(event, function() {
+          if (inputFilter(this.value)) {
+            this.oldValue = this.value;
+            this.oldSelectionStart = this.selectionStart;
+            this.oldSelectionEnd = this.selectionEnd;
+          } else if (this.hasOwnProperty("oldValue")) {
+            this.value = this.oldValue;
+          } else {
+            this.value = "";
+          }
+        });
+      });
+    }
+
+    // And apply a filter to the input:
+    setInputFilter(document.getElementById("dielectricEnvironment"), function(value) {
+      return /^-?\d*[.,]?\d{0,1}$/.test(value.toString()) &&
+      ( (value <= 4.0 && value >= 1.0) ); // Allow digits and 1 point after decimal place
+    });
     </script>
 
     {{{ SCRIPT }}}

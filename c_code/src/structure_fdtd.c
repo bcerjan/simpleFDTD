@@ -30,14 +30,14 @@ int main() {
   printf( "Started main...\n" );
 
   double exmax, exmin, eymax, eymin, jymax;
-
+  double environmentIndex = 1.5;
   //struct Grid *g = malloc(sizeof(struct Grid));
   struct Grid *g;
   g = AllocateGridMemory();
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, 1, 20000.0, 1.0, 0.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 0, 1, 20000.0, environmentIndex, 2.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -46,30 +46,50 @@ int main() {
   int outInterval = 0;
 
   for (n = 0; n < maximumIteration; n++) {
-//  for (n = 0; n < 15; n++) {
+  //for (n = 0; n < 25; n++) {
     HFieldUpdate(g, n);
     EFieldUpdate(g);
     JFieldUpdate(g);
     lineSource(g, ABCSIZECONSTANT + 20, n);
-    //printf("ey at src: %f\n", ey[20][25]);
+    //lineSource(g, xSize/2, n);
+    //printf("ey at right edge: %f\n", ey[xSize - 10][ySize/2]);
+    //printf("hz at right edge: %f\n----\n", hz[xSize - 10][ySize/2]);
     DFTUpdate(g, n);
 
-    char tranFilename[100] = "test_output/disk_tran_raw.h";
-    FILE *tranDataPtr;
+    /*
+    char tranEyFilename[100] = "test_output/structure_tran_raw_ey.h";
+    FILE *tranEyDataPtr;
 
     // Write to header file for use later
-    tranDataPtr = fopen(tranFilename, "a");
-    fprintf(tranDataPtr, "%.17g,\n", ey[tranXPos][75]);
-    fclose(tranDataPtr);
+    tranEyDataPtr = fopen(tranEyFilename, "a");
+    fprintf(tranEyDataPtr, "%.17g,\n", ey[tranXPos][75]);
+    fclose(tranEyDataPtr);
 
-    char reflFilename[100] = "test_output/disk_refl_raw.h";
-    FILE *reflDataPtr;
+    char reflEyFilename[100] = "test_output/structure_refl_raw_ey.h";
+    FILE *reflEyDataPtr;
 
     // Write to header file for use later
-    reflDataPtr = fopen(reflFilename, "a");
-    fprintf(reflDataPtr, "%.17g,\n", ey[reflXPos][75]);
-    fclose(reflDataPtr);
+    reflEyDataPtr = fopen(reflEyFilename, "a");
+    fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][75]);
+    fclose(reflEyDataPtr);
 
+    char tranHzFilename[100] = "test_output/structure_tran_raw_hz.h";
+    FILE *tranHzDataPtr;
+
+    // Write to header file for use later
+    tranHzDataPtr = fopen(tranHzFilename, "a");
+    fprintf(tranHzDataPtr, "%.17g,\n", hz[tranXPos][75]);
+    fclose(tranHzDataPtr);
+
+    char reflHzFilename[100] = "test_output/structure_refl_raw_hz.h";
+    FILE *reflHzDataPtr;
+
+    // Write to header file for use later
+    reflHzDataPtr = fopen(reflHzFilename, "a");
+    fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
+    fclose(reflHzDataPtr);
+    */
+    //printf("max ey: %f\n", ArrayMax(ey,xSize,ySize));
     interval++;
   } /* nForLoop */
 
@@ -78,7 +98,7 @@ int main() {
 
   for (n = 0; n < NUMBERDFTFREQS; n++) {
     printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
-    //printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
+    printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
   }
   printf( "Finished loop\n" );
 

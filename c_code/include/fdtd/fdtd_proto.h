@@ -24,6 +24,7 @@
 
 void InitializeFdtd(struct Grid *g, int metalChoice, int objectChoice, double objectSize, double environmentIndex, double objectIndex);
 void freeGrid(struct Grid *g);
+void freeDoublePtr(double **ptr, int imax);
 double **AllocateMemory(int imax, int jmax, double initialValue);
 double *AllocateMemory1D(int size, double initialValue);
 double *AllocateGridMemory();

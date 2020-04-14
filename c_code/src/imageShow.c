@@ -124,12 +124,12 @@ void PlotField (struct Grid *g, double maximumValue, double minimumValue) {
   /***********************************************************************/
   // Send E^2 field to our plotting routine:
   scaleValue = 256.0 / (maximumValue - minimumValue);
-  for (i = 0; i < xSize; i++) {
-    for (j = 0; j < ySize; j++) {
+  //for (i = 0; i < xSize; i++) {
+  //  for (j = 0; j < ySize; j++) {
       //e2Field[i][j] = scaleValue * ( ex[i][j]*ex[i][j] + ey[i][j]*ey[i][j] );
-      e2Field[i][j] = ( ex[i][j]*ex[i][j] + ey[i][j]*ey[i][j] );
-    } /* xForLoop */
-  } /* yForLoop */
+      //e2Field[i][j] = ( ex[i][j]*ex[i][j] + ey[i][j]*ey[i][j] );
+  //  } /* xForLoop */
+  //} /* yForLoop */
 
   imageShow(g);
 
@@ -139,7 +139,7 @@ void PlotField (struct Grid *g, double maximumValue, double minimumValue) {
 /** buffer is preallocated by: float buffer[3] = {0}; **/
 /** z is assumed to be in [-1,1] **/
 float fnFunc(float v, float s, float k){
-  return v - v*s*fmaxf(0.0, fminf(k, fminf(4-k,1.0) ));
+  return v - v*s*fmaxf(0.0, fminf(k, fminf(4.0-k,1.0) ));
 }
 
 void colorMap(float *buffer, float z) {
@@ -188,7 +188,8 @@ void imageShow(struct Grid *g) {
   const double CENTER_X = WINDOW_WIDTH/2.0;
   const double CENTER_Y = WINDOW_HEIGHT/2.0;
 
-  float green,z,blue,red,buffer[3];
+  float green,z,blue,red;
+  float buffer[3] = {0};
 
   unsigned int xc, yc;
 
@@ -205,8 +206,8 @@ void imageShow(struct Grid *g) {
       //printf( "[i][j]: [%i][%i]\n", i,j );
       xc = CENTER_X - j;
       yc = CENTER_Y - i;
-      //z = (float )e2Field[i][j]; // Get value at this pixel (scaled)
-      z = (float )ey[i][j]; // Get value at this pixel (scaled)
+      //z = -0.25; // Test value
+      z = (float )ey[i][j]; // Get value at this pixel (unscaled)
       colorMap(buffer, z);
       red = buffer[0];
       green = buffer[1];

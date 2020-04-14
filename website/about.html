@@ -47,20 +47,20 @@
       travels). The initial pulse is a Ricker wavelet centered at 600 nm, and
       the grid step is 10 nm (uniform in X and Y). The grid is terminated by a
       Berenger split-field PML (coded by Doug Neubauer). The simulation runs
-      for 2048 time steps and "running" discrete Fourier-Transforms (DFTs)
+      for 3000 time steps and "running" discrete Fourier-Transforms (DFTs)
       are kept to track the reflected and transmitted electric field strengths.
       Note that while we only run for a
       few thousand timesteps, we assume that this is sufficient time for the
       high-frequency response (that we care about) to decay completely. Under
       this assumption, we then 0-pad our total "running time" to be much longer
-      (16,384 steps). Both of those lengths were picked to be powers of 2 in
+      (16,384 steps). That length was picked to be a power of 2 in
       the event that I needed to run a post-processing FFT (which are
       frequently most efficient for powers of 2), but for the implementation of
       a running DFT any number of steps could be used (provided that the fields
       have sufficient time to propogate). The transmission/reflection results
       are normalized to a pre-computed run without a structure, which is why
       you are not allowed to change the total area or number of steps in the
-      simulation.
+      simulation (and also why only discrete background indices are allowed).
     </p>
 
     <p>If you're particularly interested (or angry that I

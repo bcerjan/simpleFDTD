@@ -24,6 +24,7 @@
 #include "fdtd_proto.h"
 #include "array_proto.h"
 #include "fdtd_field_proto.h"
+#include "output_funcs.h"
 #include "ezinc.h"
 #include <stdio.h>
 
@@ -54,21 +55,38 @@ int main() {
     lineSource(g, ABCSIZECONSTANT + 20, n);
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
-    char tranFilename[100] = "test_output/empty_tran_raw.h";
-    FILE *tranDataPtr;
+    /*char tranEyFilename[100] = "test_output/empty_tran_raw_ey.h";
+    FILE *tranEyDataPtr;
 
     // Write to header file for use later
-    tranDataPtr = fopen(tranFilename, "a");
-    fprintf(tranDataPtr, "%.17g,\n", ey[tranXPos][75]);
-    fclose(tranDataPtr);
+    tranEyDataPtr = fopen(tranEyFilename, "a");
+    fprintf(tranEyDataPtr, "%.17g,\n", ey[tranXPos][75]);
+    fclose(tranEyDataPtr);
 
-    char reflFilename[100] = "test_output/empty_refl_raw.h";
-    FILE *reflDataPtr;
+    char reflEyFilename[100] = "test_output/empty_refl_raw_ey.h";
+    FILE *reflEyDataPtr;
 
     // Write to header file for use later
-    reflDataPtr = fopen(reflFilename, "a");
-    fprintf(reflDataPtr, "%.17g,\n", ey[reflXPos][75]);
-    fclose(reflDataPtr);
+    reflEyDataPtr = fopen(reflEyFilename, "a");
+    fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][75]);
+    fclose(reflEyDataPtr);
+
+    char tranHzFilename[100] = "test_output/empty_tran_raw_hz.h";
+    FILE *tranHzDataPtr;
+
+    // Write to header file for use later
+    tranHzDataPtr = fopen(tranHzFilename, "a");
+    fprintf(tranHzDataPtr, "%.17g,\n", hz[tranXPos][75]);
+    fclose(tranHzDataPtr);
+
+    char reflHzFilename[100] = "test_output/empty_refl_raw_hz.h";
+    FILE *reflHzDataPtr;
+
+    // Write to header file for use later
+    reflHzDataPtr = fopen(reflHzFilename, "a");
+    fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
+    fclose(reflHzDataPtr);*/
+
     interval++;
   } /* nForLoop */
 
@@ -78,7 +96,7 @@ int main() {
 
   printf( "Finished loop\n" );
   // Output our fields:
-  WriteDFTFile(g);
+  //WriteDFTFile(g);
 
   freeGrid(g);
   return 0;
