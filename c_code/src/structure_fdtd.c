@@ -37,7 +37,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, -1, 20000.0, environmentIndex, 0.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 0, 1, 20000.0, environmentIndex, 2.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -46,15 +46,17 @@ int main() {
   int outInterval = 0;
 
   for (n = 0; n < maximumIteration; n++) {
-//  for (n = 0; n < 550; n++) {
+  //for (n = 0; n < 25; n++) {
     HFieldUpdate(g, n);
     EFieldUpdate(g);
     JFieldUpdate(g);
     lineSource(g, ABCSIZECONSTANT + 20, n);
     //lineSource(g, xSize/2, n);
-    //printf("ey at src: %f\n", ey[20][25]);
+    //printf("ey at right edge: %f\n", ey[xSize - 10][ySize/2]);
+    //printf("hz at right edge: %f\n----\n", hz[xSize - 10][ySize/2]);
     DFTUpdate(g, n);
 
+    /*
     char tranEyFilename[100] = "test_output/structure_tran_raw_ey.h";
     FILE *tranEyDataPtr;
 
@@ -86,7 +88,7 @@ int main() {
     reflHzDataPtr = fopen(reflHzFilename, "a");
     fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
     fclose(reflHzDataPtr);
-
+    */
     //printf("max ey: %f\n", ArrayMax(ey,xSize,ySize));
     interval++;
   } /* nForLoop */
