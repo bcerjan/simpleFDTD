@@ -43,6 +43,7 @@ SET (COMMON_SRCS
           ./src/ricker.c
           ./src/grid_free.c
           ./src/structure_functions.c
+          ./src/output_funcs.c
      )
 
 
@@ -79,3 +80,6 @@ target_link_libraries(multi m)
 # Finally apply our additional changes:
 target_compile_options(multi PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
 target_compile_options(multi PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
+
+target_compile_options(structure PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
+target_compile_options(structure PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
