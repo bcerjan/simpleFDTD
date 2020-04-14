@@ -445,7 +445,6 @@
 
     // And apply a filter to the input:
     setInputFilter(document.getElementById("dielectricEnvironment"), function(value) {
-      console.log(value);
       return /^-?\d*[.,]?\d{0,1}$/.test(value.toString()) &&
       ( (value <= 4.0 && value >= 1.0) ); // Allow digits and 1 point after decimal place
     });
