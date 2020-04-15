@@ -173,6 +173,12 @@
             aria-describedby="normDataNote" value="norm">Normalize Data</button>
             <small id="normDataNote" class="form-text text-muted"></small>
           </div>
+          <div class="col">
+            <button type="button" class="btn btn-info" id="downloadData"
+            aria-describedby="downloadDataNote" value="norm">Download Data</button>
+            <small id="downloadDataNote" class="form-text text-muted">
+              Download data in CSV format (in whichever scale it is plotted as)</small>
+          </div>
         </div>
 
       <br>
@@ -289,6 +295,11 @@
               this.value = 'norm'
             }
           });
+
+          document.querySelector('#downloadData')
+            .addEventListener('click', function() {
+              downloadData(outputChart)
+            });
 
     const ctx = document.getElementById('outputData').getContext('2d');
     var data = {
@@ -422,6 +433,40 @@
       dataset.data.forEach((element) => {
         element.y = element.y - factor;
       });
+    }
+
+    // Function to download a CSV of the data:
+    // see: https://stackoverflow.com/a/14966131
+    function downloadData(chart) {
+      var csvContent = "data:text/csv;charset=utf-8,wavelegnth(nm),reflection\r\n";
+      var reflRows = [];
+      var tranRows = [];
+      console.log(chart.data.datasets);
+      chart.data.datasets[0].data.forEach((element) => {
+        reflRows.push(element.x + ',' + element.y);
+      });
+      chart.data.datasets[1].data.forEach((element) => {
+        tranRows.push(element.x + ',' + element.y);
+      });
+
+      reflRows.forEach(function(rowData) {
+        csvContent += rowData + "\r\n";
+      });
+
+      csvContent += "\r\nwavelength(nm),transmission\r\n"
+
+      tranRows.forEach(function(rowData) {
+        csvContent += rowData + "\r\n";
+      });
+
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "my_data.csv");
+      document.body.appendChild(link); // Required for FF
+
+      link.click(); // This will download the data file named "my_data.csv".
+
     }
 
     // Function for limiting allowed values in Dielectric Environment
