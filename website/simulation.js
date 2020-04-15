@@ -8787,7 +8787,6 @@ function _emscripten_asm_const_iii(code, sigPtr, argbuf) {
 
   function _updateChartData() {
       outputChart.update();
-      console.log(outputChart);
     }
 
   function _updateProgress(percent) {
