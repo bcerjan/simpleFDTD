@@ -168,13 +168,13 @@
             aria-describedby="runSimNote">Run Simulation</button>
             <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1.5 minutes</small>
           </div>
-          <div class="col">
+          <div class="col offset-md-4">
             <button type="button" class="btn btn-info" id="normData"
             aria-describedby="normDataNote" value="norm">Normalize Data</button>
             <small id="normDataNote" class="form-text text-muted"></small>
           </div>
           <div class="col">
-            <button type="button" class="btn btn-info" id="downloadData"
+            <button type="button" class="btn btn-secondary" id="downloadData"
             aria-describedby="downloadDataNote" value="norm">Download Data</button>
             <small id="downloadDataNote" class="form-text text-muted">
               Download data in CSV format (in whichever scale it is plotted as)</small>
@@ -441,7 +441,6 @@
       var csvContent = "data:text/csv;charset=utf-8,wavelegnth(nm),reflection\r\n";
       var reflRows = [];
       var tranRows = [];
-      console.log(chart.data.datasets);
       chart.data.datasets[0].data.forEach((element) => {
         reflRows.push(element.x + ',' + element.y);
       });
