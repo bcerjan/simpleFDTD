@@ -27,6 +27,7 @@
 #include "sdl_funcs.h"
 #include "emscripten.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 // JS function call to update progress bar
 extern void updateProgress(float percent);
@@ -41,11 +42,14 @@ extern void updateChartData();
 // To Enable "Run Simulation" button:
 extern void enableButton();
 
+// Static variable to track if we're doing adaptive timing:
+static bool adaptiveT = false;
+
 void iterateSimulation(struct Grid *g) {
-    // If first iteration, initialize SDL stuff:
+    // If first iteration, initialize SDL stuff and check for adaptive timing:
     if (timeStep < 1) {
       imageInit(g);
-    }
+    } /* timeStep if Block */
     //printf("Loop step: %i\timeStep",timeStep);
     HFieldUpdate(g, timeStep);
     EFieldUpdate(g);
@@ -64,6 +68,17 @@ void iterateSimulation(struct Grid *g) {
     if (timeStep % 200 == 0) {
       updateProgress(100.0 * (float )timeStep / (float )maximumIteration);
     }
+
+    // Check for adaptive timing and if necessary increase maximumIteration
+    // Only check every 50 time steps
+    if (adaptiveT > 0 && timeStep % 50 == 0) {
+      double maxEy = AbsArrayMax(ey,xSize,ySize);
+      if (maxEy < 1e-6) { // Tolerance for field decay
+        maximumIteration = 1; // This ends the loop on this iteration
+      } else {
+        maximumIteration += 51; // This indefinitely extends the loop
+      } /* tolerance if block */
+    } /* adaptiveT if block */
 
     // Check if we're done with the simulation:
     if (timeStep > maximumIteration) {
@@ -86,7 +101,8 @@ void iterateSimulation(struct Grid *g) {
     } /* ifCondition */
 }
 
-int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environmentIndex, double objectIndex) {
+int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environmentIndex,
+  double objectIndex, bool adaptiveTime) {
   printf( "Started main...\n" );
 
   //struct Grid *g = malloc(sizeof(struct Grid));
@@ -101,10 +117,15 @@ int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environ
   findMatEdge(g);
   printf("Found Edges\n");
 
-  // Initialize animation / SDL:
-
+  // Check if we're doing adaptive timing or not:
+  if (adaptiveTime) {
+    adaptiveT = true;
+  } else {
+    adaptiveT = false; // Need to reset it if we run a second time
+  } /* ifCondition */
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
+
   interval = 0;
   timeStep = 0;
 
