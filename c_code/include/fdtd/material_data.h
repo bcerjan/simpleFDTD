@@ -49,7 +49,7 @@ static const double materialData[5][6] = {
   //3, Copper, Johnson and Christy 1974
   {1.81405e-7, 5.69e+7, 1.0, 1.68e-8, 17.9867e+14, 12.9089e+14},
   //4, Silica, fixed eps = 2.136 -> n = 1.46
-  {2.136, 0.0, 1.0, 0.0, 0.0, 0.0}
+  {2.136, 0.0, 1.0, 0.0, HUGE_VAL, 0.0}
 
 };
 
