@@ -31,42 +31,42 @@
 /* Functions to get material data (or create it) from our stored file */
 double getMatPlasma(int metalChoice) {
   if ( metalChoice >= 0 ) {
-    return materialData[metalChoice][4];
+    return materialData[metalChoice].plasmaFreq;
   } else {
     return HUGE_VAL;
   } /* if Block */
 }
 double getMatDamping(int metalChoice) {
   if ( metalChoice >= 0 ) {
-    return materialData[metalChoice][5];
+    return materialData[metalChoice].dampingRate;
   } else {
     return 0.0;
   } /* if Block */
 }
 double getMatPermittivity(int metalChoice, double objectIndex) {
   if ( metalChoice >= 0 ) {
-    return materialData[metalChoice][0];
+    return materialData[metalChoice].permittivity;
   } else {
     return objectIndex*objectIndex;
   } /* if Block */
 }
 double getMatConductivity(int metalChoice) {
   if ( metalChoice >= 0 ) {
-    return materialData[metalChoice][1];
+    return materialData[metalChoice].conductivity;
   } else {
     return 0.0;
   } /* if Block */
 }
 double getMatPermeability(int metalChoice) {
   if ( metalChoice >= 0 ) {
-    return materialData[metalChoice][2];
+    return materialData[metalChoice].permeability;
   } else {
     return 1.0;
-  }
+  } /* if Block */
 }
 double getMatResistivity(int metalChoice) {
   if ( metalChoice >= 0 ) {
-    return materialData[metalChoice][3];
+    return materialData[metalChoice].resistivity;
   } else {
     return 0.0;
   } /* if Block */

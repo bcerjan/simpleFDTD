@@ -39,19 +39,53 @@
 
 #ifndef MATERIAL_DATA
 #define MATERIAL_DATA
-static const double materialData[5][6] = {
-  //0, Al, Cheng 2016
-  {4.01771, 3.77e+7, 1.0, 2.65e-8, 22.4842e+14,5.309e+14},
-  //1, Gold, Johnson and Christy 1974
-  {2.32842, 4.11e+7, 1.0, 2.44e-8, 12.0356e+14,2.3138e+14},
-  //2, Silver, Wu XXX
-  {7.19906e-9, 6.30e+7, 1.0, 1.59e-8, 9.71771e+14, 0.314692e+14},
-  //3, Copper, Johnson and Christy 1974
-  {1.81405e-7, 5.69e+7, 1.0, 1.68e-8, 17.9867e+14, 12.9089e+14},
-  //4, Silica, fixed eps = 2.136 -> n = 1.46
-  {2.136, 0.0, 1.0, 0.0, HUGE_VAL, 0.0}
 
+struct Material {
+  double permittivity; // used als for epsilon Infinity
+  double conductivity;
+  double permeability;
+  double resistivity;
+  double plasmaFreq;
+  double dampingRate;
 };
 
+static const struct Material materialData[5] = {
+  {  //0, Al, Cheng 2016
+    .permittivity = 4.01771,
+    .conductivity = 3.77e+7,
+    .permeability = 1.0,
+    .resistivity = 2.65e-8,
+    .plasmaFreq = 22.4842e+14,
+    .dampingRate = 5.309e+14
+  }, { //1, Gold, Johnson and Christy 1974
+    .permittivity = 2.32842,
+    .conductivity = 4.11e+7,
+    .permeability = 1.0,
+    .resistivity = 2.44e-8,
+    .plasmaFreq = 12.0356e+14,
+    .dampingRate = 2.3138e+14
+  }, { //2, Silver, Wu XXX
+    .permittivity = 7.19906e-9,
+    .conductivity = 6.30e+7,
+    .permeability = 1.0,
+    .resistivity = 1.59e-8,
+    .plasmaFreq = 9.71771e+14,
+    .dampingRate = 0.31469e+14
+  }, { //3, Copper, Johnson and Christy 1974
+    .permittivity = 1.81405e-7,
+    .conductivity = 5.69e+7,
+    .permeability = 1.0,
+    .resistivity = 1.68e-8,
+    .plasmaFreq = 17.9867e+14,
+    .dampingRate = 12.9089e+14
+  }, { //4, Silica, fixed eps = 2.136 -> n = 1.46
+    .permittivity = 2.136,
+    .conductivity = 0.0,
+    .permeability = 1.0,
+    .resistivity = 0.0,
+    .plasmaFreq = HUGE_VAL,
+    .dampingRate = 0.0
+  }
+};
 
 #endif
