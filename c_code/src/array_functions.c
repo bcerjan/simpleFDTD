@@ -17,6 +17,7 @@
     along with simpleFDTD.  If not, see <https://www.gnu.org/licenses/>.
 **/
 
+#include <math.h>
 
 /* File containing array functions (max, min) */
 
@@ -42,6 +43,38 @@ double ArrayMin(double **ptr, int xWidth, int yWidth)
     for (j = 0; j < yWidth; j++) {
       if (ptr[i][j] < min) {
         min = ptr[i][j];
+      } /* ifBlock */
+    } /* jForLoop */
+  } /* iForLoop */
+  return min;
+}
+
+double AbsArrayMax(double **ptr, int xWidth, int yWidth)
+{
+  int i,j;
+  double max = ptr[0][0];
+  double temp = 0.0;
+  for (i = 0; i < xWidth; i++) {
+    for (j = 0; j < yWidth; j++) {
+      temp = fabs(ptr[i][j]);
+      if (temp > max) {
+        max = temp;
+      } /* ifBlock */
+    } /* jForLoop */
+  } /* iForLoop */
+  return max;
+}
+
+double AbsArrayMin(double **ptr, int xWidth, int yWidth)
+{
+  int i,j;
+  double min = ptr[0][0];
+  double temp = 0.0;
+  for (i = 0; i < xWidth; i++) {
+    for (j = 0; j < yWidth; j++) {
+      temp = fabs(ptr[i][j]);
+      if (temp < min) {
+        min = temp;
       } /* ifBlock */
     } /* jForLoop */
   } /* iForLoop */

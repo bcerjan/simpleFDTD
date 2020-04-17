@@ -34,7 +34,7 @@
   <br>
   <div class="container">
     <div class="alert alert-warning" role="alert">
-      Reults for silica are (reasonably) accurate, but the fits for the metals
+      Results for silica are (reasonably) accurate, but the fits for the metals
       aren't as good as you might like (yet). YMMV.
     </div>
   </div>
@@ -164,11 +164,24 @@
 
         <div class="form-group row justify-content-between">
           <div class="col">
-            <button type="button" class="btn btn-success" id="runSim"
-            aria-describedby="runSimNote">Run Simulation</button>
-            <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1.5 minutes</small>
+              <button type="button" class="btn btn-success" id="runSim"
+              aria-describedby="runSimNote">Run Simulation</button>
+              <small id="runSimNote" class="form-text text-muted">On most computers this takes ~1.5 minutes</small>
+
           </div>
-          <div class="col offset-md-4">
+          <div class="col-sm-3">
+            <form>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="adaptiveTiming">
+                <label class="form-check-label" for="adaptiveTiming"
+                aria-describedby="adaptiveNote">Enable Adaptive Timing</label>
+                <small id="adaptiveNote" class="form-text text-muted">
+                  See the <a href="about.html#adaptiveTiming">about</a> page for a description
+                  of adaptive timing.</small>
+              </div>
+            </form>
+          </div>
+          <div class="col offset-md-2">
             <button type="button" class="btn btn-info" id="normData"
             aria-describedby="normDataNote" value="norm">Normalize Data</button>
             <small id="normDataNote" class="form-text text-muted"></small>
@@ -257,7 +270,7 @@
         onRuntimeInitialized: function() {
           // API for preparing image transfers:
           api = {
-            fdtd: Module.cwrap('fdtdSim','number', ['number','number','number','number','number']),
+            fdtd: Module.cwrap('fdtdSim','number', ['number','number','number','number','number','number']),
           };
           console.log('api defined...');
         },
@@ -273,6 +286,11 @@
           const size = $('#objectLength').val();
           const indexN = $('#dielectricEnvironment').val();
           const objectN = $('#objectIndex').val();
+          var adaptive = 0;
+          if ( $('#adaptiveTiming').prop('checked') == true ) {
+            adaptive = 1;
+          }
+
           clearChart(outputChart);
           updateProgressBar(0);
           document.querySelector('#runSim').disabled = true;
@@ -280,7 +298,7 @@
           document.querySelector('#normData').value = 'norm';
           document.querySelector('#normData').innerHTML = 'Normalize Data';
           document.querySelector('#runSim').innerHTML = "Running...";
-          api.fdtd(material,shape,size,indexN,objectN);
+          api.fdtd(material,shape,size,indexN,objectN,adaptive);
         });
         // Normalize Data
         document.querySelector('#normData')

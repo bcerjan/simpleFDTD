@@ -28,7 +28,7 @@
       and hold the other fixed, but in this case we are working with light
       (electromagnetic waves). In particular, the question "If we have a small
       particle in water, about 100 nm across, what color will it be?" arises
-      with some regularity. It can be annoying to try to find a reference that
+      with some regularity. It can be surprisngly difficult to find a reference that
       has your exact geometry, material, and dielectric environment, so this
       code lets you answer that question by running a simple 2-D simulation
       right in your browser. While we make no claims that it produces
@@ -37,17 +37,22 @@
       be enough to get you started on your research again (or pique your
       curiousity).
     </p>
+
     <br>
+
     <a class="btn btn-sm btn-outline-secondary" href="simulation.html" type="button">Back to Simulation</a>
+
     <br>
     <br>
-    <h1 class="display-4">Technical Notes</h1>
+
+    <h1 class="display-2">Technical Notes</h1>
     <p>The simulation here is transverse-electric and polarized along the
       vertical direction (perpendicular to the direction the initial pulse
       travels). The initial pulse is a Ricker wavelet centered at 600 nm, and
       the grid step is 10 nm (uniform in X and Y). The grid is terminated by a
       Berenger split-field PML (coded by Doug Neubauer). The simulation runs
-      for 3000 time steps and "running" discrete Fourier-Transforms (DFTs)
+      for 3000 time steps (by default, see <a href="#adaptiveTiming">Adaptive Timing</a>)
+      and "running" discrete Fourier-Transforms (DFTs)
       are kept to track the reflected and transmitted electric field strengths.
       Note that while we only run for a
       few thousand timesteps, we assume that this is sufficient time for the
@@ -63,7 +68,43 @@
       simulation (and also why only discrete background indices are allowed).
     </p>
 
-    <p>If you're particularly interested (or angry that I
+    <br>
+
+    <h1 class="display-4" id="spectra">Reflection and Transmission Spectra</h1>
+    <p>One of the major advantages of FDTD methods is that they are able to
+       simulate a wide band of frequencies with a single run of the simulation.
+       However, the results from such a simulation are, generally speaking,
+       meaningless without some way to compare them against what the source
+       would have done in the absence of any scattering media in the simulation
+       volume. So, we need to normalize our results to account for the behavior
+       of the source. For transmission spectra, this is straightforward -- one
+       just divides the value of the transmitted flux for a "real" run by that
+       of an "empty" run. For reflected spectra, the situation is substantially
+       more complicated as interference effects can occur. To account for this,
+       one has to subtract off the "empty" fields (not fluxes) from those for a
+       "real" run when computing the flux. For a much more thorough description
+       of the mathematics invloved, see
+       <a href="https://meep.readthedocs.io/en/latest/Introduction/#transmittancereflectance-spectra">
+       this part of the meep documentation</a>.
+     </p>
+
+    <br>
+
+    <h1 class="display-4" id="adaptiveTiming">Adaptive Timing</h1>
+    <p>Adaptive timing means that the simulation won't complete until the field
+       has sufficiently decayed. Specifically, it is checking for when the
+       absolute value of the field has decayed to one millionth of what the
+       maximum input value was. This has the potential to make some simulations
+       (e.g. mirrors) complete faster and enables the simulation to keep running
+       so that long-lived resonances have a chance to radiate away all of their
+       energy. Note that this breaks the progres bar at the bottom, as there is
+       no longer any way to know ahead of time how many steps will be required.
+     </p>
+
+    <br>
+
+    <h1 class="display-4" id="bugs">Bugs / Using the Code</h1>
+    <p>If you're particularly interested (or frustrated that I
        haven't fixed a bug you found), please stop by the
        <a href="https://github.com/bcerjan/simpleFDTD">GitHub page</a>
        to see how it all fits together. The simulation itself is coded in C
@@ -78,7 +119,9 @@
       feel free to use the code as you like.
     </p>
 
-    <h1 class="display-4">Appreciation</h1>
+
+
+    <h1 class="display-3">Appreciation</h1>
     <p>This simulation leans heavily on previous work. In particular, I
       appreciate the work by
       <a href="https://www.eecs.wsu.edu/~schneidj/ufdtd/"> John B. Schneider</a>
