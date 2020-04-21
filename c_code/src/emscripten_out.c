@@ -66,7 +66,11 @@ void iterateSimulation(struct Grid *g) {
 
     timeStep++;
     if (timeStep % 200 == 0) {
-      updateProgress(100.0 * (float )timeStep / (float )maximumIteration);
+      if( adaptiveT > 0) {
+        updateProgress(100.0 * 1e-6 / (float )AbsArrayMax(ey,xSize,ySize));
+      } else {
+        updateProgress(100.0 * (float )timeStep / (float )maximumIteration);
+      } /* if/else block */
     }
 
     // Check for adaptive timing and if necessary increase maximumIteration
