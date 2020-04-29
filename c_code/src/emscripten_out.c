@@ -28,6 +28,7 @@
 #include "emscripten.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 
 // JS function call to update progress bar
 extern void updateProgress(float percent);
@@ -66,7 +67,17 @@ void iterateSimulation(struct Grid *g) {
 
     timeStep++;
     if (timeStep % 200 == 0) {
-      updateProgress(100.0 * (float )timeStep / (float )maximumIteration);
+      if( adaptiveT > 0) {
+        // This formula is a rough sigmoid to make the progress bar look a
+        // little bit more active / more accurately represent how much time remains
+        float percent = 1.0/(1.0 + (3000.0/(float ) timeStep)*expf(
+                                  -((float )timeStep/3000.0 +
+                                  1e-6/(float )AbsArrayMax(ey,xSize,ySize))
+                                ) );
+        updateProgress( 100.0*percent );
+      } else {
+        updateProgress(100.0 * (float )timeStep / (float )maximumIteration);
+      } /* if/else block */
     }
 
     // Check for adaptive timing and if necessary increase maximumIteration
