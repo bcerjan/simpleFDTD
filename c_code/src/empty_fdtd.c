@@ -39,7 +39,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, -1, 100.0, 1.0, 0.0); // First int for metal, second for object shape
+  InitializeFdtd(g, 0, -1, 100.0, 100.0, 1.0, 0.0); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;

@@ -94,7 +94,7 @@ double environmentIndex : Refractive Index of the environment
 */
 
 void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
-  double objectSize, double environmentIndex, double objectIndex )
+  double objectXSize, double objectYSize, double environmentIndex, double objectIndex )
 {
 
 
@@ -326,18 +326,33 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     yCenter = ySize / 2; // ""
     structInit(xCenter, yCenter);
 printf("Strucutre Init...\n" );
+
+    // Sanity checks on input sizes:
+    double x_size,y_size;
+    if( objectXSize < 0.0 ) {
+      x_size = 0.0;
+    } else {
+      x_size = objectXSize * dx / dxnm;
+    } /* ifBlock */
+
+    if( objectYSize < 0.0 ) {
+      y_size = 0.0;
+    } else {
+      y_size = objectYSize * dx / dxnm;
+    } /* ifBlock */
+
     // Switch Block to pick structure geometry (default is no object):
     switch (objectChoice) {
       case 0: // Disk
-        addDisk(g, objectSize * dx/(2.0 * dxnm)); // 10 * dx radius disk
+        addDisk(g, x_size/2.0, y_size/2.0); // divide by 2 to get radius
         break;
 
       case 1: // Block
-        addRect(g, 20.0 * dx, objectSize * dx/dxnm);
+        addRect(g, x_size, y_size);
         break;
 
       case 2: // Triangle
-        addTriangle(g, objectSize * dx/dxnm);
+        addTriangle(g, x_size, y_size);
         break;
     } /* switch */
 
