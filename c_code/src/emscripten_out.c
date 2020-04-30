@@ -112,8 +112,8 @@ void iterateSimulation(struct Grid *g) {
     } /* ifCondition */
 }
 
-int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environmentIndex,
-  double objectIndex, bool adaptiveTime) {
+int fdtdSim(int metalChoice, int objectChoice, double objectXSize, double objectYSize,
+  double environmentIndex, double objectIndex, bool adaptiveTime) {
   printf( "Started main...\n" );
 
   //struct Grid *g = malloc(sizeof(struct Grid));
@@ -122,7 +122,8 @@ int fdtdSim(int metalChoice, int objectChoice, double objectSize, double environ
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, metalChoice, objectChoice, objectSize, environmentIndex, objectIndex); // First int for metal, second for object shape
+  InitializeFdtd(g, metalChoice, objectChoice, objectXSize, objectYSize,
+    environmentIndex, objectIndex); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
   // prepare matrix of object edges:
   findMatEdge(g);
