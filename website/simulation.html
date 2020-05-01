@@ -27,7 +27,10 @@
       .card-header {
         cursor: pointer;
       }
-
+      .diagram {
+        height: 90px;
+        padding-bottom: 20px;
+      }
     </style>
   </head>
   <body>
@@ -88,20 +91,32 @@
         </div>
         <div id="sizeCollapse" class="collapse" aria-labelledby="sizeHeader" data-parent="#controlAccordion">
           <div class="card-body">
-            <div class="input-group md-3">
-              <div class="input-group-prepend">
-                <span class="input-group-text" id="">X:</span>
+            <div class="row d-flex align-items-center">
+              <div class="col-8">
+                <div class="input-group md-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="">X:</span>
+                  </div>
+                  <input type="number" class="form-control" id="objectXLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
+                  <div class="input-group-append">
+                    <span class="input-group-text" id="units">nm</span>
+                  </div>
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="">Y:</span>
+                  </div>
+                  <input type="number" class="form-control" id="objectYLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
+                  <div class="input-group-append">
+                    <span class="input-group-text" id="units">nm</span>
+                  </div>
+                </div>
               </div>
-              <input type="number" class="form-control" id="objectXLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
-              <div class="input-group-append">
-                <span class="input-group-text" id="units">nm</span>
+              <div class="col-sm-auto">
+                <img src="images/e-field.png" class="img-fluid" style="height: 55px"/>
               </div>
-              <div class="input-group-prepend">
-                <span class="input-group-text" id="">Y:</span>
-              </div>
-              <input type="number" class="form-control" id="objectYLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
-              <div class="input-group-append">
-                <span class="input-group-text" id="units">nm</span>
+              <div class="col-md-auto">
+                <img id="ellipseImg" src="images/ellipse-diagram.png" alt="Ellipse Geometry Diagram" class="diagram img-fluid"/>
+                <img id="rectImg" src="images/rect-diagram.png" alt="Rectangle Geometry Diagram" class="diagram img-fluid" style="display: none;"/>
+                <img id="triImg" src="images/triangle-diagram.png" alt="Rectangle Geometry Diagram" class="diagram img-fluid" style="display: none;"/>
               </div>
             </div>
           </div>
@@ -285,6 +300,37 @@
         },
 
       };
+
+      $('input[name=shapeOptions]').change(function(){
+        const shapeNum = $(this).val();
+        const shapeSwitch = parseInt(shapeNum);
+        const rectImg = $('#rectImg');
+        const ellipseImg = $('#ellipseImg');
+        const triImg = $('#triImg');
+
+        switch(shapeSwitch) {
+          case 0: // Ellipse
+            ellipseImg.css('display','inline-block');
+            rectImg.css('display','none');
+            triImg.css('display','none');
+            break;
+          case 1: // Rectangle
+            ellipseImg.css('display','none');
+            rectImg.css('display','inline-block');
+            triImg.css('display','none');
+            break;
+          case 2: // Triangle
+            ellipseImg.css('display','none');
+            rectImg.css('display','none');
+            triImg.css('display','inline-block');
+            break;
+          default: // Empty
+            ellipseImg.css('display','none');
+            rectImg.css('display','none');
+            triImg.css('display','none');
+            break;
+        }
+      })
 
       // Global variables for simulation parameters so data download
       // can access them later even if the user changes parameters (but doesn't
