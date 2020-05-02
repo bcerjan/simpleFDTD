@@ -207,18 +207,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     exOld = AllocateMemory(xSize, ySize + 1, 0.0);
     eyOld = AllocateMemory(xSize + 1, ySize, 0.0);
 
-    /* Pre-compute values that will be placed in to cjj and cje */
-    double cjjTemp[media], cjeTemp[media];
-    double nDamping;
 
-    for (i = 0; i < media; i++) { // Schneider 10.57, 10.58, and 10.54 for Ng conversion
-        nDamping = 1.0 / (mediaDamping[i] * dt);
-        temporary = 1.0 / (2.0 * nDamping);
-        cjjTemp[i] = (1.0 - temporary) / (1.0 + temporary);
-        // Extra dx on Cje is due to 10.58 having been multiplied through by dx to cancel it out when expressed in it's more traditional form
-        cjeTemp[i] = dx * (1.0 / (1.0 + temporary)) * \
-         (2.0*courantS*M_PI*M_PI) / (electricalImpedance0 * pow(mediaPlasma[i],2.0));
-    } /* iForLoop */
 
     /*printf("cjjTemp[0]: %.5e\n", cjjTemp[0]);
     printf("cjjTemp[1]: %.5e\n", cjjTemp[1]);
@@ -266,31 +255,66 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Media coefficients
     /***********************************************************************/
 
+    /* Pre-compute values that will be placed in to cjj and cje */
+    double cjjTemp[media], cjeTemp[media];
+    double AZero,AOne,BZero,BOne,BTwo,cP;
+    double nDamping;
+    int p;
+    for (i = 0; i < media; i++) { // Schneider 10.57, 10.58, and 10.54 for Ng conversion
+        nDamping = 1.0 / (mediaDamping[i] * dt);
+        temporary = 1.0 / (2.0 * nDamping);
+        cjjTemp[i] = (1.0 - temporary) / (1.0 + temporary);
+        // Extra dx on Cje is due to 10.58 having been multiplied through by dx to cancel it out when expressed in it's more traditional form
+        cjeTemp[i] = dx * (1.0 / (1.0 + temporary)) * \
+         (2.0*courantS*M_PI*M_PI) / (electricalImpedance0 * pow(mediaPlasma[i],2.0));
+    } /* iForLoop */
+
+
+    // Magnetic field update constants:
     for (i = 0; i < media; i++) {
-
-        /* Original media coefficients
-        temporary  = dt * mediaConductivity[i] / (2.0 * electricalPermittivity0 * mediaPermittivity[i] );    // Taflove1995 p.67
-        mediaCa[i] = (1.0 - temporary) / (1.0 + temporary);                                                  // ditto
-        mediaCb[i] = dt / (electricalPermittivity0 * mediaPermittivity[i] * dx * (1.0 + temporary));         // ditto
-        */
-
-        /* Drude material coefficients */
-        temp1 = mediaConductivity[i] * dt / (2.0 * electricalPermittivity0 * mediaPermittivity[i]);
-        temp2 = cjeTemp[i] * electricalImpedance0 * courantS / (2.0  * mediaPermittivity[i]);
-        temp3 = electricalImpedance0 * courantS / mediaPermittivity[i];
-        mediaCa[i] = (1.0 - temp1 - temp2) / (1.0 + temp1 + temp2);                                          // See Schneider 10.62
-        mediaCb[i] = temp3 / (1.0 + temp1 + temp2);                                                          // ""
-
-        /* Original H updates
-        temporary  = dt *  mediaResistivity[i] / (2.0 * magneticPermeability0 * mediaPermeability[i]);       // Taflove1995
-        mediaDa[i] = (1.0 - temporary) / (1.0 + temporary);                                                  // ditto
-        mediaDb[i] = dt / (magneticPermeability0 * mediaPermeability[i] * dx * (1.0 + temporary));           // ditto
-        */
         //temporary = mediaConductivity[i] * dt / (2.0 * electricalPermittivity0 * mediaPermittivity[i]); // Schneider 8.13 - 8.18
         mediaDa[i] = 1.0; // assuming magnetic conductivity is 0
         mediaDb[i] = dt / (dx * magneticPermeability0 * mediaPermeability[i]);
     } /* iForLoop */
 
+    /* For terms and formulation, see: A Unified FDTD/PML Scheme Based on Critical
+      Points for Accurate Studies of Plasmonic Structures. Prokopidis and
+      Zografopoulos, JOURNAL OF LIGHTWAVE TECHNOLOGY, VOL. 31, NO. 15, AUGUST 1, 2013 */
+
+    // Electric / Polarization field update constants:
+    // Critical Points terms:
+    for (i = 0; i < media; i++) {
+      for (p = 0; p < number_poles; p++){
+        AZero = 2.0*electricalPermittivity0*Ap[i][p]*Omegap[i][p] * \
+          ( Omegap[i][p]*cos(phip[i][p]) - Gammap[i][p]*sin(phip[i][p]) );
+        AOne = -2.0*electricalPermittivity0*Ap[i][p]*Omegap[i][p]*sin(phip[i][p]);
+        BZero = pow(Omegap[i][p],2) + pow(Gammap[i][p],2);
+        BOne = 2.0*Gammap[i][p];
+        BTwo = 1.0;
+        cP = bTwo/(dt*dt) + BOne/(2.0*dt) + BZero/4.0;
+
+        c1[i][p] = (2.0*BTwo/(dt*dt) - BZero/2.0)/cP;
+        c2[i][p] = (BOne/(2.0*dt) - BTwo/(dt*dt) - BZero/4.0)/cP;
+        c3[i][p] = (AZero/4.0 + AOne/(2.0*dt))/cP;
+        c4[i][p] = AZero/(2.0*cP);
+        c5[i][p] = (AZero/4.0 - AOne/(2.0*dt))/cP;
+
+        c3TempSum[i] += c3[i][p];
+        c4TempSum[i] += c4[i][p];
+        c5TempSum[i] += c5[i][p];
+      } /* pForLoop */
+    } /* iForLoop */
+
+    // Drude Terms (assuming one Drude term)
+    /*for (i = 0; i < media; i++) {
+      // Drude Points Terms
+      dQ = 1.0/(dt*dt) + gamma/(2.0*dt);
+      DOne = 2.0/(dQ*dt*dt);
+      DTwo = (gamma/(2.0*dt) - 1.0/(dt*dt))/dQ;
+      DThree = electricalPermittivity0*mediaPlasma[i]*mediaPlasma[i]/(4.0*dQ);
+      DFour = DThree*2.0;
+      DFive = DThree;
+    }*/ /* iForLoop */
 
     /***********************************************************************/
     //     Grid Coefficients
@@ -305,18 +329,36 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     printf("mediaDb[1]: %f\n", mediaDb[1]);*/
     //     Initialize entire grid to free space
 
-    caex = AllocateMemory(xSize, ySize, mediaCa[0] );     // note: don't need to allocate for pec region, as it is not evaluated
-    cbex = AllocateMemory(xSize, ySize, mediaCb[0] );     // also: Initialize the entire grid to vacuum.
-    caey = AllocateMemory(xSize, ySize, mediaCa[0] );
-    cbey = AllocateMemory(xSize, ySize, mediaCb[0] );
+    // Polarization grid values:
+    c3Sum = AllocateMemory(xSize, ySize, c3TempSum[0]);
+    c4Sum = AllocateMemory(xSize, ySize, c4TempSum[0]);
+    c5Sum = AllocateMemory(xSize, ySize, c5TempSum[0]);
+
+
+    // Make so we don't have to loop over each array twice on initialization...
+    c1Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
+    c2Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
+    c3Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
+    c4Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
+    c5Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
+    for (i = 0; i < xSize; i++) {
+      for (j = 0; j < ySize; j++) {
+        for (p = 0; p < number_poles; p++) {
+          c1Grid[i][j][p] = c1[0][p];
+          c2Grid[i][j][p] = c2[0][p];
+          c3Grid[i][j][p] = c3[0][p];
+          c4Grid[i][j][p] = c4[0][p];
+          c5Grid[i][j][p] = c5[0][p];
+        } /* pForLoop */
+      } /* jForLoop */
+    } /* iForLoop */
+
+
     dahz = AllocateMemory(xSize, ySize, mediaDa[0] );
     dbhz = AllocateMemory(xSize, ySize, mediaDb[0] );
     dahzy = AllocateMemory1D(boundaryDataSize, mediaDa[0] );        // for the split-field data for hz in the pml regions
     dbhzy = AllocateMemory1D(boundaryDataSize, mediaDb[0] );        // for the split-field data for hz in the pml regions
 
-    /* Initialize polarization current */
-    cjj = AllocateMemory(xSize, ySize, 1.0);  // Initialize to 1 for free space
-    cje = AllocateMemory(xSize, ySize, 0.0);  // Initialize to 0 for free space
 
     /* Array to track where our object is/is not */
     object_locs = AllocateMemory(xSize, ySize, 0.0); // This really shouldn't be an array of doubles -- we're wasting memory here
@@ -341,22 +383,30 @@ printf("Strucutre Init...\n" );
         break;
     } /* switch */
 
-    // Add structure:
-    for(i = 0; i < xSize; i++) {
+    // Add structure (assumes only one material besides background):
+    for (i = 0; i < xSize; i++) {
       for (j = 0; j < ySize; j++) {
         if (object_locs[i][j] > 0.5) {
           // Material Constants:
-          caex[i][j] = mediaCa[1];
-          cbex[i][j] = mediaCb[1];
-          caey[i][j] = mediaCa[1];
-          cbey[i][j] = mediaCb[1];
+          c3Sum[i][j] = c3TempSum[1];
+          c4Sum[i][j] = c4TempSum[1];
+          c5Sum[i][j] = c5TempSum[1];
 
-          /* Polarization Current Constants: */
-          cjj[i][j] = cjjTemp[1];
-          cje[i][j] = cjeTemp[1];
-        }
+          dahz = mediaDa[1];
+          dbhz = mediaDb[1];
+
+          for(p = 0; p < number_poles; p++) {
+            /* Polarization Constants: */
+            c1Grid[i][j][p] = c1[1][p];
+            c2Grid[i][j][p] = c2[1][p];
+            c3Grid[i][j][p] = c3[1][p];
+            c4Grid[i][j][p] = c4[1][p];
+            c5Grid[i][j][p] = c5[1][p];
+          } /* pForLoop */
+        } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
+
 printf("Strucutre Added...\n" );
     /***********************************************************************/
     //     Initialize the RegionDataValues structure
