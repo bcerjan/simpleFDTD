@@ -22,7 +22,7 @@
 #include "fdtd_grid.h"
 
 // standard C memory allocation for 2-D array
-double  **AllocateMemory (int  imax, int  jmax, double  initialValue)
+double **AllocateMemory (int imax, int jmax, double initialValue)
 {
     int  i,j;
     double  **pointer;
@@ -46,7 +46,7 @@ double  **AllocateMemory (int  imax, int  jmax, double  initialValue)
 }
 
 // standard C memory allocation for 1-D array
-double  *AllocateMemory1D (int  size, double  initialValue)
+double *AllocateMemory1D (int size, double initialValue)
 {
 //    printf("In 1D Allocation...\n");
     int  j;
@@ -64,8 +64,23 @@ double  *AllocateMemory1D (int  size, double  initialValue)
     return(pointer) ;
 }
 
+// standard memory allocation for 3-D array
+double **AllocateMemory3D (int  imax, int  jmax, int kmax, double initialValue) {
+  int i;
+  double **pointer;
+  pointer = malloc(imax * sizeof(double *));
+  if (pointer == NULL) {
+      printf("Error! memory not allocated.\n");
+      exit(0);
+  }
+  for (i = 0; i < imax; i++) {
+    pointer[i] = AllocateMemory(jmax, kmax, initialValue);
+  } /* iForLoop */
+  return(pointer);
+}
+
 // standard C memory allocation for our Grid Struct
-struct Grid  *AllocateGridMemory ()
+struct Grid *AllocateGridMemory ()
 {
     struct Grid  *pointer = malloc(sizeof(struct Grid));
 

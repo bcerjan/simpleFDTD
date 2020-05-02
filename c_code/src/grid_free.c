@@ -32,6 +32,15 @@ void freeDoublePtr(double **ptr, int imax) {
   return;
 }
 
+void freeTriplePtr(double **ptr, int imax, int jmax) {
+  int i,j;
+  for (i = 0; i < imax; i++) {
+    freeDoublePtr(ptr[i][j],jmax);
+  }
+  free(ptr);
+  return;
+}
+
 void freeGrid(struct Grid *g) {
   // First, free all arrays:
   freeDoublePtr(ex, xSize);
