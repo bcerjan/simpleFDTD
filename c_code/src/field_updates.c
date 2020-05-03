@@ -26,28 +26,44 @@
 
 void EFieldUpdate (struct Grid *g) {
   int i,j;
-  double temporary;
+  double temp1x[xSize][ySize] = {0.0},temp2x[xSize][ySize] = {0.0};
+  double temp1y[xSize][ySize] = {0.0},temp2y[xSize][ySize] = {0.0};
 
-  /***********************************************************************/
-  //     Update electric fields (EX and EY)
-  /***********************************************************************/
-  // See Schneider 10.62 for equations
+  /* This loop is split from the one below as the P matrices are 3D while
+     the E fields are only 2D, so I think it is more efficient to do it this way,
+     but this could be incorrect...*/
+  for (p = 0; p < number_poles; p++) {
+    for (i = 0; i < xSize; i++) {
+      for (j = 0; j < ySize; j++) {
+        temp1x[i][j] += (1.0 - c1Grid[p][i][j])*px[p][i][j];
+        temp1y[i][j] += (1.0 - c1Grid[p][i][j])*py[p][i][j];
+
+        temp2x[i][j] += c2Grid[p][i][j]*pxOld[p][i][j];
+        temp2y[i][j] += c2Grid[p][i][j]*pyOld[p][i][j];
+      } /* jForLoop */
+    } /* iForLoop */
+  } /* pForLoop */
+
+  // See Prokopidis and Zografopoulos eq. 23 with Pd and all D terms set to 0.
   for (i = 0; i < xSize; i++) {
     for (j = 1; j < ySize; j++) {        // j=0 = pec, so don't evaluate
-      //ex[i][j] = caex[i][j] * ex[i][j] + cbex[i][j] * ( hz[i][j] - hz[i][j-1] ); /* Original update */
-      exOld[i][j] = ex[i][j]; // Store previous field for polarization current
-      temporary = (1.0/2.0) * (1.0 + cjj[i][j]) * jx[i][j];
-      // If things go sideways, it might be the dx term on the H field... (same for y below)
-      ex[i][j] = caex[i][j] * ex[i][j] + cbex[i][j] * ( (hz[i][j] - hz[i][j-1]) - temporary ); // Need dx on H fields?
+      exOld2[i][j] = exOld[i][j]; // E at n - 2
+      exOld[i][j] = ex[i][j]; // Store previous field for polarization
+
+      ex[i][j] = ( dt * (hz[i][j] - hz[i][j-1]) + \
+        c4Sum[i][j] * ex[i][j] - c5Sum[i][j] * exOld[i][j] - \
+        temp1x[i][j] - temp2x[i][j] ) / c3Sum[i][j];
     } /* jForLoop */
   } /* iForLoop */
 
   for (i = 1; i < xSize; i++) {            // i=0 = pec, so don't evaluate
     for (j = 0; j < ySize; j++) {
-      //ey[i][j] = caey[i][j] * ey[i][j] + cbey[i][j] * ( hz[i-1][j] - hz[i][j] ); /* Original update */
+      eyOld2[i][j] = eyOld[i][j];
       eyOld[i][j] = ey[i][j]; // Store previous field for polarization current
-      temporary = (1.0/2.0) * (1.0 + cjj[i][j]) * jy[i][j];
-      ey[i][j] = caey[i][j] * ey[i][j] + cbey[i][j] * ( (hz[i-1][j] - hz[i][j]) - temporary ); // Need dx on H fields?
+
+      ey[i][j] = ( dt * (hz[i][j] - hz[i][j-1]) + \
+        c4Sum[i][j] * ey[i][j] - c5Sum[i][j] * eyOld[i][j] - \
+        temp1y[i][j] - temp2y[i][j] ) / c3Sum[i][j];
     } /* jForLoop */
   } /* iForLoop */
 
@@ -100,24 +116,33 @@ void HFieldUpdate (struct Grid *g, int n) {
   return;
 }
 
-void JFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's a current.
-  int i,j;
+// This should be called _after_ EFieldUpdate
+void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's the polarization.
+  int i,j,p;
+  double tempOld;
+  for (p = 0; p < number_poles; p++) {
+    for (i = 0; i < xSize; i++) {
+      for (j = 1; j < ySize; j++) {
+        tempOld = pxOld[p][i][j];
+        pxOld[p][i][j] = px[p][i][j];
+        px[p][i][j] = c1Grid[p][i][j]*px[p][i][j] + \
+         c2Grid[p][i][j]*tempOld + c3Grid[p][i][j]*ex[i][j] + \
+         c4Grid[p][i][j]*exOld[i][j] + c5Grid[p][i][j]*exOld2[i][j];
+      } /* jForLoop */
+    } /* iForLoop */
+  } /* pForLoop */
 
- /***********************************************************************/
-  //     Update polarization current (jx,jy) (actually are dx*jx or dx*jy)
-  /***********************************************************************/
-  for (i = 0; i < xSize; i++) {
-    for (j = 1; j < ySize; j++) {        // j=0 = pec, so don't evaluate
-      jx[i][j] = cjj[i][j] * dx * jx[i][j] + cje[i][j] * (ex[i][j] + exOld[i][j]); // need dx back?
-    } /* jForLoop */
-  } /* iForLoop */
-
-  for (i = 1; i < xSize; i++) {            // i=0 = pec, so don't evaluate
-    for (j = 0; j < ySize; j++) {
-      jy[i][j] = cjj[i][j] * dx * jy[i][j] + cje[i][j] * (ey[i][j] + eyOld[i][j]); // need dx back?
-    } /* jForLoop */
-  } /* iForLoop */
-
+  for (p = 0; p < number_poles; p++) {
+    for (i = 1; i < xSize; i++) {            // i=0 = pec, so don't evaluate
+      for (j = 0; j < ySize; j++) {
+        tempOld = pyOld[p][i][j];
+        pyOld[p][i][j] = py[p][i][j];
+        py[p][i][j] = c1Grid[p][i][j]*py[p][i][j] + \
+         c2Grid[p][i][j]*tempOld + c3Grid[p][i][j]*ey[i][j] + \
+         c4Grid[p][i][j]*eyOld[i][j] + c5Grid[p][i][j]*eyOld2[i][j];
+      } /* jForLoop */
+    } /* iForLoop */
+  } /* pForLoop */
   return;
 }
 
