@@ -46,19 +46,28 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(ex, xSize);
   freeDoublePtr(ey, xSize + 1);
   freeDoublePtr(hz, xSize);
-  freeDoublePtr(caex, xSize);
-  freeDoublePtr(cbex, xSize);
-  freeDoublePtr(caey, xSize);
-  freeDoublePtr(cbey, xSize);
+  freeDoublePtr(c3Sum, xSize);
+  freeDoublePtr(c4Sum, xSize);
+  freeDoublePtr(c5Sum, xSize);
+
+  freeTriplePtr(c1Grid, number_poles, xSize);
+  freeTriplePtr(c2Grid, number_poles, xSize);
+  freeTriplePtr(c3Grid, number_poles, xSize);
+  freeTriplePtr(c4Grid, number_poles, xSize);
+  freeTriplePtr(c5Grid, number_poles, xSize);
+
   freeDoublePtr(dahz, xSize);
   freeDoublePtr(dbhz, xSize);
 
-  freeDoublePtr(jx, xSize);
-  freeDoublePtr(jy, xSize);
-  freeDoublePtr(cjj, xSize);
-  freeDoublePtr(cje, xSize);
+  freeTriplePtr(px, number_poles, xSize);
+  freeTriplePtr(py, number_poles, xSize);
+  freeTriplePtr(pxOld, number_poles, xSize);
+  freeTriplePtr(pyOld, number_poles, xSize);
+
   freeDoublePtr(exOld, xSize);
   freeDoublePtr(eyOld, xSize + 1);
+  freeDoublePtr(exOld2, xSize);
+  freeDoublePtr(eyOld2, xSize + 1);
   freeDoublePtr(e2Field, xSize);
   freeDoublePtr(edgeMat, xSize);
   freeDoublePtr(object_locs, xSize);

@@ -65,7 +65,7 @@ double *AllocateMemory1D (int size, double initialValue)
 }
 
 // standard memory allocation for 3-D array
-double **AllocateMemory3D (int  imax, int  jmax, int kmax, double initialValue) {
+double **AllocateMemory3D (int  imax, int  jmax, int kmax, double *initArray) {
   int i;
   double **pointer;
   pointer = malloc(imax * sizeof(double *));
@@ -74,7 +74,7 @@ double **AllocateMemory3D (int  imax, int  jmax, int kmax, double initialValue) 
       exit(0);
   }
   for (i = 0; i < imax; i++) {
-    pointer[i] = AllocateMemory(jmax, kmax, initialValue);
+    pointer[i] = AllocateMemory(jmax, kmax, initArray[i]);
   } /* iForLoop */
   return(pointer);
 }
