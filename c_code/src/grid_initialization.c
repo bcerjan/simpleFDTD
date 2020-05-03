@@ -202,11 +202,14 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     edgeMat = AllocateMemory(xSize, ySize, 0.0);
 
     /* Polarization Current Fields */
-    jx = AllocateMemory(xSize, ySize, 0.0);
-    jy = AllocateMemory(xSize, ySize, 0.0);
+    px = AllocateMemory3D(number_poles, xSize, ySize, 0.0);
+    py = AllocateMemory3D(number_poles, xSize, ySize, 0.0);
+    pxOld = AllocateMemory3D(number_poles, xSize, ySize, 0.0);
+    pyOld = AllocateMemory3D(number_poles, xSize, ySize, 0.0);
     exOld = AllocateMemory(xSize, ySize + 1, 0.0);
+    exOld2 = AllocateMemory(xSize, ySize + 1, 0.0);
     eyOld = AllocateMemory(xSize + 1, ySize, 0.0);
-
+    eyOld2 = AllocateMemory(xSize + 1, ySize, 0.0);
 
 
     /*printf("cjjTemp[0]: %.5e\n", cjjTemp[0]);
@@ -303,6 +306,9 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
         c4TempSum[i] += c4[i][p];
         c5TempSum[i] += c5[i][p];
       } /* pForLoop */
+      // See eq. 23 in the paper:
+      c3TempSum[i] += electricalPermittivity0*mediaPermittivity[i];
+      c4TempSum[i] -= electricalPermittivity0*mediaPermittivity[i];
     } /* iForLoop */
 
     // Drude Terms (assuming one Drude term)
@@ -336,22 +342,23 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
 
     // Make so we don't have to loop over each array twice on initialization...
-    c1Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
-    c2Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
-    c3Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
-    c4Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
-    c5Grid = AllocateMemory3D(xSize, ySize, number_poles, 0.0);
-    for (i = 0; i < xSize; i++) {
+    c1Grid = AllocateMemory3D(number_poles, xSize, ySize, c1[0]);
+    c2Grid = AllocateMemory3D(number_poles, xSize, ySize, c2[0]);
+    c3Grid = AllocateMemory3D(number_poles, xSize, ySize, c3[0]);
+    c4Grid = AllocateMemory3D(number_poles, xSize, ySize, c4[0]);
+    c5Grid = AllocateMemory3D(number_poles, xSize, ySize, c5[0]);
+
+/*    for (i = 0; i < xSize; i++) {
       for (j = 0; j < ySize; j++) {
         for (p = 0; p < number_poles; p++) {
-          c1Grid[i][j][p] = c1[0][p];
-          c2Grid[i][j][p] = c2[0][p];
-          c3Grid[i][j][p] = c3[0][p];
-          c4Grid[i][j][p] = c4[0][p];
-          c5Grid[i][j][p] = c5[0][p];
-        } /* pForLoop */
-      } /* jForLoop */
-    } /* iForLoop */
+          c1Grid[p][i][j] = c1[0][p];
+          c2Grid[p][i][j] = c2[0][p];
+          c3Grid[p][i][j] = c3[0][p];
+          c4Grid[p][i][j] = c4[0][p];
+          c5Grid[p][i][j] = c5[0][p];
+        }*/ /* pForLoop */
+      //} /* jForLoop */
+    //} /* iForLoop */
 
 
     dahz = AllocateMemory(xSize, ySize, mediaDa[0] );
@@ -397,11 +404,11 @@ printf("Strucutre Init...\n" );
 
           for(p = 0; p < number_poles; p++) {
             /* Polarization Constants: */
-            c1Grid[i][j][p] = c1[1][p];
-            c2Grid[i][j][p] = c2[1][p];
-            c3Grid[i][j][p] = c3[1][p];
-            c4Grid[i][j][p] = c4[1][p];
-            c5Grid[i][j][p] = c5[1][p];
+            c1Grid[p][i][j] = c1[1][p];
+            c2Grid[p][i][j] = c2[1][p];
+            c3Grid[p][i][j] = c3[1][p];
+            c4Grid[p][i][j] = c4[1][p];
+            c5Grid[p][i][j] = c5[1][p];
           } /* pForLoop */
         } /* ifBlock */
       } /* jForLoop */
