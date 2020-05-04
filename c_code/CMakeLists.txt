@@ -67,7 +67,7 @@ SET (TEST_TARGET
 #target
 add_executable( empty ${COMMON_SRCS} ${EMPTY_TARGET} )
 add_executable( structure ${COMMON_SRCS} ${STRUCTURE_TARGET} )
-add_executable( test_mem ${COMMON_SRCS} ${TEST_TARGET} )
+add_executable( test_mem ${TEST_TARGET} )
 add_executable( multi ${COMMON_SRCS} ${MULTIPLE_TARGET} )
 
 #link libraries
