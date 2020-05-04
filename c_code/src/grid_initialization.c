@@ -29,57 +29,38 @@
 
 
 /* Functions to get material data (or create it) from our stored file */
-double getMatPlasma(int metalChoice) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].plasmaFreq;
-  } else {
-    return HUGE_VAL;
-  } /* if Block */
-}
-double getMatDamping(int metalChoice) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].dampingRate;
-  } else {
-    return 0.0;
-  } /* if Block */
-}
 double getMatPermittivity(int metalChoice, double objectIndex) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].permittivity;
+  if( metalChoice > -1 ) {
+    return materialData[metalChoice].epsInf;
   } else {
     return objectIndex*objectIndex;
-  } /* if Block */
+  }
 }
 double getMatConductivity(int metalChoice) {
-  if ( metalChoice >= 0 ) {
+  if( metalChoice > -1 ) {
     return materialData[metalChoice].conductivity;
   } else {
     return 0.0;
-  } /* if Block */
+  }
 }
 double getMatPermeability(int metalChoice) {
-  if ( metalChoice >= 0 ) {
+  if( metalChoice > -1 ) {
     return materialData[metalChoice].permeability;
   } else {
     return 1.0;
-  } /* if Block */
+  }
 }
 double getMatResistivity(int metalChoice) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].resistivity;
+  if( metalChoice > -1 ) {
+    return 1.0/materialData[metalChoice].conductivity;
   } else {
     return 0.0;
-  } /* if Block */
+  }
 }
 
 // Function to get the index we're using to reference our "empty" runs by
 // this is, unfortunately, the index of the (refractive) index.
 int getIndexIndex(double environmentIndex) {
-  if (environmentIndex > 4.0) {
-    environmentIndex = 4.0;
-  } else if (environmentIndex < 1.0) {
-    environmentIndex = 1.0;
-  } /* if Block */
 
   return lround(environmentIndex*10.0) - 10;
 }
@@ -97,24 +78,17 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
   double objectSize, double environmentIndex, double objectIndex )
 {
 
-
-    /* Added for Drude metals so we can treat both the vacuum and object as "Drude"
-       materials */
-    double  mediaPlasma[MEDIACONSTANT] = {HUGE_VAL, getMatPlasma(metalChoice)}; // Plasma frequency
-    double  mediaDamping[MEDIACONSTANT] = {0.0, getMatDamping(metalChoice)}; // Damping constant
-    /* End of Drude Metal Addition */
-
     double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, getMatPermittivity(metalChoice, objectIndex)};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
     double  mediaConductivity[MEDIACONSTANT] = {0.0, getMatConductivity(metalChoice)}; // sig,
-    double  mediaPermeability[MEDIACONSTANT] = {1.0, getMatPermeability(metalChoice)};    // mur
-    double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity(metalChoice)};     // sim
+    double  mediaPermeability[MEDIACONSTANT] = {1.0, getMatPermeability};    // mur
+    double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity};     // sim
     double  mediaCa[MEDIACONSTANT];
     double  mediaCb[MEDIACONSTANT];
     double  mediaDa[MEDIACONSTANT];
     double  mediaDb[MEDIACONSTANT];
     double  magneticPermeability0,electricalPermittivity0,frequency,wavelength,angularFrequency;
     double  reflectionCoefficient0,gradingOrder,temporary,electricalImpedance0,temp1,temp2,temp3;
-    int  i,j,k, boundaryDataSize, media, boundaryIndex,xSizeMain,ySizeMain,numFreqs;
+    int  i,j,k,p, boundaryDataSize, media, boundaryIndex,xSizeMain,ySizeMain,numFreqs;
     int  abcSize ;
     double  cylinderDiameter, cylinderRadius, temporaryi,temporaryj,distance2 ;
     int  xCenter,yCenter;
@@ -183,6 +157,23 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     refractiveIndexIndex = getIndexIndex(environmentIndex);
 
+    // Number of poles in our dielectric function
+    number_poles = materialData[metalChoice].num_poles;
+
+    // Constants for our approximation:
+    double **Ap,**Omegap,**phip,**Gammap;
+    Ap = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+    Omegap = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+    phip = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+    Gammap = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+
+    for (p = 0; p < number_poles; p++) {
+      Ap[1][p] = materialData[metalChoice].params[p].bigA;
+      Omegap[1][p] = materialData[metalChoice].params[p].Omega;
+      phip[1][p] = materialData[metalChoice].params[p].phi;
+      Gammap[1][p] = materialData[metalChoice].params[p].Gamma;
+    }
+
     /***********************************************************************/
     //     Wave excitation
     /***********************************************************************/
@@ -202,10 +193,11 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     edgeMat = AllocateMemory(xSize, ySize, 0.0);
 
     /* Polarization Current Fields */
-    px = AllocateMemory3D(number_poles, xSize, ySize, 0.0);
-    py = AllocateMemory3D(number_poles, xSize, ySize, 0.0);
-    pxOld = AllocateMemory3D(number_poles, xSize, ySize, 0.0);
-    pyOld = AllocateMemory3D(number_poles, xSize, ySize, 0.0);
+    double initArray[12] = {0.0};
+    px = AllocateMemory3D(number_poles, xSize, ySize, initArray);
+    py = AllocateMemory3D(number_poles, xSize, ySize, initArray);
+    pxOld = AllocateMemory3D(number_poles, xSize, ySize, initArray);
+    pyOld = AllocateMemory3D(number_poles, xSize, ySize, initArray);
     exOld = AllocateMemory(xSize, ySize + 1, 0.0);
     exOld2 = AllocateMemory(xSize, ySize + 1, 0.0);
     eyOld = AllocateMemory(xSize + 1, ySize, 0.0);
@@ -258,20 +250,21 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Media coefficients
     /***********************************************************************/
 
+    double **c1,**c2,**c3,**c4,**c5,*c3TempSum,*c4TempSum,*c5TempSum;
+    c1 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+    c2 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+    c3 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+    c4 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+    c5 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
+    c3TempSum = AllocateMemory1D(MEDIACONSTANT, 0.0);
+    c4TempSum = AllocateMemory1D(MEDIACONSTANT, 0.0);
+    c5TempSum = AllocateMemory1D(MEDIACONSTANT, 0.0);
+
+
     /* Pre-compute values that will be placed in to cjj and cje */
     double cjjTemp[media], cjeTemp[media];
     double AZero,AOne,BZero,BOne,BTwo,cP;
     double nDamping;
-    int p;
-    for (i = 0; i < media; i++) { // Schneider 10.57, 10.58, and 10.54 for Ng conversion
-        nDamping = 1.0 / (mediaDamping[i] * dt);
-        temporary = 1.0 / (2.0 * nDamping);
-        cjjTemp[i] = (1.0 - temporary) / (1.0 + temporary);
-        // Extra dx on Cje is due to 10.58 having been multiplied through by dx to cancel it out when expressed in it's more traditional form
-        cjeTemp[i] = dx * (1.0 / (1.0 + temporary)) * \
-         (2.0*courantS*M_PI*M_PI) / (electricalImpedance0 * pow(mediaPlasma[i],2.0));
-    } /* iForLoop */
-
 
     // Magnetic field update constants:
     for (i = 0; i < media; i++) {
@@ -413,6 +406,20 @@ printf("Strucutre Init...\n" );
         } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
+
+    // Free arrays only used here:
+    freeDoublePtr(c1, MEDIACONSTANT);
+    freeDoublePtr(c2, MEDIACONSTANT);
+    freeDoublePtr(c3, MEDIACONSTANT);
+    freeDoublePtr(c4, MEDIACONSTANT);
+    freeDoublePtr(c5, MEDIACONSTANT);
+    freeDoublePtr(Ap, MEDIACONSTANT);
+    freeDoublePtr(Gammap, MEDIACONSTANT);
+    freeDoublePtr(phip, MEDIACONSTANT);
+    freeDoublePtr(Omegap, MEDIACONSTANT);
+    free(c3TempSum);
+    free(c4TempSum);
+    free(c5TempSum);
 
 printf("Strucutre Added...\n" );
     /***********************************************************************/
