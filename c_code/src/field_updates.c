@@ -23,11 +23,17 @@
 #include "empty_refl_data.h"
 #include "empty_tran_data.h"
 #include "fdtd_macro.h"
+#include "fdtd_proto.h"
 
 void EFieldUpdate (struct Grid *g) {
-  int i,j;
-  double temp1x[xSize][ySize] = {0.0},temp2x[xSize][ySize] = {0.0};
-  double temp1y[xSize][ySize] = {0.0},temp2y[xSize][ySize] = {0.0};
+  int i,j,p;
+  double **temp1x, **temp2x, **temp1y, **temp2y;
+
+  // Maybe put in Grid so we only allocate / deallocate one time instead of every iteration
+  temp1x = AllocateMemory(xSize, ySize, 0.0);
+  temp1y = AllocateMemory(xSize, ySize, 0.0);
+  temp2x = AllocateMemory(xSize, ySize, 0.0);
+  temp2y = AllocateMemory(xSize, ySize, 0.0);
 
   /* This loop is split from the one below as the P matrices are 3D while
      the E fields are only 2D, so I think it is more efficient to do it this way,
@@ -66,6 +72,11 @@ void EFieldUpdate (struct Grid *g) {
         temp1y[i][j] - temp2y[i][j] ) / c3Sum[i][j];
     } /* jForLoop */
   } /* iForLoop */
+
+  freeDoublePtr(temp1x, xSize);
+  freeDoublePtr(temp1y, xSize);
+  freeDoublePtr(temp2x, xSize);
+  freeDoublePtr(temp2y, xSize);
 
   return;
 }
