@@ -65,10 +65,10 @@ double *AllocateMemory1D (int size, double initialValue)
 }
 
 // standard memory allocation for 3-D array
-double **AllocateMemory3D (int  imax, int  jmax, int kmax, double *initArray) {
+double ***AllocateMemory3D (int  imax, int  jmax, int kmax, double *initArray) {
   int i;
-  double **pointer;
-  pointer = malloc(imax * sizeof(double *));
+  double ***pointer;
+  pointer = malloc(imax * sizeof(double **));
   if (pointer == NULL) {
       printf("Error! memory not allocated.\n");
       exit(0);
