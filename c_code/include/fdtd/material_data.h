@@ -22,8 +22,12 @@
 
     This data was taken from the source (typically via refractiveindex.info),
     truncated to the range we are getting results for (400-800 nm), and
-    then fit with a simple Drude model (simultaneously for Re and Im components):
-      er[f] = epsInfinity - fp^2 / ( f^2 + i*g*f ) .
+    then fit with the critical-points model (simultaneously for Re and Im components):
+      χ[f] = 	Sum[ Ap * Omegap * (exp[-i*phip]/(Omegap + f - i*Gammap) + exp[i*phip]/(Omegap - f + i*Gammap))
+
+      (see Prokopidis and Dimitrios eq. 1 with no Drude term {it has been folded in
+      to the other critical point terms, which wastes some memory, but simplifies
+      the coding})
 
     Note that some of the fits are actually quite poor! This is just a rough
     idea of what a particular metal will do and is not a great substitute for
@@ -40,51 +44,41 @@
 #ifndef MATERIAL_DATA
 #define MATERIAL_DATA
 
-struct Material {
-  double permittivity; // used als for epsilon Infinity
-  double conductivity;
-  double permeability;
-  double resistivity;
-  double plasmaFreq;
-  double dampingRate;
+// Maximumum number of poles we'll eveer potentially need
+#define MAX_POLES (12)
+
+struct cpParams {
+  double bigA;
+  double Omega;
+  double phi;
+  double Gamma;
 };
 
+struct Material {
+  int num_poles;
+  double epsInf;
+  double permeability;
+  double conductivity;
+  struct cpParams params[MAX_POLES];
+};
+
+
+
 static const struct Material materialData[5] = {
-  {  //0, Al, Cheng 2016
-    .permittivity = 4.01771,
-    .conductivity = 3.77e+7,
-    .permeability = 1.0,
-    .resistivity = 2.65e-8,
-    .plasmaFreq = 22.4842e+14,
-    .dampingRate = 5.309e+14
-  }, { //1, Gold, Johnson and Christy 1974
-    .permittivity = 2.32842,
-    .conductivity = 4.11e+7,
-    .permeability = 1.0,
-    .resistivity = 2.44e-8,
-    .plasmaFreq = 12.0356e+14,
-    .dampingRate = 2.3138e+14
-  }, { //2, Silver, Wu XXX
-    .permittivity = 7.19906e-9,
-    .conductivity = 6.30e+7,
-    .permeability = 1.0,
-    .resistivity = 1.59e-8,
-    .plasmaFreq = 9.71771e+14,
-    .dampingRate = 0.31469e+14
-  }, { //3, Copper, Johnson and Christy 1974
-    .permittivity = 1.81405e-7,
-    .conductivity = 5.69e+7,
-    .permeability = 1.0,
-    .resistivity = 1.68e-8,
-    .plasmaFreq = 17.9867e+14,
-    .dampingRate = 12.9089e+14
-  }, { //4, Silica, fixed eps = 2.136 -> n = 1.46
-    .permittivity = 2.136,
-    .conductivity = 0.0,
-    .permeability = 1.0,
-    .resistivity = 0.0,
-    .plasmaFreq = HUGE_VAL,
-    .dampingRate = 0.0
+  { //0, Al, Cheng 2016
+    .num_poles = 2,
+    .params[0] = {
+      .bigA = 2.0,
+      .Omega = 1.0,
+      .phi = 0.01,
+      .Gamma = -0.5,
+    },
+    .params[1] = {
+      .bigA = 20.0,
+      .Omega = 10.0,
+      .phi = 00.01,
+      .Gamma = -0.05,
+    }
   }
 };
 
