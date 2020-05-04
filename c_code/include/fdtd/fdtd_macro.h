@@ -28,12 +28,8 @@
 #define DbhzG(G) G->dbhz
 
 #define ExG(G) G->ex
-#define CaexG(G) G->caex
-#define CbexG(G) G->cbex
 
 #define EyG(G) G->ey
-#define CaeyG(G) G->caey
-#define CbeyG(G) G->cbey
 
 // PML H-field
 #define HzyG(G) G->hzy
@@ -53,13 +49,25 @@
 #define SpeedOfLightG(G) G->speedOfLight
 #define EnvIndexG(G) G->envIndex
 
-// Drude Metals (Polarization Current)
-#define JxG(G) G->jx
-#define JyG(G) G->jy
-#define CjjG(G) G->cjj
-#define CjeG(G) G->cje
+// Critical-Point Material Data (Polarization)
+#define Number_polesG(G) G->number_poles
+#define PxG(G) G->px
+#define PyG(G) G->py
+#define PxOldG(G) G->pxOld
+#define PyOldG(G) G->pyOld
 #define ExOldG(G) G->exOld
 #define EyOldG(G) G->eyOld
+#define ExOld2G(G) G->exOld2
+#define EyOld2G(G) G->eyOld2
+
+#define C3SumG(G) G->c3Sum
+#define C4SumG(G) G->c4Sum
+#define C5SumG(G) G->c5Sum
+#define C1GridG(G) G->c1Grid
+#define C2GridG(G) G->c2Grid
+#define C3GridG(G) G->c3Grid
+#define C4GridG(G) G->c4Grid
+#define C5GridG(G) G->c5Grid
 
 // Values for tracking DFT:
 #define ReflXPosG(G) G->reflXPos
@@ -101,12 +109,8 @@
 #define dbhz DbhzG(g)
 
 #define ex ExG(g)
-#define caex CaexG(g)
-#define cbex CbexG(g)
 
 #define ey EyG(g)
-#define caey CaeyG(g)
-#define cbey CbeyG(g)
 
 // PML H-field
 #define hzy HzyG(g)
@@ -126,13 +130,25 @@
 #define speedOfLight SpeedOfLightG(g)
 #define envIndex EnvIndexG(g)
 
-// Drude Metals (Polarization Current)
-#define jx JxG(g)
-#define jy JyG(g)
-#define cjj CjjG(g)
-#define cje CjeG(g)
+// Critical Point Materials (Polarization)
+#define number_poles Number_polesG(g)
+#define px PxG(g)
+#define py PyG(g)
+#define pxOld PxOldG(g)
+#define pyOld PyOldG(g)
 #define exOld ExOldG(g)
 #define eyOld EyOldG(g)
+#define exOld2 ExOld2G(g)
+#define eyOld2 EyOld2G(g)
+
+#define c3Sum C3SumG(g)
+#define c4Sum C4SumG(g)
+#define c5Sum C5SumG(g)
+#define c1Grid C1GridG(g)
+#define c2Grid C2GridG(g)
+#define c3Grid C3GridG(g)
+#define c4Grid C4GridG(g)
+#define c5Grid C5GridG(g)
 
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)

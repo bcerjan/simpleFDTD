@@ -48,10 +48,7 @@ struct Grid {
   double  **ex;      // the fields
   double  **ey;      //  ""
   double  **hz;      //  ""
-  double  **caex;    // fdtd coefficents
-  double  **cbex;    //  ""
-  double  **caey;    //  ""
-  double  **cbey;    //  ""
+
   double  **dahz;    // in pml regions this holds dahzx
   double  **dbhz;    //          " "              dbhzx
 
@@ -59,13 +56,26 @@ struct Grid {
   double  *dahzy;    // pml coefficient
   double  *dbhzy;    //    ""
 
-  // Values for Drude Metals
-  double  **jx;       // x-direction polarization current (actually delta*Jx)
-  double  **jy;       // "" for Jy
-  double  **cjj;      // Matrix containing damping values (10.57 in Schneider)
-  double  **cje;      // Matrix containing plasma frequency values (10.58 in Schneider)
+  // Values for Critical-Point Lorentz materials:
+  int number_poles;
+  double  ***px;       // x-direction polarization current (actually delta*Jx)
+  double  ***py;       // "" for Jy
+  double  ***pxOld;
+  double  ***pyOld;
+  double  **c3Sum; // Stored sum values
+  double  **c4Sum;
+  double  **c5Sum;
+  double  ***c1Grid; // Stored parameters at each grid point
+  double  ***c2Grid;
+  double  ***c3Grid;
+  double  ***c4Grid;
+  double  ***c5Grid;
+
   double  **exOld;    // Matrix to store old Ex values for Drude metals
   double  **eyOld;    // "" Ey values
+  double  **exOld2;   // From two steps in past
+  double  **eyOld2;
+
 
   // Values for tracking DFT
   int reflXPos,tranXPos;          // Positions of the line monitors used to find reflected / transmitted fields
