@@ -70,7 +70,7 @@ void HFieldUpdate (struct Grid *g, int n) {
   return;
 }
 
-// Auxilliary fields for PML (both E and H)
+// Auxiliary fields for PML (both E and H)
 // Call after E-field update
 // Currently using E and H as stand-ins for R and B in the PML region as they
 // are getting updated in this region the same way R and B would be.
@@ -136,7 +136,7 @@ void PMLFieldUpdate (struct Grid *g) {
   return;
 }
 
-// One of several auxilliary fields for the PML:
+// One of several auxiliary fields for the PML:
 void RFieldUpdate (struct Grid *g) {
   int i,j,p,regionIndex;
 
@@ -166,7 +166,7 @@ void RFieldUpdate (struct Grid *g) {
   return;
 }
 
-// Another auxilliary field for PML
+// Another auxiliary field for PML
 void BFieldUpdate (Struct Grid *g) {
   int i,j,regionIndex;
   for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
