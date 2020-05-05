@@ -82,11 +82,21 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(imHzTranDFT, NUMBERDFTFREQS);
 
   // Now, all individual pointers:
-  free(hzy);
-  free(dahzy);
-  free(dbhzy);
   free(reflDFT);
   free(tranDFT);
+  free(hzOld);
+  free(hGrad1);
+  free(hGrad2);
+  free(hGrad3);
+  free(eGrad1);
+  free(eGrad2);
+  free(eGrad3);
+  free(pmlSx);
+  free(pmlSxOld);
+  free(pmlSy);
+  free(pmlSyOld);
+  free(pmlTz);
+  free(pmlTzOld);
 
   // And finally the grid itself:
   free(g);
