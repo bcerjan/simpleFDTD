@@ -46,6 +46,16 @@
 #define PmlSyOldG(G) G->pmlSyOld
 #define PmlTzOldG(G) G->pmlTzOld
 
+#define RxG(G) G->rx
+#define RxOldG(G) G->rxOld
+#define RxOld2G(G) G->rxOld2
+#define RyG(G) G->ry
+#define RyOldG(G) G->ryOld
+#define RyOld2G(G) G->ryOld2
+#define BzG(G) G->bz
+#define BzOldG(G) G->bzOld
+
+
 // Constants:
 #define xSizeG(G) G->xSize
 #define ySizeG(G) G->ySize
@@ -179,6 +189,15 @@
 #define c3Grid C3GridG(g)
 #define c4Grid C4GridG(g)
 #define c5Grid C5GridG(g)
+
+#define rx RxG(G)
+#define rxOld RxOldG(G)
+#define rxOld2 RxOld2G(G)
+#define ry RyG(G)
+#define ryOld RyOldG(G)
+#define ryOld2 RyOld2G(G)
+#define bz BzG(G)
+#define bzOld BzOldG(G)
 
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)

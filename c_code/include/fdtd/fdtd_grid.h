@@ -86,6 +86,16 @@ struct Grid {
   double  ***c4Grid;
   double  ***c5Grid;
 
+  double  *rx;
+  double  *rxOld;
+  double  *rxOld2;
+  double  *ry;
+  double  *ryOld;
+  double  *ryOld2;
+  double  *bz;
+  double  *bzOld;
+
+
   double  **exOld;    // Matrix to store old Ex values for Drude metals
   double  **eyOld;    // "" Ey values
   double  **exOld2;   // From two steps in past
