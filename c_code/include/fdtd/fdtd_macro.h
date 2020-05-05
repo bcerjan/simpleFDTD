@@ -32,9 +32,19 @@
 #define EyG(G) G->ey
 
 // PML H-field
-#define HzyG(G) G->hzy
-#define DahzyG(G) G->dahzy
-#define DbhzyG(G) G->dbhzy
+#define HGrad1G(G) G->hGrad1
+#define EGrad1G(G) G->eGrad1
+#define HGrad2G(G) G->hGrad2
+#define EGrad2G(G) G->eGrad2
+#define HGrad3G(G) G->hGrad3
+#define EGrad3G(G) G->eGrad3
+
+#define PmlSxG(G) G->pmlSx
+#define PmlSyG(G) G->pmlSy
+#define PmlTzG(G) G->PmlTz
+#define PmlSxOldG(G) G->pmlSxOld
+#define PmlSyOldG(G) G->pmlSyOld
+#define PmlTzOldG(G) G->PmlTzOld
 
 // Constants:
 #define xSizeG(G) G->xSize
@@ -59,7 +69,12 @@
 #define EyOldG(G) G->eyOld
 #define ExOld2G(G) G->exOld2
 #define EyOld2G(G) G->eyOld2
+#define HzOldG(G) G->hzOld
 
+#define C1SumXG(G) G->c1SumX
+#define C2SumXG(G) G->c2SumX
+#define C1SumYG(G) G->c1SumY
+#define C2SumYG(G) G->c2SumY
 #define C3SumG(G) G->c3Sum
 #define C4SumG(G) G->c4Sum
 #define C5SumG(G) G->c5Sum
@@ -112,10 +127,20 @@
 
 #define ey EyG(g)
 
-// PML H-field
-#define hzy HzyG(g)
-#define dahzy DahzyG(g)
-#define dbhzy DbhzyG(g)
+// PML Coefficients
+#define hGrad1 HGrad1G(g)
+#define eGrad1 EGrad1G(g)
+#define hGrad2 HGrad2G(g)
+#define eGrad2 EGrad2G(g)
+#define hGrad3 HGrad3G(g)
+#define eGrad3 EGrad3G(g)
+
+#define pmlSx PmlSxG(g)
+#define pmlSy PmlSyG(g)
+#define pmlTz PmlTzG(g)
+#define pmlSxOld PmlSxOldG(g)
+#define pmlSyOld PmlSyOldG(g)
+#define pmlTzOld PmlTzOldG(g)
 
 // Constants:
 #define xSize xSizeG(g)
@@ -140,7 +165,12 @@
 #define eyOld EyOldG(g)
 #define exOld2 ExOld2G(g)
 #define eyOld2 EyOld2G(g)
+#define hzOld HzOldG(g)
 
+#define c1SumX C1SumXG(g)
+#define c2SumX C2SumXG(g)
+#define c1SumY C1SumYG(g)
+#define c2SumY C2SumYG(g)
 #define c3Sum C3SumG(g)
 #define c4Sum C4SumG(g)
 #define c5Sum C5SumG(g)

@@ -50,11 +50,22 @@ struct Grid {
   double  **hz;      //  ""
 
   double  **dahz;    // in pml regions this holds dahzx
-  double  **dbhz;    //          " "              dbhzx
+  double  **dbhz;
 
-  double  *hzy;      // for pml split-field abc, note: hzx is derived "on the fly" from hz - hzy
-  double  *dahzy;    // pml coefficient
-  double  *dbhzy;    //    ""
+  double  *hGrad1;    // pml coefficients
+  double  *eGrad1;
+  double  *hGrad2;
+  double  *eGrad2;
+  double  *hGrad3;
+  double  *eGrad3;
+
+  // PML fields:
+  double  *pmlSx; // x electric field
+  double  *pmlSy; // y
+  double  *pmlTz; // z magnetic (analogous to S, but for H)
+  double  *pmlSxOld;
+  double  *pmlSyOld;
+  double  *pmlTzOld;
 
   // Values for Critical-Point Lorentz materials:
   int number_poles;
@@ -62,7 +73,11 @@ struct Grid {
   double  ***py;       // "" for Jy
   double  ***pxOld;
   double  ***pyOld;
-  double  **c3Sum; // Stored sum values
+  double  **c1SumX; // Stored sum values as we need them in multiple locations
+  double  **c2SumX;
+  double  **c1SumY;
+  double  **c2SumY;
+  double  **c3Sum;
   double  **c4Sum;
   double  **c5Sum;
   double  ***c1Grid; // Stored parameters at each grid point
@@ -75,7 +90,7 @@ struct Grid {
   double  **eyOld;    // "" Ey values
   double  **exOld2;   // From two steps in past
   double  **eyOld2;
-
+  double  *hzOld;
 
   // Values for tracking DFT
   int reflXPos,tranXPos;          // Positions of the line monitors used to find reflected / transmitted fields
