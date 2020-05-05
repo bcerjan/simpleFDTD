@@ -186,7 +186,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     ex = AllocateMemory(xSize,    ySize + 1, 0.0 );        // 1 extra in y direction for pec
     ey = AllocateMemory(xSize + 1,ySize,     0.0 );        // 1 extra in x direction for pec
     hz = AllocateMemory(xSize,    ySize,     0.0 );
-    hzOld = AllocateMemory1D(boundaryDataSize, 0.0 );        // for the split-field data for hz in the pml regions
+    
 
     e2Field = AllocateMemory(xSize, ySize, 0.0);           // E^2 for plotting
     edgeMat = AllocateMemory(xSize, ySize, 0.0);
@@ -370,6 +370,13 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     pmlSyOld = AllocateMemory1D(boundaryDataSize, 0.0 );
     pmlTzOld = AllocateMemory1D(boundaryDataSize, 0.0 );
 
+    rx = AllocateMemory1D(boundaryDataSize, 0.0 );
+    rxOld = AllocateMemory1D(boundaryDataSize, 0.0 );
+    rxOld2 = AllocateMemory1D(boundaryDataSize, 0.0 );
+    ry = AllocateMemory1D(boundaryDataSize, 0.0 );
+    ryOld = AllocateMemory1D(boundaryDataSize, 0.0 );
+    ryOld2 = AllocateMemory1D(boundaryDataSize, 0.0 );
+    bz = AllocateMemory1D(boundaryDataSize, 0.0 );
     /* Values for H-field updates: */
     dahz = AllocateMemory(xSize, ySize, mediaDa[0] );
     dbhz = AllocateMemory(xSize, ySize, mediaDb[0] );

@@ -101,6 +101,15 @@ void freeGrid(struct Grid *g) {
   free(pmlSyOld);
   free(pmlTz);
   free(pmlTzOld);
+  free(rx);
+  free(rxOld);
+  free(rxOld2);
+  free(ry);
+  free(ryOld);
+  free(ryOld2);
+  free(bz);
+  free(bzOld);
+
 
   // And finally the grid itself:
   free(g);

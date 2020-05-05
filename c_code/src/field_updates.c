@@ -71,7 +71,7 @@ void HFieldUpdate (struct Grid *g, int n) {
 }
 
 // Auxiliary fields for PML (both E and H)
-// Call after E-field update
+// Call after E-field/H-Field update
 // Currently using E and H as stand-ins for R and B in the PML region as they
 // are getting updated in this region the same way R and B would be.
 void SFieldUpdate (struct Grid *g) {
@@ -90,16 +90,15 @@ void SFieldUpdate (struct Grid *g) {
         pmlSyOld[boundaryIndex] = pmlSy[boundaryIndex];
         pmlTzOld[boundaryIndex] = pmlTz[boundaryIndex];
         pmlSx[boundaryIndex] = eGrad1[boundaryIndex]*pmlSx[boundaryIndex] + \
-                               eGrad2[boundaryIndex]*ex[i][j] - \
-                               eGrad3[boundaryIndex]*exOld[i][j];
+                               eGrad2[boundaryIndex]*rx[boundaryIndex] - \
+                               eGrad3[boundaryIndex]*rxOld[boundaryIndex];
         pmlSy[boundaryIndex] = eGrad1[boundaryIndex]*pmlSy[boundaryIndex] + \
-                               eGrad2[boundaryIndex]*ey[i][j] - \
-                               eGrad3[boundaryIndex]*eyOld[i][j];
+                               eGrad2[boundaryIndex]*ry[boundaryIndex] - \
+                               eGrad3[boundaryIndex]*ryOld[boundaryIndex];
         pmlTz[boundaryIndex] = hGrad1[boundaryIndex]*pmlTz[boundaryIndex] + \
-                               hGrad2[boundaryIndex]*hz[i][j] - \
-                               hGrad3[boundaryIndex]*hzOld[boundaryIndex];
-        hzOld[boundaryIndex] = dahz[i][j] * hz[i][j] + \
-                               dbhz[i][j] * ( ex[i][j+1] - ex[i][j] );
+                               hGrad2[boundaryIndex]*bz[boundaryIndex] - \
+                               hGrad3[boundaryIndex]*bzOld[boundaryIndex];
+
         boundaryIndex++;
       } /* jForLoop */
     } /* iForLoop */
@@ -138,31 +137,58 @@ void PMLFieldUpdate (struct Grid *g) {
 
 // One of several auxiliary fields for the PML:
 void RFieldUpdate (struct Grid *g) {
-  int i,j,p,regionIndex;
+  int i,j,p,regionIndex,boundaryIndex;
 
-/*  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+  boundaryIndex = 0;
+  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
     xStart = regionData[regionIndex].xStart;
     xStop  = regionData[regionIndex].xStop ;
     yStart = regionData[regionIndex].yStart;
     yStop  = regionData[regionIndex].yStop ;
     for (i = xStart; i < xStop; i++) {
       for (j = yStart; j < yStop; j++) {
-      rxOld2[i][j] = rxOld[i][j]; // E at n - 2
-      rxOld[i][j] = rx[i][j]; // Store previous field for polarization
+      rxOld2[boundaryIndex] = rxOld[boundaryIndex]; // E at n - 2
+      rxOld[boundaryIndex] = rx[boundaryIndex]; // Store previous field for polarization
 
-      rx[i][j] = ( dt * (hz[i][j+1] - hz[i][j]) + \
-        c4Sum[i][j] * rx[i][j] - c5Sum[i][j] * rxOld2[i][j] - \
+      rx[boundaryIndex] = ( dt * (hz[i][j+1] - hz[i][j]) + \
+        c4Sum[i][j] * rx[boundaryIndex] - c5Sum[i][j] * rxOld2[boundaryIndex] - \
         c1SumX[i][j] - c2SumX[i][j] ) / c3Sum[i][j];
 
-      ryOld2[i][j] = ryOld[i][j];
-      ryOld[i][j] = ry[i][j]; // Store previous field for polarization current
+      ryOld2[boundaryIndex] = ryOld[boundaryIndex];
+      ryOld[boundaryIndex] = ry[boundaryIndex]; // Store previous field for polarization current
 
-      ry[i][j] = ( dt * (hz[i][j+1] - hz[i][j]) + \
-        c4Sum[i][j] * ry[i][j] - c5Sum[i][j] * ryOld2[i][j] - \
+      ry[boundaryIndex] = ( dt * (hz[i][j+1] - hz[i][j]) + \
+        c4Sum[i][j] * ry[boundaryIndex] - c5Sum[i][j] * ryOld2[boundaryIndex] - \
         c1SumY[i][j] - c2SumY[i][j] ) / c3Sum[i][j];
-      }*/ /* jForLoop */
-    //} /* iForLoop */
-  //}
+      boundaryIndex++;
+      } /* jForLoop */
+    } /* iForLoop */
+  }
+  return;
+}
+
+void BFieldUpdate (struct Grid *g, int n) {
+  int i,j,regionIndex,boundaryIndex;
+
+  /***********************************************************************/
+  //     Update magnetic fields (HZ) in center (main) grid
+  /***********************************************************************/
+
+  boundaryIndex = 0;
+  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+    xStart = regionData[regionIndex].xStart;
+    xStop  = regionData[regionIndex].xStop ;
+    yStart = regionData[regionIndex].yStart;
+    yStop  = regionData[regionIndex].yStop ;
+    for (i = xStart; i < xStop; i++) {
+      for (j = yStart; j < yStop; j++) {
+      bzOld[boundaryIndex] = bz[boundaryIndex];
+      bz[boundaryIndex] = dahz[i][j] * bz[boundaryIndex] + dbhz[i][j] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] );
+      boundaryIndex++;
+      } /* jForLoop */
+    } /* iForLoop */
+  } /* region forLoop */
+
   return;
 }
 
