@@ -75,7 +75,7 @@ void HFieldUpdate (struct Grid *g, int n) {
 // Currently using E and H as stand-ins for R and B in the PML region as they
 // are getting updated in this region the same way R and B would be.
 void SFieldUpdate (struct Grid *g) {
-  int i,j,p,regionIndex,boundaryIndex;
+  int i,j,p,regionIndex,boundaryIndex,xStop,xStart,yStop,yStart;
 
   boundaryIndex = 0;
   for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
@@ -98,8 +98,8 @@ void SFieldUpdate (struct Grid *g) {
         pmlTz[boundaryIndex] = hGrad1[boundaryIndex]*pmlTz[boundaryIndex] + \
                                hGrad2[boundaryIndex]*hz[i][j] - \
                                hGrad3[boundaryIndex]*hzOld[boundaryIndex];
-        hzOld[boundaryIndex] = dahzy[boundaryIndex] * hzy[boundaryIndex] + \
-                               dbhzy[boundaryIndex] * ( ex[i][j+1] - ex[i][j] );
+        hzOld[boundaryIndex] = dahz[i][j] * hz[i][j] + \
+                               dbhz[i][j] * ( ex[i][j+1] - ex[i][j] );
         boundaryIndex++;
       } /* jForLoop */
     } /* iForLoop */
@@ -110,7 +110,7 @@ void SFieldUpdate (struct Grid *g) {
 // Update E and H in PML regions (equivalently, find R and B)
 // Call after SFieldUpdate
 void PMLFieldUpdate (struct Grid *g) {
-  int i,j,p,regionIndex,boundaryIndex;
+  int i,j,p,regionIndex,boundaryIndex,xStop,xStart,yStop,yStart;
 
   boundaryIndex = 0;
   for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
@@ -126,7 +126,7 @@ void PMLFieldUpdate (struct Grid *g) {
         ey[i][j] = eGrad1[boundaryIndex]*eyOld[i][j] + \
                    eGrad2[boundaryIndex]*pmlSy[boundaryIndex] - \
                    eGrad3[boundaryIndex]*pmlSyOld[boundaryIndex];
-        hz[i][j] = hGrad1[boundaryIndex]*hzOld[i][j] + \
+        hz[i][j] = hGrad1[boundaryIndex]*hzOld[boundaryIndex] + \
                    hGrad2[boundaryIndex]*pmlTz[boundaryIndex] - \
                    hGrad3[boundaryIndex]*pmlTzOld[boundaryIndex];
         boundaryIndex++;
@@ -140,7 +140,7 @@ void PMLFieldUpdate (struct Grid *g) {
 void RFieldUpdate (struct Grid *g) {
   int i,j,p,regionIndex;
 
-  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+/*  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
     xStart = regionData[regionIndex].xStart;
     xStop  = regionData[regionIndex].xStop ;
     yStart = regionData[regionIndex].yStart;
@@ -160,26 +160,9 @@ void RFieldUpdate (struct Grid *g) {
       ry[i][j] = ( dt * (hz[i][j+1] - hz[i][j]) + \
         c4Sum[i][j] * ry[i][j] - c5Sum[i][j] * ryOld2[i][j] - \
         c1SumY[i][j] - c2SumY[i][j] ) / c3Sum[i][j];
-      } /* jForLoop */
-    } /* iForLoop */
-  }
-  return;
-}
-
-// Another auxiliary field for PML
-void BFieldUpdate (Struct Grid *g) {
-  int i,j,regionIndex;
-  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
-    xStart = regionData[regionIndex].xStart;
-    xStop  = regionData[regionIndex].xStop ;
-    yStart = regionData[regionIndex].yStart;
-    yStop  = regionData[regionIndex].yStop ;
-    for (i = xStart; i < xStop; i++) {
-      for (j = yStart; j < yStop; j++) {
-        bz[i][j] = dahz[i][j] * bz[i][j] + dbhz[i][j] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] );
-      } /* jForLoop */
-    } /* iForLoop */
-  }
+      }*/ /* jForLoop */
+    //} /* iForLoop */
+  //}
   return;
 }
 
@@ -188,24 +171,9 @@ void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
   int i,j,p;
   double tempOld;
 
-  /* This loop is split from the one below as the P matrices are 3D while
-     the E fields are only 2D, so I think it is more efficient to do it this way,
-     but this could be incorrect...*/
   for (p = 0; p < number_poles; p++) {
     for (i = 0; i < xSize; i++) {
-      for (j = 0; j < ySize; j++) {
-        temp1x[i][j] += (1.0 - c1Grid[p][i][j])*px[p][i][j];
-        temp1y[i][j] += (1.0 - c1Grid[p][i][j])*py[p][i][j];
-
-        temp2x[i][j] += c2Grid[p][i][j]*pxOld[p][i][j];
-        temp2y[i][j] += c2Grid[p][i][j]*pyOld[p][i][j];
-      } /* jForLoop */
-    } /* iForLoop */
-  } /* pForLoop */
-
-  for (p = 0; p < number_poles; p++) {
-    for (i = 0; i < xSize; i++) {
-      for (j = 1; j < ySize; j++) {
+      for (j = 1; j < ySize; j++) { // j=0 -> pec
         tempOld = pxOld[p][i][j];
         pxOld[p][i][j] = px[p][i][j];
         px[p][i][j] = c1Grid[p][i][j]*px[p][i][j] + \
@@ -214,10 +182,10 @@ void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
 
         if( p < 1 ) { // since we need to reset from previous time steps
           c1SumX[i][j] = (1.0 - c1Grid[p][i][j])*px[p][i][j];
-          c2sumX[i]j[] = c2Grid[p][i][j]*pxOld[p][i][j];
+          c2SumX[i][j] = c2Grid[p][i][j]*pxOld[p][i][j];
         } else { // Now we're doing our running sum:
           c1SumX[i][j] += (1.0 - c1Grid[p][i][j])*px[p][i][j];
-          c2sumX[i]j[] += c2Grid[p][i][j]*pxOld[p][i][j];
+          c2SumX[i][j] += c2Grid[p][i][j]*pxOld[p][i][j];
         } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
@@ -234,10 +202,10 @@ void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
 
          if( p < 1 ) { // since we need to reset from previous time steps
            c1SumY[i][j] = (1.0 - c1Grid[p][i][j])*py[p][i][j];
-           c2sumY[i]j[] = c2Grid[p][i][j]*pyOld[p][i][j];
+           c2SumY[i][j] = c2Grid[p][i][j]*pyOld[p][i][j];
          } else { // Now we're doing our running sum:
            c1SumY[i][j] += (1.0 - c1Grid[p][i][j])*py[p][i][j];
-           c2sumY[i]j[] += c2Grid[p][i][j]*pyOld[p][i][j];
+           c2SumY[i][j] += c2Grid[p][i][j]*pyOld[p][i][j];
          } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */

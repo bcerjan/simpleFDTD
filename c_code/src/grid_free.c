@@ -32,10 +32,10 @@ void freeDoublePtr(double **ptr, int imax) {
   return;
 }
 
-void freeTriplePtr(double **ptr, int imax, int jmax) {
-  int i,j;
+void freeTriplePtr(double ***ptr, int imax, int jmax) {
+  int i;
   for (i = 0; i < imax; i++) {
-    freeDoublePtr(ptr[i][j],jmax);
+    freeDoublePtr(ptr[i],jmax);
   }
   free(ptr);
   return;
@@ -46,6 +46,10 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(ex, xSize);
   freeDoublePtr(ey, xSize + 1);
   freeDoublePtr(hz, xSize);
+  freeDoublePtr(c1SumX, xSize);
+  freeDoublePtr(c2SumX, xSize);
+  freeDoublePtr(c1SumY, xSize);
+  freeDoublePtr(c2SumY, xSize);
   freeDoublePtr(c3Sum, xSize);
   freeDoublePtr(c4Sum, xSize);
   freeDoublePtr(c5Sum, xSize);

@@ -80,8 +80,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, getMatPermittivity(metalChoice, objectIndex)};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
     double  mediaConductivity[MEDIACONSTANT] = {0.0, getMatConductivity(metalChoice)}; // sig,
-    double  mediaPermeability[MEDIACONSTANT] = {1.0, getMatPermeability};    // mur
-    double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity};     // sim
+    double  mediaPermeability[MEDIACONSTANT] = {1.0, getMatPermeability(metalChoice)};    // mur
+    double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity(metalChoice)};     // sim
     double  mediaCa[MEDIACONSTANT];
     double  mediaCb[MEDIACONSTANT];
     double  mediaDa[MEDIACONSTANT];
@@ -285,7 +285,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
         BZero = pow(Omegap[i][p],2) + pow(Gammap[i][p],2);
         BOne = 2.0*Gammap[i][p];
         BTwo = 1.0;
-        cP = bTwo/(dt*dt) + BOne/(2.0*dt) + BZero/4.0;
+        cP = BTwo/(dt*dt) + BOne/(2.0*dt) + BZero/4.0;
 
         c1[i][p] = (2.0*BTwo/(dt*dt) - BZero/2.0)/cP;
         c2[i][p] = (BOne/(2.0*dt) - BTwo/(dt*dt) - BZero/4.0)/cP;
@@ -327,8 +327,10 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Initialize entire grid to free space
 
     // Polarization grid values:
-    c1Sum = AllocateMemory(xSize, ySize, c3TempSum[0]); // No temp sums for c1 and c2, and this is 0 anyway
-    c2Sum = AllocateMemory(xSize, ySize, c3TempSum[0]);
+    c1SumX = AllocateMemory(xSize, ySize, c3TempSum[0]); // No temp sums for c1 and c2, and this is 0 anyway
+    c2SumX = AllocateMemory(xSize, ySize, c3TempSum[0]);
+    c1SumY = AllocateMemory(xSize, ySize, c3TempSum[0]);
+    c2SumY = AllocateMemory(xSize, ySize, c3TempSum[0]);
     c3Sum = AllocateMemory(xSize, ySize, c3TempSum[0]);
     c4Sum = AllocateMemory(xSize, ySize, c4TempSum[0]);
     c5Sum = AllocateMemory(xSize, ySize, c5TempSum[0]);
@@ -485,9 +487,9 @@ printf("Strucutre Added...\n" );
     alphaPML = 2.0; // ????? Also don't know how to pick this. Likely tuning...
 
     for (i = 0; i < ABCSIZECONSTANT; i++) {
-      temp = (double  )i;
-      sigmaPML[i] = electricalConductivityMaximum * pow((temp/boundaryWidth), gradingOrder);
-      kappaPML[i] = 1.0 + (kappaMaximum - 1.0) * pow((temp/boundaryWidth), gradingOrder);
+      temporary = (double  )i;
+      sigmaPML[i] = electricalConductivityMaximum * pow((temporary/boundaryWidth), gradingOrder);
+      kappaPML[i] = 1.0 + (kappaMaximum - 1.0) * pow((temporary/boundaryWidth), gradingOrder);
     } /* i forLoop */
 
     boundaryIndex = 0;
