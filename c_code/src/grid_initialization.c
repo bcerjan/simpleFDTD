@@ -90,16 +90,15 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     double  reflectionCoefficient0,gradingOrder,temporary,electricalImpedance0,temp1,temp2,temp3;
     int  i,j,k,p, boundaryDataSize, media, boundaryIndex,xSizeMain,ySizeMain,numFreqs;
     int  abcSize ;
-    double  cylinderDiameter, cylinderRadius, temporaryi,temporaryj,distance2 ;
+    double  temporaryi,temporaryj,distance2 ;
     int  xCenter,yCenter;
     double  x,x1,x2;
-    double  electricalConductivityMaximum, boundaryWidth, gradientConductivity, gradientResistivity, boundaryFactor;
-    double  gradientCa1[ABCSIZECONSTANT];
-    double  gradientCb1[ABCSIZECONSTANT];
-    double  gradientDa1[ABCSIZECONSTANT];
-    double  gradientDb1[ABCSIZECONSTANT];
-    double  rtau, tau, delay;
-    // char  ch;
+    double  electricalConductivityMaximum, kappaMaximum, boundaryWidth, alphaPML;
+    double  gradientConductivity, gradientResistivity, boundaryFactor, denominator;
+    double  reStretched[ABCSIZECONSTANT] = {0.0}; // Re part of stretched coordinate system in PML (eq. 34 Prokopidis and Zografopoulos)
+    double  imStretched[ABCSIZECONSTANT] = {0.0};
+    double  kappaPML[ABCSIZECONSTANT] = {0.0};
+    double  sigmaPML[ABCSIZECONSTANT] = {0.0};
 
     /***********************************************************************/
     //     Fundamental constants
@@ -187,7 +186,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     ex = AllocateMemory(xSize,    ySize + 1, 0.0 );        // 1 extra in y direction for pec
     ey = AllocateMemory(xSize + 1,ySize,     0.0 );        // 1 extra in x direction for pec
     hz = AllocateMemory(xSize,    ySize,     0.0 );
-    hzy = AllocateMemory1D(boundaryDataSize, 0.0 );        // for the split-field data for hz in the pml regions
+    hzOld = AllocateMemory1D(boundaryDataSize, 0.0 );        // for the split-field data for hz in the pml regions
 
     e2Field = AllocateMemory(xSize, ySize, 0.0);           // E^2 for plotting
     edgeMat = AllocateMemory(xSize, ySize, 0.0);
@@ -202,7 +201,6 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     exOld2 = AllocateMemory(xSize, ySize + 1, 0.0);
     eyOld = AllocateMemory(xSize + 1, ySize, 0.0);
     eyOld2 = AllocateMemory(xSize + 1, ySize, 0.0);
-
 
     /*printf("cjjTemp[0]: %.5e\n", cjjTemp[0]);
     printf("cjjTemp[1]: %.5e\n", cjjTemp[1]);
@@ -329,6 +327,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Initialize entire grid to free space
 
     // Polarization grid values:
+    c1Sum = AllocateMemory(xSize, ySize, c3TempSum[0]); // No temp sums for c1 and c2, and this is 0 anyway
+    c2Sum = AllocateMemory(xSize, ySize, c3TempSum[0]);
     c3Sum = AllocateMemory(xSize, ySize, c3TempSum[0]);
     c4Sum = AllocateMemory(xSize, ySize, c4TempSum[0]);
     c5Sum = AllocateMemory(xSize, ySize, c5TempSum[0]);
@@ -354,11 +354,23 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //} /* iForLoop */
 
 
+    eGrad1 = AllocateMemory1D(boundaryDataSize, 0.0 );        // PML data
+    hGrad1 = AllocateMemory1D(boundaryDataSize, 0.0 );
+    eGrad2 = AllocateMemory1D(boundaryDataSize, 0.0 );
+    hGrad2 = AllocateMemory1D(boundaryDataSize, 0.0 );
+    eGrad3 = AllocateMemory1D(boundaryDataSize, 0.0 );
+    hGrad3 = AllocateMemory1D(boundaryDataSize, 0.0 );
+
+    pmlSx = AllocateMemory1D(boundaryDataSize, 0.0 );
+    pmlSy = AllocateMemory1D(boundaryDataSize, 0.0 );
+    pmlTz = AllocateMemory1D(boundaryDataSize, 0.0 );
+    pmlSxOld = AllocateMemory1D(boundaryDataSize, 0.0 );
+    pmlSyOld = AllocateMemory1D(boundaryDataSize, 0.0 );
+    pmlTzOld = AllocateMemory1D(boundaryDataSize, 0.0 );
+
+    /* Values for H-field updates: */
     dahz = AllocateMemory(xSize, ySize, mediaDa[0] );
     dbhz = AllocateMemory(xSize, ySize, mediaDb[0] );
-    dahzy = AllocateMemory1D(boundaryDataSize, mediaDa[0] );        // for the split-field data for hz in the pml regions
-    dbhzy = AllocateMemory1D(boundaryDataSize, mediaDb[0] );        // for the split-field data for hz in the pml regions
-
 
     /* Array to track where our object is/is not */
     object_locs = AllocateMemory(xSize, ySize, 0.0); // This really shouldn't be an array of doubles -- we're wasting memory here
@@ -392,8 +404,8 @@ printf("Strucutre Init...\n" );
           c4Sum[i][j] = c4TempSum[1];
           c5Sum[i][j] = c5TempSum[1];
 
-          dahz = mediaDa[1];
-          dbhz = mediaDb[1];
+          dahz[i][j] = mediaDa[1];
+          dbhz[i][j] = mediaDb[1];
 
           for(p = 0; p < number_poles; p++) {
             /* Polarization Constants: */
@@ -434,11 +446,11 @@ printf("Strucutre Added...\n" );
     regionData[0].xStop  = abcSize + xSizeMain;
     regionData[0].yStart = abcSize;
     regionData[0].yStop  = abcSize + ySizeMain;
-    regionData[1].xStart = 0;                          // front grid
+    regionData[1].xStart = 0;                          // bottom grid
     regionData[1].xStop  = xSize;
     regionData[1].yStart = 0;
     regionData[1].yStop  = abcSize;
-    regionData[2].xStart = 0;                          // back grid
+    regionData[2].xStart = 0;                          // top grid
     regionData[2].xStop  = xSize;
     regionData[2].yStart = ySize - abcSize;
     regionData[2].yStop  = ySize;
@@ -463,88 +475,100 @@ printf("Strucutre Added...\n" );
     // be working properly. However a detailed analysis of reflections off the PML
     // will show they may be (much) larger than those for a correctly designed PML.
 
-    boundaryWidth = (double  )abcSize * dx;    // width of PML region (in mm)
+    boundaryWidth = (double  )abcSize;    // width of PML region
 
     // SigmaMaximum, using polynomial grading (Nikolova part 4, p.30)
     electricalConductivityMaximum = -log(reflectionCoefficient0) * (gradingOrder + 1.0) * electricalPermittivity0 * speedOfLight / (2.0 * boundaryWidth);
 
-    // boundaryFactor comes from the polynomial grading equation: sigma_x = sigmaxMaximum * (x/d)^m, where d=width of PML, m=gradingOrder, sigmaxMaximum = electricalConductivityMaximum    (Nikolova part4, p.28)
-    //  IMPORTANT: The conductivity (sigma) must use the "average" value at each mesh point as follows:
-    //  sigma_x = sigma_Maximum/dx * Integral_from_x0_to_x1 of (x/d)^m dx,  where x0=currentx-0.5, x1=currentx+0.5   (Nikolova part 4, p.32)
-    //  integrating gives: sigma_x = (sigmaMaximum / (dx * d^m * m+1)) * ( x1^(m+1) - x0^(m+1) )     (Nikolova part 4, p.32)
-    //  the first part is "boundaryFactor", so, sigma_x = boundaryFactor * ( x1^(m+1) - x0^(m+1) )   (Nikolova part 4, p.32)
-    // note: it's not exactly clear what the term eps[0] is for. It's probably to cover the case in which eps[0] is not equal to one (ie the main grid area next to the pml boundary is not vacuum)
-    boundaryFactor = mediaPermittivity[0] * electricalConductivityMaximum / ( dx * (pow(boundaryWidth,gradingOrder)) * (gradingOrder + 1));
+    kappaMaximum = 2.0; // ????? I don't know how to pick this.
 
-    // build the gradient
-    //  caution: if the gradient is built improperly, the PML will not function correctly
-    for (i = 0, x = 0.0; i < abcSize; i++, x++) {
-        // 0=border between pml and vacuum
-        // even: for ex and ey
-        x1 = (x + 0.5) * dx;       // upper bounds for point i
-        x2 = (x - 0.5) * dx;       // lower bounds for point i
-        if (i == 0) {
-            gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1))  );   //   polynomial grading  (special case: on the edge, 1/2 = pml, 1/2 = vacuum)
-        } /* if */
-        else {
-            gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1)) - pow(x2,(gradingOrder+1)) );   //   polynomial grading
-        } /* else */
-        gradientCa1[i] = exp (-gradientConductivity * dt / (electricalPermittivity0 * mediaPermittivity[0]) );     // exponential time step, Taflove1995 p.77,78
-        gradientCb1[i] = (1.0 - gradientCa1[i]) / (gradientConductivity * dx);                                     // ditto, but note sign change from Taflove1995
+    alphaPML = 2.0; // ????? Also don't know how to pick this. Likely tuning...
 
-        // odd: for hzx and hzy
-        x1 = (x + 1.0) * dx;       // upper bounds for point i
-        x2 = (x + 0.0) * dx;       // lower bounds for point i
-        gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1)) - pow(x2,(gradingOrder+1)) );   //   polynomial grading
-        gradientResistivity = gradientConductivity * (magneticPermeability0 / (electricalPermittivity0 * mediaPermittivity[0]) );  // Taflove1995 p.182  (for no reflection: sigmaM = sigmaE * mu0/eps0)
-        gradientDa1[i] = exp(-gradientResistivity * dt / magneticPermeability0);                                   // exponential time step, Taflove1995 p.77,78
-        gradientDb1[i] = (1.0 - gradientDa1[i]) / (gradientResistivity * dx);                                      // ditto, but note sign change from Taflove1995
-    } /* iForLoop */
-
-    // ex --- front/back
-    for (j = 0; j < abcSize; j++) {                            // do coefficients for ex
-        for (i = 0; i < xSize; i++) {
-            // do coefficients for ex for front and back regions
-            caex[i][abcSize - j]         = gradientCa1[j];        // front
-            cbex[i][abcSize - j]         = gradientCb1[j];
-            caex[i][ySize - abcSize + j] = gradientCa1[j];        // back
-            cbex[i][ySize - abcSize + j] = gradientCb1[j];
-        } /* iForLoop */
-    } /* jForLoop */
-
-    // ey & hzx --- left/right
-    for (i = 0; i < abcSize; i++) {                            // do coefficients for ey and hzx
-        for (j = 0; j < ySize; j++) {
-            // do coefficients for ey for left and right regions
-            caey[abcSize - i][j]         = gradientCa1[i];     // left
-            cbey[abcSize - i][j]         = gradientCb1[i];
-            caey[xSize - abcSize + i][j] = gradientCa1[i];     // right
-            cbey[xSize - abcSize + i][j] = gradientCb1[i];
-            dahz[abcSize - i - 1][j]     = gradientDa1[i];     // dahz holds dahzx , left, (note that the index is offset by 1 from caey)
-            dbhz[abcSize - i - 1][j]     = gradientDb1[i];     // dbhz holds dbhzx         ( ditto )
-            dahz[xSize - abcSize + i][j] = gradientDa1[i];     // dahz holds dahzx , right
-            dbhz[xSize - abcSize + i][j] = gradientDb1[i];     // dbhz holds dbhzx
-        } /* iForLoop */
-    } /* jForLoop */
+    for (i = 0; i < ABCSIZECONSTANT; i++) {
+      temp = (double  )i;
+      sigmaPML[i] = electricalConductivityMaximum * pow((temp/boundaryWidth), gradingOrder);
+      kappaPML[i] = 1.0 + (kappaMaximum - 1.0) * pow((temp/boundaryWidth), gradingOrder);
+    } /* i forLoop */
 
     boundaryIndex = 0;
-    // ALERT: special case for hzy:
-    // dahzy and dbhzy arrays must be initialized in the same order that they will be accessed in the main time-stepping loop.
-    // Therefore it is critical to increment boundaryIndex in the right order for the front/back regions
-    // For the left and right regions dahzy,dbhzy use vacuum values, which they are initialized to by default.
-    for (i = regionData[1].xStart; i < regionData[1].xStop; i++) {       // front
-        for (j = regionData[1].yStart, k=(abcSize - 1); j < regionData[1].yStop; j++, k--) {
-            dahzy[boundaryIndex] = gradientDa1[k];
-            dbhzy[boundaryIndex] = gradientDb1[k];
-            boundaryIndex++;
-        } /* jForLoop */
+    // Bottom:
+    for (i = regionData[1].xStart; i < regionData[1].xStop; i++) {
+      for (j = regionData[1].yStart, k=(abcSize - 1); j < regionData[1].yStop; j++, k--) {
+        denominator = electricalPermittivity0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+        eGrad1[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+        eGrad2[boundaryIndex] = ( electricalPermittivity0 + 0.5*alphaPML*dt )/denominator;
+        eGrad3[boundaryIndex] = ( electricalPermittivity0 - 0.5*alphaPML*dt )/denominator;
+
+        denominator = magneticPermeability0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+        hGrad1[boundaryIndex] = ( magneticPermeability0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+        hGrad2[boundaryIndex] = ( magneticPermeability0 + 0.5*alphaPML*dt )/denominator;
+        hGrad3[boundaryIndex] = ( magneticPermeability0 - 0.5*alphaPML*dt )/denominator;
+        boundaryIndex++;
+      } /* jForLoop */
     } /* iForLoop */
-    for (i = regionData[2].xStart; i < regionData[2].xStop; i++) {       // back
-        for (j = regionData[2].yStart, k=0; j < regionData[2].yStop; j++, k++) {
-            dahzy[boundaryIndex] = gradientDa1[k];
-            dbhzy[boundaryIndex] = gradientDb1[k];
-            boundaryIndex++;
-        } /* jForLoop */
+
+    // Top:
+    for (i = regionData[2].xStart; i < regionData[2].xStop; i++) {
+      for (j = regionData[2].yStart, k=0; j < regionData[2].yStop; j++, k++) {
+        denominator = electricalPermittivity0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+        eGrad1[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+        eGrad2[boundaryIndex] = ( electricalPermittivity0 + 0.5*alphaPML*dt )/denominator;
+        eGrad3[boundaryIndex] = ( electricalPermittivity0 - 0.5*alphaPML*dt )/denominator;
+
+        denominator = magneticPermeability0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+        hGrad1[boundaryIndex] = ( magneticPermeability0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+        hGrad2[boundaryIndex] = ( magneticPermeability0 + 0.5*alphaPML*dt )/denominator;
+        hGrad3[boundaryIndex] = ( magneticPermeability0 - 0.5*alphaPML*dt )/denominator;
+        boundaryIndex++;
+      } /* jForLoop */
+    } /* iForLoop */
+
+    // Left:
+    for (i = regionData[3].xStart, k=(abcSize - 1); i < regionData[3].xStop; i++, k--) {
+      for (j = regionData[3].yStart; j < regionData[3].yStop; j++) {
+        denominator = electricalPermittivity0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+        eGrad1[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+        eGrad2[boundaryIndex] = ( electricalPermittivity0 + 0.5*alphaPML*dt )/denominator;
+        eGrad3[boundaryIndex] = ( electricalPermittivity0 - 0.5*alphaPML*dt )/denominator;
+
+        denominator = magneticPermeability0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+        hGrad1[boundaryIndex] = ( magneticPermeability0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+        hGrad2[boundaryIndex] = ( magneticPermeability0 + 0.5*alphaPML*dt )/denominator;
+        hGrad3[boundaryIndex] = ( magneticPermeability0 - 0.5*alphaPML*dt )/denominator;
+        boundaryIndex++;
+      } /* jForLoop */
+    } /* iForLoop */
+
+    // Right:
+    for (i = regionData[4].xStart, k=0; i < regionData[4].xStop; i++, k++) {
+      for (j = regionData[4].yStart; j < regionData[4].yStop; j++) {
+        denominator = electricalPermittivity0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+        eGrad1[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+        eGrad2[boundaryIndex] = ( electricalPermittivity0 + 0.5*alphaPML*dt )/denominator;
+        eGrad3[boundaryIndex] = ( electricalPermittivity0 - 0.5*alphaPML*dt )/denominator;
+
+        denominator = magneticPermeability0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+        hGrad1[boundaryIndex] = ( magneticPermeability0*kappaPML[k] + \
+          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+        hGrad2[boundaryIndex] = ( magneticPermeability0 + 0.5*alphaPML*dt )/denominator;
+        hGrad3[boundaryIndex] = ( magneticPermeability0 - 0.5*alphaPML*dt )/denominator;
+        boundaryIndex++;
+      } /* jForLoop */
     } /* iForLoop */
 
     // all done with Initialization!

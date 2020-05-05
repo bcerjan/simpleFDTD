@@ -27,13 +27,166 @@
 
 void EFieldUpdate (struct Grid *g) {
   int i,j,p;
-  double **temp1x, **temp2x, **temp1y, **temp2y;
 
-  // Maybe put in Grid so we only allocate / deallocate one time instead of every iteration
-  temp1x = AllocateMemory(xSize, ySize, 0.0);
-  temp1y = AllocateMemory(xSize, ySize, 0.0);
-  temp2x = AllocateMemory(xSize, ySize, 0.0);
-  temp2y = AllocateMemory(xSize, ySize, 0.0);
+  // See Prokopidis and Zografopoulos eq. 23 with Pd and all D terms set to 0.
+  for (i = 0; i < xSize; i++) {
+    for (j = 1; j < ySize; j++) {        // j=0 = pec, so don't evaluate
+      exOld2[i][j] = exOld[i][j]; // E at n - 1
+      exOld[i][j] = ex[i][j]; // Store previous field for polarization
+
+      ex[i][j] = ( dt * (hz[i][j] - hz[i][j-1]) + \
+        c4Sum[i][j] * ex[i][j] - c5Sum[i][j] * exOld2[i][j] - \
+        c1SumX[i][j] - c2SumX[i][j] ) / c3Sum[i][j];
+    } /* jForLoop */
+  } /* iForLoop */
+
+  for (i = 1; i < xSize; i++) {            // i=0 = pec, so don't evaluate
+    for (j = 0; j < ySize; j++) {
+      eyOld2[i][j] = eyOld[i][j];
+      eyOld[i][j] = ey[i][j]; // Store previous field for polarization current
+
+      ey[i][j] = ( dt * (hz[i][j] - hz[i][j-1]) + \
+        c4Sum[i][j] * ey[i][j] - c5Sum[i][j] * eyOld2[i][j] - \
+        c1SumY[i][j] - c2SumY[i][j] ) / c3Sum[i][j];
+    } /* jForLoop */
+  } /* iForLoop */
+
+  return;
+}
+
+void HFieldUpdate (struct Grid *g, int n) {
+  int i,j;
+
+  /***********************************************************************/
+  //     Update magnetic fields (HZ) in center (main) grid
+  /***********************************************************************/
+
+  for (i = 0; i < xSize - 1; i++) {
+    for (j = 0; j < ySize - 1; j++) {
+      hz[i][j] = dahz[i][j] * hz[i][j] + dbhz[i][j] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] );
+    } /* jForLoop */
+  } /* iForLoop */
+
+  return;
+}
+
+// Auxilliary fields for PML (both E and H)
+// Call after E-field update
+// Currently using E and H as stand-ins for R and B in the PML region as they
+// are getting updated in this region the same way R and B would be.
+void SFieldUpdate (struct Grid *g) {
+  int i,j,p,regionIndex,boundaryIndex;
+
+  boundaryIndex = 0;
+  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+    xStart = regionData[regionIndex].xStart;
+    xStop  = regionData[regionIndex].xStop ;
+    yStart = regionData[regionIndex].yStart;
+    yStop  = regionData[regionIndex].yStop ;
+    for (i = xStart; i < xStop; i++) {
+      for (j = yStart; j < yStop; j++) {
+        // Store previous versions for E / H updates
+        pmlSxOld[boundaryIndex] = pmlSx[boundaryIndex];
+        pmlSyOld[boundaryIndex] = pmlSy[boundaryIndex];
+        pmlTzOld[boundaryIndex] = pmlTz[boundaryIndex];
+        pmlSx[boundaryIndex] = eGrad1[boundaryIndex]*pmlSx[boundaryIndex] + \
+                               eGrad2[boundaryIndex]*ex[i][j] - \
+                               eGrad3[boundaryIndex]*exOld[i][j];
+        pmlSy[boundaryIndex] = eGrad1[boundaryIndex]*pmlSy[boundaryIndex] + \
+                               eGrad2[boundaryIndex]*ey[i][j] - \
+                               eGrad3[boundaryIndex]*eyOld[i][j];
+        pmlTz[boundaryIndex] = hGrad1[boundaryIndex]*pmlTz[boundaryIndex] + \
+                               hGrad2[boundaryIndex]*hz[i][j] - \
+                               hGrad3[boundaryIndex]*hzOld[boundaryIndex];
+        hzOld[boundaryIndex] = dahzy[boundaryIndex] * hzy[boundaryIndex] + \
+                               dbhzy[boundaryIndex] * ( ex[i][j+1] - ex[i][j] );
+        boundaryIndex++;
+      } /* jForLoop */
+    } /* iForLoop */
+  } /* region forLoop */
+  return;
+}
+
+// Update E and H in PML regions (equivalently, find R and B)
+// Call after SFieldUpdate
+void PMLFieldUpdate (struct Grid *g) {
+  int i,j,p,regionIndex,boundaryIndex;
+
+  boundaryIndex = 0;
+  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+    xStart = regionData[regionIndex].xStart;
+    xStop  = regionData[regionIndex].xStop ;
+    yStart = regionData[regionIndex].yStart;
+    yStop  = regionData[regionIndex].yStop ;
+    for (i = xStart; i < xStop; i++) {
+      for (j = yStart; j < yStop; j++) {
+        ex[i][j] = eGrad1[boundaryIndex]*exOld[i][j] + \
+                   eGrad2[boundaryIndex]*pmlSx[boundaryIndex] - \
+                   eGrad3[boundaryIndex]*pmlSxOld[boundaryIndex];
+        ey[i][j] = eGrad1[boundaryIndex]*eyOld[i][j] + \
+                   eGrad2[boundaryIndex]*pmlSy[boundaryIndex] - \
+                   eGrad3[boundaryIndex]*pmlSyOld[boundaryIndex];
+        hz[i][j] = hGrad1[boundaryIndex]*hzOld[i][j] + \
+                   hGrad2[boundaryIndex]*pmlTz[boundaryIndex] - \
+                   hGrad3[boundaryIndex]*pmlTzOld[boundaryIndex];
+        boundaryIndex++;
+      } /* jForLoop */
+    } /* iForLoop */
+  } /* region forLoop */
+  return;
+}
+
+// One of several auxilliary fields for the PML:
+void RFieldUpdate (struct Grid *g) {
+  int i,j,p,regionIndex;
+
+  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+    xStart = regionData[regionIndex].xStart;
+    xStop  = regionData[regionIndex].xStop ;
+    yStart = regionData[regionIndex].yStart;
+    yStop  = regionData[regionIndex].yStop ;
+    for (i = xStart; i < xStop; i++) {
+      for (j = yStart; j < yStop; j++) {
+      rxOld2[i][j] = rxOld[i][j]; // E at n - 2
+      rxOld[i][j] = rx[i][j]; // Store previous field for polarization
+
+      rx[i][j] = ( dt * (hz[i][j+1] - hz[i][j]) + \
+        c4Sum[i][j] * rx[i][j] - c5Sum[i][j] * rxOld2[i][j] - \
+        c1SumX[i][j] - c2SumX[i][j] ) / c3Sum[i][j];
+
+      ryOld2[i][j] = ryOld[i][j];
+      ryOld[i][j] = ry[i][j]; // Store previous field for polarization current
+
+      ry[i][j] = ( dt * (hz[i][j+1] - hz[i][j]) + \
+        c4Sum[i][j] * ry[i][j] - c5Sum[i][j] * ryOld2[i][j] - \
+        c1SumY[i][j] - c2SumY[i][j] ) / c3Sum[i][j];
+      } /* jForLoop */
+    } /* iForLoop */
+  }
+  return;
+}
+
+// Another auxilliary field for PML
+void BFieldUpdate (Struct Grid *g) {
+  int i,j,regionIndex;
+  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+    xStart = regionData[regionIndex].xStart;
+    xStop  = regionData[regionIndex].xStop ;
+    yStart = regionData[regionIndex].yStart;
+    yStop  = regionData[regionIndex].yStop ;
+    for (i = xStart; i < xStop; i++) {
+      for (j = yStart; j < yStop; j++) {
+        bz[i][j] = dahz[i][j] * bz[i][j] + dbhz[i][j] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] );
+      } /* jForLoop */
+    } /* iForLoop */
+  }
+  return;
+}
+
+// This should be called _after_ EFieldUpdate
+void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's the polarization.
+  int i,j,p;
+  double tempOld;
 
   /* This loop is split from the one below as the P matrices are 3D while
      the E fields are only 2D, so I think it is more efficient to do it this way,
@@ -50,87 +203,6 @@ void EFieldUpdate (struct Grid *g) {
     } /* iForLoop */
   } /* pForLoop */
 
-  // See Prokopidis and Zografopoulos eq. 23 with Pd and all D terms set to 0.
-  for (i = 0; i < xSize; i++) {
-    for (j = 1; j < ySize; j++) {        // j=0 = pec, so don't evaluate
-      exOld2[i][j] = exOld[i][j]; // E at n - 2
-      exOld[i][j] = ex[i][j]; // Store previous field for polarization
-
-      ex[i][j] = ( dt * (hz[i][j] - hz[i][j-1]) + \
-        c4Sum[i][j] * ex[i][j] - c5Sum[i][j] * exOld[i][j] - \
-        temp1x[i][j] - temp2x[i][j] ) / c3Sum[i][j];
-    } /* jForLoop */
-  } /* iForLoop */
-
-  for (i = 1; i < xSize; i++) {            // i=0 = pec, so don't evaluate
-    for (j = 0; j < ySize; j++) {
-      eyOld2[i][j] = eyOld[i][j];
-      eyOld[i][j] = ey[i][j]; // Store previous field for polarization current
-
-      ey[i][j] = ( dt * (hz[i][j] - hz[i][j-1]) + \
-        c4Sum[i][j] * ey[i][j] - c5Sum[i][j] * eyOld[i][j] - \
-        temp1y[i][j] - temp2y[i][j] ) / c3Sum[i][j];
-    } /* jForLoop */
-  } /* iForLoop */
-
-  freeDoublePtr(temp1x, xSize);
-  freeDoublePtr(temp1y, xSize);
-  freeDoublePtr(temp2x, xSize);
-  freeDoublePtr(temp2y, xSize);
-
-  return;
-}
-
-void HFieldUpdate (struct Grid *g, int n) {
-  int boundaryIndex,regionIndex,i,j,xStart,xStop,yStart,yStop;
-  double hzx;
-
-  /***********************************************************************/
-  //     Update magnetic fields (HZ) in center (main) grid
-  /***********************************************************************/
-
-
-  regionIndex = 0;    // center (main) grid
-  xStart = regionData[regionIndex].xStart;
-  xStop  = regionData[regionIndex].xStop ;
-  yStart = regionData[regionIndex].yStart;
-  yStop  = regionData[regionIndex].yStop ;
-
-  for (i = xStart; i < xStop; i++) {
-    for (j = yStart; j < yStop; j++) {
-      hz[i][j] = dahz[i][j] * hz[i][j] + dbhz[i][j] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] );
-    } /* jForLoop */
-  } /* iForLoop */
-
-
-  /***********************************************************************/
-  //     Update HZ in PML regions (hzx,hzy)
-  /***********************************************************************/
-
-  boundaryIndex = 0;
-  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
-    xStart = regionData[regionIndex].xStart;
-    xStop  = regionData[regionIndex].xStop ;
-    yStart = regionData[regionIndex].yStart;
-    yStop  = regionData[regionIndex].yStop ;
-    for (i = xStart; i < xStop; i++) {
-      for (j = yStart; j < yStop; j++) {
-        hzx = hz[i][j] - hzy[boundaryIndex];   // extract hzx
-        hzx = dahz[i][j] * hzx + dbhz[i][j] * ( ey[i][j] - ey[i+1][j] );    // dahz,dbhz holds dahzx,dbhzx
-        hzy[boundaryIndex] = dahzy[boundaryIndex] * hzy[boundaryIndex] + dbhzy[boundaryIndex] * ( ex[i][j+1] - ex[i][j] );
-        hz[i][j] = hzx +  hzy[boundaryIndex];  // update hz
-        boundaryIndex++;
-      } /* jForLoop */
-    } /* iForLoop */
-  } /* forLoop */
-
-  return;
-}
-
-// This should be called _after_ EFieldUpdate
-void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's the polarization.
-  int i,j,p;
-  double tempOld;
   for (p = 0; p < number_poles; p++) {
     for (i = 0; i < xSize; i++) {
       for (j = 1; j < ySize; j++) {
@@ -139,6 +211,14 @@ void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
         px[p][i][j] = c1Grid[p][i][j]*px[p][i][j] + \
          c2Grid[p][i][j]*tempOld + c3Grid[p][i][j]*ex[i][j] + \
          c4Grid[p][i][j]*exOld[i][j] + c5Grid[p][i][j]*exOld2[i][j];
+
+        if( p < 1 ) { // since we need to reset from previous time steps
+          c1SumX[i][j] = (1.0 - c1Grid[p][i][j])*px[p][i][j];
+          c2sumX[i]j[] = c2Grid[p][i][j]*pxOld[p][i][j];
+        } else { // Now we're doing our running sum:
+          c1SumX[i][j] += (1.0 - c1Grid[p][i][j])*px[p][i][j];
+          c2sumX[i]j[] += c2Grid[p][i][j]*pxOld[p][i][j];
+        } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
   } /* pForLoop */
@@ -151,6 +231,14 @@ void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
         py[p][i][j] = c1Grid[p][i][j]*py[p][i][j] + \
          c2Grid[p][i][j]*tempOld + c3Grid[p][i][j]*ey[i][j] + \
          c4Grid[p][i][j]*eyOld[i][j] + c5Grid[p][i][j]*eyOld2[i][j];
+
+         if( p < 1 ) { // since we need to reset from previous time steps
+           c1SumY[i][j] = (1.0 - c1Grid[p][i][j])*py[p][i][j];
+           c2sumY[i]j[] = c2Grid[p][i][j]*pyOld[p][i][j];
+         } else { // Now we're doing our running sum:
+           c1SumY[i][j] += (1.0 - c1Grid[p][i][j])*py[p][i][j];
+           c2sumY[i]j[] += c2Grid[p][i][j]*pyOld[p][i][j];
+         } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
   } /* pForLoop */
@@ -202,33 +290,6 @@ void DFTUpdate (struct Grid *g, int n) {
   return;
 }
 
-// Function to flatten the phase profile of an input FFT spectrum
-// Only currently used in finishEmptyDFT and finishFullDFT
-// We could honestly replace this with just complexField[i][j] == abs(complexField[i][j])
-// because that's what we're doing anyway by setting the phase to 0.
-// ----> Is this a problem? <-----
-// Not used right now, as it breaks things (and is probably a bad idea anyway...)
-void flattenPhase(double **reField, double **imField, int numFreqs,
-  int length, double targetPhase) {
-  int i,j;
-  double phase,reComp,imComp,phaseAdjustment;
-
-  for (i = 0; i < numFreqs; i++) {
-    for (j = 0; j < length; j++) {
-      // Fix current components so we can update actual fields in place
-      reComp = reField[i][j];
-      imComp = imField[i][j];
-      // Calculate phase angle at this frequency and location
-      phase = atan2(imComp, reComp);
-      phaseAdjustment = targetPhase - phase;
-      // Flatten phase profile so we can use a single calibration run
-      // These are expansions of: F[f,pos] * exp( -i * phase ) <- note the minus
-      reField[i][j] = reComp * cos(phaseAdjustment) + imComp * sin(phaseAdjustment);
-      imField[i][j] = imComp * cos(phaseAdjustment) - reComp * sin(phaseAdjustment);
-    } /* jForLoop */
-  } /* iForLoop */
-  return;
-}
 
 // Function that normalizes DFT results based on stored data for both
 // reflected and transmitted fields:
