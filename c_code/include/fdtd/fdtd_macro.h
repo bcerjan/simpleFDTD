@@ -41,10 +41,10 @@
 
 #define PmlSxG(G) G->pmlSx
 #define PmlSyG(G) G->pmlSy
-#define PmlTzG(G) G->PmlTz
+#define PmlTzG(G) G->pmlTz
 #define PmlSxOldG(G) G->pmlSxOld
 #define PmlSyOldG(G) G->pmlSyOld
-#define PmlTzOldG(G) G->PmlTzOld
+#define PmlTzOldG(G) G->pmlTzOld
 
 // Constants:
 #define xSizeG(G) G->xSize
