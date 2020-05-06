@@ -26,26 +26,31 @@
 #include "fdtd_proto.h"
 
 void EFieldUpdate (struct Grid *g) {
-  int i,j,p;
+  int i,j,xStart,xStop,yStart,yStop;
+
+  xStart = regionData[0].xStart;
+  xStop  = regionData[0].xStop ;
+  yStart = regionData[0].yStart;
+  yStop  = regionData[0].yStop ;
 
   // See Prokopidis and Zografopoulos eq. 23 with Pd and all D terms set to 0.
-  for (i = 0; i < xSize; i++) {
-    for (j = 1; j < ySize; j++) {        // j=0 = pec, so don't evaluate
+  for (i = xStart; i < xStop; i++) {
+    for (j = yStart; j < yStop; j++) {        // j=0 = pec, so don't evaluate
       exOld2[i][j] = exOld[i][j]; // E at n - 1
       exOld[i][j] = ex[i][j]; // Store previous field for polarization
 
-      ex[i][j] = ( dt * (hz[i][j] - hz[i][j-1]) + \
+      ex[i][j] = ( (dt/dx) * (hz[i][j] - hz[i][j-1]) + \
         c4Sum[i][j] * ex[i][j] - c5Sum[i][j] * exOld2[i][j] - \
         c1SumX[i][j] - c2SumX[i][j] ) / c3Sum[i][j];
     } /* jForLoop */
   } /* iForLoop */
 
-  for (i = 1; i < xSize; i++) {            // i=0 = pec, so don't evaluate
-    for (j = 0; j < ySize; j++) {
+  for (i = xStart; i < xStop; i++) {            // i=0 = pec, so don't evaluate
+    for (j = yStart; j < yStop; j++) {
       eyOld2[i][j] = eyOld[i][j];
       eyOld[i][j] = ey[i][j]; // Store previous field for polarization current
 
-      ey[i][j] = ( dt * (hz[i][j] - hz[i][j-1]) + \
+      ey[i][j] = ( (dt/dx) * (hz[i-1][j] - hz[i][j]) + \
         c4Sum[i][j] * ey[i][j] - c5Sum[i][j] * eyOld2[i][j] - \
         c1SumY[i][j] - c2SumY[i][j] ) / c3Sum[i][j];
     } /* jForLoop */
@@ -54,15 +59,20 @@ void EFieldUpdate (struct Grid *g) {
   return;
 }
 
-void HFieldUpdate (struct Grid *g, int n) {
-  int i,j;
+void HFieldUpdate (struct Grid *g) {
+  int i,j,xStart,xStop,yStart,yStop;
+
+  xStart = regionData[0].xStart;
+  xStop  = regionData[0].xStop ;
+  yStart = regionData[0].yStart;
+  yStop  = regionData[0].yStop ;
 
   /***********************************************************************/
   //     Update magnetic fields (HZ) in center (main) grid
   /***********************************************************************/
 
-  for (i = 0; i < xSize - 1; i++) {
-    for (j = 0; j < ySize - 1; j++) {
+  for (i = xStart; i < xStop; i++) {
+    for (j = yStart; j < yStop; j++) {
       hz[i][j] = dahz[i][j] * hz[i][j] + dbhz[i][j] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] );
     } /* jForLoop */
   } /* iForLoop */
@@ -106,7 +116,7 @@ void SFieldUpdate (struct Grid *g) {
   return;
 }
 
-// Update E and H in PML regions (equivalently, find R and B)
+// Update E and H in PML regions
 // Call after SFieldUpdate
 void PMLFieldUpdate (struct Grid *g) {
   int i,j,p,regionIndex,boundaryIndex,xStop,xStart,yStop,yStart;
@@ -119,13 +129,13 @@ void PMLFieldUpdate (struct Grid *g) {
     yStop  = regionData[regionIndex].yStop ;
     for (i = xStart; i < xStop; i++) {
       for (j = yStart; j < yStop; j++) {
-        ex[i][j] = eGrad1[boundaryIndex]*exOld[i][j] + \
+        ex[i][j] = eGrad1[boundaryIndex]*ex[i][j] + \
                    eGrad2[boundaryIndex]*pmlSx[boundaryIndex] - \
                    eGrad3[boundaryIndex]*pmlSxOld[boundaryIndex];
-        ey[i][j] = eGrad1[boundaryIndex]*eyOld[i][j] + \
+        ey[i][j] = eGrad1[boundaryIndex]*ey[i][j] + \
                    eGrad2[boundaryIndex]*pmlSy[boundaryIndex] - \
                    eGrad3[boundaryIndex]*pmlSyOld[boundaryIndex];
-        hz[i][j] = hGrad1[boundaryIndex]*hzOld[boundaryIndex] + \
+        hz[i][j] = hGrad1[boundaryIndex]*hz[i][j] + \
                    hGrad2[boundaryIndex]*pmlTz[boundaryIndex] - \
                    hGrad3[boundaryIndex]*pmlTzOld[boundaryIndex];
         boundaryIndex++;
@@ -137,7 +147,8 @@ void PMLFieldUpdate (struct Grid *g) {
 
 // One of several auxiliary fields for the PML:
 void RFieldUpdate (struct Grid *g) {
-  int i,j,p,regionIndex,boundaryIndex;
+  int i,j,regionIndex,boundaryIndex,xStop,xStart,yStop,yStart;
+  double temphz1,temphz2;
 
   boundaryIndex = 0;
   for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
@@ -145,30 +156,53 @@ void RFieldUpdate (struct Grid *g) {
     xStop  = regionData[regionIndex].xStop ;
     yStart = regionData[regionIndex].yStart;
     yStop  = regionData[regionIndex].yStop ;
+
     for (i = xStart; i < xStop; i++) {
       for (j = yStart; j < yStop; j++) {
-      rxOld2[boundaryIndex] = rxOld[boundaryIndex]; // E at n - 2
-      rxOld[boundaryIndex] = rx[boundaryIndex]; // Store previous field for polarization
+        if ( j < 1 ) { // To avoid trying to access out of bounds memory
+          temphz1 = hz[i][j];
+          //temphz1 = 0.0;
+        } else {
+          temphz1 = hz[i][j-1];
+        } /* ifBlock */
 
-      rx[boundaryIndex] = ( dt * (hz[i][j+1] - hz[i][j]) + \
-        c4Sum[i][j] * rx[boundaryIndex] - c5Sum[i][j] * rxOld2[boundaryIndex] - \
-        c1SumX[i][j] - c2SumX[i][j] ) / c3Sum[i][j];
+        if ( i < 1 ) {
+          temphz2 = hz[i][j];
+          //temphz2 = 0.0;
+        } else {
+          temphz2 = hz[i-1][j];
+        }
+        /*if ( i < 1 && j < 1 ) {
+          printf("H Term: %.17g\n", dt*(temphz2 - hz[i][j])/c3Sum[i][j]);
+          printf("c4 Term: %.17g\n", c4Sum[i][j]*rx[boundaryIndex]/c3Sum[i][j]);
+          printf("c5 Term: %.17g\n", -1.0*c5Sum[i][j]*rxOld2[boundaryIndex]/c3Sum[i][j]);
+          printf("c1 Term: %.17g\n", c1SumY[i][j]/c3Sum[i][j]);
+          printf("c2 Term: %.17g\n", c2SumY[i][j]/c3Sum[i][j]);
+          printf("Numerator: %.17g\n", c4Sum[i][j]*rx[boundaryIndex] - c5Sum[i][j]*rxOld2[boundaryIndex] - c1SumY[i][j] - c2SumY[i][j] );
+        }*/
 
-      ryOld2[boundaryIndex] = ryOld[boundaryIndex];
-      ryOld[boundaryIndex] = ry[boundaryIndex]; // Store previous field for polarization current
+        rxOld2[boundaryIndex] = rxOld[boundaryIndex]; // E at n - 2
+        rxOld[boundaryIndex] = rx[boundaryIndex]; // Store previous field for polarization
 
-      ry[boundaryIndex] = ( dt * (hz[i][j+1] - hz[i][j]) + \
-        c4Sum[i][j] * ry[boundaryIndex] - c5Sum[i][j] * ryOld2[boundaryIndex] - \
-        c1SumY[i][j] - c2SumY[i][j] ) / c3Sum[i][j];
-      boundaryIndex++;
+        rx[boundaryIndex] = ( dt * (hz[i][j] - temphz1) + \
+          c4Sum[i][j] * rx[boundaryIndex] - c5Sum[i][j] * rxOld2[boundaryIndex] - \
+          c1SumX[i][j] - c2SumX[i][j] ) / c3Sum[i][j];
+
+        ryOld2[boundaryIndex] = ryOld[boundaryIndex];
+        ryOld[boundaryIndex] = ry[boundaryIndex]; // Store previous field for polarization current
+
+        ry[boundaryIndex] = ( dt * (temphz2 - hz[i][j]) + \
+          c4Sum[i][j] * ry[boundaryIndex] - c5Sum[i][j] * ryOld2[boundaryIndex] - \
+          c1SumY[i][j] - c2SumY[i][j] ) / c3Sum[i][j];
+        boundaryIndex++;
       } /* jForLoop */
     } /* iForLoop */
-  }
+  } /* region forLoop */
   return;
 }
 
-void BFieldUpdate (struct Grid *g, int n) {
-  int i,j,regionIndex,boundaryIndex;
+void BFieldUpdate (struct Grid *g) {
+  int i,j,regionIndex,boundaryIndex,xStop,xStart,yStop,yStart;
 
   /***********************************************************************/
   //     Update magnetic fields (HZ) in center (main) grid
@@ -206,12 +240,12 @@ void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
          c2Grid[p][i][j]*tempOld + c3Grid[p][i][j]*ex[i][j] + \
          c4Grid[p][i][j]*exOld[i][j] + c5Grid[p][i][j]*exOld2[i][j];
 
-        if( p < 1 ) { // since we need to reset from previous time steps
-          c1SumX[i][j] = (1.0 - c1Grid[p][i][j])*px[p][i][j];
-          c2SumX[i][j] = c2Grid[p][i][j]*pxOld[p][i][j];
+        if( p < 1 ) { // as we need to reset from previous time steps
+          c1SumX[i][j] = (c1Grid[p][i][j] - 1.0)*px[p][i][j];
+          c2SumX[i][j] = c2Grid[p][i][j]*tempOld;
         } else { // Now we're doing our running sum:
-          c1SumX[i][j] += (1.0 - c1Grid[p][i][j])*px[p][i][j];
-          c2SumX[i][j] += c2Grid[p][i][j]*pxOld[p][i][j];
+          c1SumX[i][j] += (c1Grid[p][i][j] - 1.0)*px[p][i][j];
+          c2SumX[i][j] += c2Grid[p][i][j]*tempOld;
         } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
@@ -227,11 +261,11 @@ void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's 
          c4Grid[p][i][j]*eyOld[i][j] + c5Grid[p][i][j]*eyOld2[i][j];
 
          if( p < 1 ) { // since we need to reset from previous time steps
-           c1SumY[i][j] = (1.0 - c1Grid[p][i][j])*py[p][i][j];
-           c2SumY[i][j] = c2Grid[p][i][j]*pyOld[p][i][j];
+           c1SumY[i][j] = (c1Grid[p][i][j] - 1.0)*py[p][i][j];
+           c2SumY[i][j] = c2Grid[p][i][j]*tempOld;
          } else { // Now we're doing our running sum:
-           c1SumY[i][j] += (1.0 - c1Grid[p][i][j])*py[p][i][j];
-           c2SumY[i][j] += c2Grid[p][i][j]*pyOld[p][i][j];
+           c1SumY[i][j] += (c1Grid[p][i][j] - 1.0)*py[p][i][j];
+           c2SumY[i][j] += c2Grid[p][i][j]*tempOld;
          } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
