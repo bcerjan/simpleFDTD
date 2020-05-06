@@ -31,13 +31,19 @@
 
 #define EyG(G) G->ey
 
-// PML H-field
+// PML Coefficients
 #define HGrad1G(G) G->hGrad1
 #define EGrad1G(G) G->eGrad1
 #define HGrad2G(G) G->hGrad2
 #define EGrad2G(G) G->eGrad2
 #define HGrad3G(G) G->hGrad3
 #define EGrad3G(G) G->eGrad3
+#define SGrad1G(G) G->sGrad1
+#define TGrad1G(G) G->tGrad1
+#define SGrad2G(G) G->sGrad2
+#define TGrad2G(G) G->tGrad2
+#define SGrad3G(G) G->sGrad3
+#define TGrad3G(G) G->tGrad3
 
 #define PmlSxG(G) G->pmlSx
 #define PmlSyG(G) G->pmlSy
@@ -144,6 +150,12 @@
 #define eGrad2 EGrad2G(g)
 #define hGrad3 HGrad3G(g)
 #define eGrad3 EGrad3G(g)
+#define sGrad1 SGrad1G(g)
+#define tGrad1 TGrad1G(g)
+#define sGrad2 SGrad2G(g)
+#define tGrad2 TGrad2G(g)
+#define sGrad3 SGrad3G(g)
+#define tGrad3 TGrad3G(g)
 
 #define pmlSx PmlSxG(g)
 #define pmlSy PmlSyG(g)

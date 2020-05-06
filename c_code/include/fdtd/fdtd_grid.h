@@ -58,6 +58,12 @@ struct Grid {
   double  *eGrad2;
   double  *hGrad3;
   double  *eGrad3;
+  double  *sGrad1;    // pml coefficients
+  double  *tGrad1;
+  double  *sGrad2;
+  double  *tGrad2;
+  double  *sGrad3;
+  double  *tGrad3;
 
   // PML fields:
   double  *pmlSx; // x electric field
