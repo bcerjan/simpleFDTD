@@ -26,5 +26,6 @@ double ArrayMax(double **ptr, int xWidth, int yWidth);
 double ArrayMin(double **ptr, int xWidth, int yWidth);
 double AbsArrayMax(double **ptr, int xWidth, int yWidth);
 double AbsArrayMin(double **ptr, int xWidth, int yWidth);
+double AbsVectorMax(double *ptr, int length);
 
 #endif
