@@ -67,6 +67,9 @@ struct Material {
 static const struct Material materialData[5] = {
   { //0, Al, Cheng 2016
     .num_poles = 2,
+    .epsInf = 4.1,
+    .permeability = 1.0,
+    .conductivity = 1.0e12,
     .params[0] = {
       .bigA = 2.0,
       .Omega = 1.0,
