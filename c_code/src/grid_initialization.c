@@ -25,6 +25,7 @@
 #include "structure_funcs.h"
 #include "ezinc.h"
 #include "material_data.h"
+#include "array_proto.h"
 
 
 
@@ -95,8 +96,6 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     double  x,x1,x2;
     double  electricalConductivityMaximum, kappaMaximum, boundaryWidth, alphaPML;
     double  gradientConductivity, gradientResistivity, boundaryFactor, denominator;
-    double  reStretched[ABCSIZECONSTANT] = {0.0}; // Re part of stretched coordinate system in PML (eq. 34 Prokopidis and Zografopoulos)
-    double  imStretched[ABCSIZECONSTANT] = {0.0};
     double  kappaPML[ABCSIZECONSTANT] = {0.0};
     double  sigmaPML[ABCSIZECONSTANT] = {0.0};
 
@@ -136,9 +135,10 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     boundaryDataSize  = 2 * xSize * abcSize;                      // front edge + back edge
     boundaryDataSize += 2 * (abcSize * (ySize - 2 * abcSize));    // left + right edges
 
+    printf("boundaryDataSize: %i\n", boundaryDataSize);
     //xSource = 50 + abcSize;                          //location of z-directed hard source
     //ySource = 50 + abcSize;                          //location of z-directed hard source
-    xSource = 15 + abcSize;                       //location of z-directed hard source
+    xSource = 20 + abcSize;                       //location of z-directed hard source
     ySource = ySize / 2;                          //location of z-directed hard source
 
     envIndex = environmentIndex;                  // Background refractive index
@@ -157,7 +157,11 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     refractiveIndexIndex = getIndexIndex(environmentIndex);
 
     // Number of poles in our dielectric function
-    number_poles = materialData[metalChoice].num_poles;
+    if (metalChoice > -1) {
+      number_poles = materialData[metalChoice].num_poles;
+    } else {
+      number_poles = 0;
+    }
 
     // Constants for our approximation:
     double **Ap,**Omegap,**phip,**Gammap;
@@ -186,7 +190,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     ex = AllocateMemory(xSize,    ySize + 1, 0.0 );        // 1 extra in y direction for pec
     ey = AllocateMemory(xSize + 1,ySize,     0.0 );        // 1 extra in x direction for pec
     hz = AllocateMemory(xSize,    ySize,     0.0 );
-    
+
+    hzOld = AllocateMemory1D(boundaryDataSize, 0.0);
 
     e2Field = AllocateMemory(xSize, ySize, 0.0);           // E^2 for plotting
     edgeMat = AllocateMemory(xSize, ySize, 0.0);
@@ -268,7 +273,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     for (i = 0; i < media; i++) {
         //temporary = mediaConductivity[i] * dt / (2.0 * electricalPermittivity0 * mediaPermittivity[i]); // Schneider 8.13 - 8.18
         mediaDa[i] = 1.0; // assuming magnetic conductivity is 0
-        mediaDb[i] = dt / (dx * magneticPermeability0 * mediaPermeability[i]);
+        mediaDb[i] = dt / ( dx*magneticPermeability0 * mediaPermeability[i]);
+        //mediaDb[i] = dt;
     } /* iForLoop */
 
     /* For terms and formulation, see: A Unified FDTD/PML Scheme Based on Critical
@@ -294,12 +300,12 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
         c5[i][p] = (AZero/4.0 - AOne/(2.0*dt))/cP;
 
         c3TempSum[i] += c3[i][p];
-        c4TempSum[i] += c4[i][p];
+        c4TempSum[i] -= c4[i][p];
         c5TempSum[i] += c5[i][p];
       } /* pForLoop */
       // See eq. 23 in the paper:
       c3TempSum[i] += electricalPermittivity0*mediaPermittivity[i];
-      c4TempSum[i] -= electricalPermittivity0*mediaPermittivity[i];
+      c4TempSum[i] += electricalPermittivity0*mediaPermittivity[i];
     } /* iForLoop */
 
     // Drude Terms (assuming one Drude term)
@@ -316,21 +322,23 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     /***********************************************************************/
     //     Grid Coefficients
     /***********************************************************************/
-    /*printf("mediaCa[0]: %f\n", mediaCa[0]);
-    printf("mediaCa[1]: %f\n", mediaCa[1]);
-    printf("mediaCb[0]: %f\n", mediaCb[0]);
-    printf("mediaCb[1]: %f\n", mediaCb[1]);
+    printf("c3TempSum[0]: %.17g\n", c3TempSum[0]);
+    printf("c3TempSum[1]: %.17g\n", c3TempSum[1]);
+    printf("c4TempSum[0]: %.17g\n", c4TempSum[0]);
+    printf("c4TempSum[1]: %.17g\n", c4TempSum[1]);
+    printf("c5TempSum[0]: %.17g\n", c5TempSum[0]);
+    printf("c5TempSum[1]: %.17g\n", c5TempSum[1]);
     printf("mediaDa[0]: %f\n", mediaDa[0]);
     printf("mediaDa[1]: %f\n", mediaDa[1]);
     printf("mediaDb[0]: %f\n", mediaDb[0]);
-    printf("mediaDb[1]: %f\n", mediaDb[1]);*/
+    printf("mediaDb[1]: %f\n", mediaDb[1]);
     //     Initialize entire grid to free space
 
     // Polarization grid values:
-    c1SumX = AllocateMemory(xSize, ySize, c3TempSum[0]); // No temp sums for c1 and c2, and this is 0 anyway
-    c2SumX = AllocateMemory(xSize, ySize, c3TempSum[0]);
-    c1SumY = AllocateMemory(xSize, ySize, c3TempSum[0]);
-    c2SumY = AllocateMemory(xSize, ySize, c3TempSum[0]);
+    c1SumX = AllocateMemory(xSize, ySize, 0.0); // No temp sums for c1 and c2, and this is 0 anyway
+    c2SumX = AllocateMemory(xSize, ySize, 0.0);
+    c1SumY = AllocateMemory(xSize, ySize, 0.0);
+    c2SumY = AllocateMemory(xSize, ySize, 0.0);
     c3Sum = AllocateMemory(xSize, ySize, c3TempSum[0]);
     c4Sum = AllocateMemory(xSize, ySize, c4TempSum[0]);
     c5Sum = AllocateMemory(xSize, ySize, c5TempSum[0]);
@@ -377,6 +385,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     ryOld = AllocateMemory1D(boundaryDataSize, 0.0 );
     ryOld2 = AllocateMemory1D(boundaryDataSize, 0.0 );
     bz = AllocateMemory1D(boundaryDataSize, 0.0 );
+    bzOld = AllocateMemory1D(boundaryDataSize, 0.0);
+
     /* Values for H-field updates: */
     dahz = AllocateMemory(xSize, ySize, mediaDa[0] );
     dbhz = AllocateMemory(xSize, ySize, mediaDb[0] );
@@ -504,16 +514,16 @@ printf("Strucutre Added...\n" );
     for (i = regionData[1].xStart; i < regionData[1].xStop; i++) {
       for (j = regionData[1].yStart, k=(abcSize - 1); j < regionData[1].yStop; j++, k--) {
         denominator = electricalPermittivity0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt;
         eGrad1[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt ) / denominator;
         eGrad2[boundaryIndex] = ( electricalPermittivity0 + 0.5*alphaPML*dt )/denominator;
         eGrad3[boundaryIndex] = ( electricalPermittivity0 - 0.5*alphaPML*dt )/denominator;
 
         denominator = magneticPermeability0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt;
         hGrad1[boundaryIndex] = ( magneticPermeability0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt ) / denominator;
         hGrad2[boundaryIndex] = ( magneticPermeability0 + 0.5*alphaPML*dt )/denominator;
         hGrad3[boundaryIndex] = ( magneticPermeability0 - 0.5*alphaPML*dt )/denominator;
         boundaryIndex++;
@@ -524,16 +534,16 @@ printf("Strucutre Added...\n" );
     for (i = regionData[2].xStart; i < regionData[2].xStop; i++) {
       for (j = regionData[2].yStart, k=0; j < regionData[2].yStop; j++, k++) {
         denominator = electricalPermittivity0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt;
         eGrad1[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt ) / denominator;
         eGrad2[boundaryIndex] = ( electricalPermittivity0 + 0.5*alphaPML*dt )/denominator;
         eGrad3[boundaryIndex] = ( electricalPermittivity0 - 0.5*alphaPML*dt )/denominator;
 
         denominator = magneticPermeability0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt;
         hGrad1[boundaryIndex] = ( magneticPermeability0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt ) / denominator;
         hGrad2[boundaryIndex] = ( magneticPermeability0 + 0.5*alphaPML*dt )/denominator;
         hGrad3[boundaryIndex] = ( magneticPermeability0 - 0.5*alphaPML*dt )/denominator;
         boundaryIndex++;
@@ -544,16 +554,16 @@ printf("Strucutre Added...\n" );
     for (i = regionData[3].xStart, k=(abcSize - 1); i < regionData[3].xStop; i++, k--) {
       for (j = regionData[3].yStart; j < regionData[3].yStop; j++) {
         denominator = electricalPermittivity0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt;
         eGrad1[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt ) / denominator;
         eGrad2[boundaryIndex] = ( electricalPermittivity0 + 0.5*alphaPML*dt )/denominator;
         eGrad3[boundaryIndex] = ( electricalPermittivity0 - 0.5*alphaPML*dt )/denominator;
 
         denominator = magneticPermeability0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt;
         hGrad1[boundaryIndex] = ( magneticPermeability0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt ) / denominator;
         hGrad2[boundaryIndex] = ( magneticPermeability0 + 0.5*alphaPML*dt )/denominator;
         hGrad3[boundaryIndex] = ( magneticPermeability0 - 0.5*alphaPML*dt )/denominator;
         boundaryIndex++;
@@ -564,22 +574,32 @@ printf("Strucutre Added...\n" );
     for (i = regionData[4].xStart, k=0; i < regionData[4].xStop; i++, k++) {
       for (j = regionData[4].yStart; j < regionData[4].yStop; j++) {
         denominator = electricalPermittivity0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt;
         eGrad1[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt ) / denominator;
         eGrad2[boundaryIndex] = ( electricalPermittivity0 + 0.5*alphaPML*dt )/denominator;
         eGrad3[boundaryIndex] = ( electricalPermittivity0 - 0.5*alphaPML*dt )/denominator;
 
         denominator = magneticPermeability0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt;
         hGrad1[boundaryIndex] = ( magneticPermeability0*kappaPML[k] + \
-          0.5*(sigmaPML[i] + alphaPML*kappaPML[i])*dt ) / denominator;
+          0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt ) / denominator;
         hGrad2[boundaryIndex] = ( magneticPermeability0 + 0.5*alphaPML*dt )/denominator;
         hGrad3[boundaryIndex] = ( magneticPermeability0 - 0.5*alphaPML*dt )/denominator;
         boundaryIndex++;
       } /* jForLoop */
     } /* iForLoop */
 
+    /*
+    printf("Max kappaPML: %f\n", AbsVectorMax(kappaPML,ABCSIZECONSTANT));
+    printf("Max sigmaPML: %f\n", AbsVectorMax(sigmaPML,ABCSIZECONSTANT));
+    printf("Max eGrad1: %f\n", AbsVectorMax(eGrad1,boundaryDataSize));
+    printf("Max eGrad2: %f\n", AbsVectorMax(eGrad2,boundaryDataSize));
+    printf("Max eGrad3: %f\n", AbsVectorMax(eGrad3,boundaryDataSize));
+    printf("Max hGrad1: %f\n", AbsVectorMax(hGrad1,boundaryDataSize));
+    printf("Max hGrad2: %f\n", AbsVectorMax(hGrad2,boundaryDataSize));
+    printf("Max hGrad3: %f\n", AbsVectorMax(hGrad3,boundaryDataSize));
+    */
     // all done with Initialization!
 
     return;
