@@ -99,15 +99,15 @@ void SFieldUpdate (struct Grid *g) {
         pmlSxOld[boundaryIndex] = pmlSx[boundaryIndex];
         pmlSyOld[boundaryIndex] = pmlSy[boundaryIndex];
         pmlTzOld[boundaryIndex] = pmlTz[boundaryIndex];
-        pmlSx[boundaryIndex] = eGrad1[boundaryIndex]*pmlSx[boundaryIndex] + \
-                               eGrad2[boundaryIndex]*rx[boundaryIndex] - \
-                               eGrad3[boundaryIndex]*rxOld[boundaryIndex];
-        pmlSy[boundaryIndex] = eGrad1[boundaryIndex]*pmlSy[boundaryIndex] + \
-                               eGrad2[boundaryIndex]*ry[boundaryIndex] - \
-                               eGrad3[boundaryIndex]*ryOld[boundaryIndex];
-        pmlTz[boundaryIndex] = hGrad1[boundaryIndex]*pmlTz[boundaryIndex] + \
-                               hGrad2[boundaryIndex]*bz[boundaryIndex] - \
-                               hGrad3[boundaryIndex]*bzOld[boundaryIndex];
+        pmlSx[boundaryIndex] = sGrad1[boundaryIndex]*pmlSx[boundaryIndex] + \
+                               sGrad2[boundaryIndex]*rx[boundaryIndex] - \
+                               sGrad3[boundaryIndex]*rxOld[boundaryIndex];
+        pmlSy[boundaryIndex] = sGrad1[boundaryIndex]*pmlSy[boundaryIndex] + \
+                               sGrad2[boundaryIndex]*ry[boundaryIndex] - \
+                               sGrad3[boundaryIndex]*ryOld[boundaryIndex];
+        pmlTz[boundaryIndex] = tGrad1[boundaryIndex]*pmlTz[boundaryIndex] + \
+                               tGrad2[boundaryIndex]*bz[boundaryIndex] - \
+                               tGrad3[boundaryIndex]*bzOld[boundaryIndex];
 
         boundaryIndex++;
       } /* jForLoop */
@@ -184,14 +184,14 @@ void RFieldUpdate (struct Grid *g) {
         rxOld2[boundaryIndex] = rxOld[boundaryIndex]; // E at n - 2
         rxOld[boundaryIndex] = rx[boundaryIndex]; // Store previous field for polarization
 
-        rx[boundaryIndex] = ( dt * (hz[i][j] - temphz1) + \
+        rx[boundaryIndex] = ( (dt/dx) * (hz[i][j] - temphz1) + \
           c4Sum[i][j] * rx[boundaryIndex] - c5Sum[i][j] * rxOld2[boundaryIndex] - \
           c1SumX[i][j] - c2SumX[i][j] ) / c3Sum[i][j];
 
         ryOld2[boundaryIndex] = ryOld[boundaryIndex];
         ryOld[boundaryIndex] = ry[boundaryIndex]; // Store previous field for polarization current
 
-        ry[boundaryIndex] = ( dt * (temphz2 - hz[i][j]) + \
+        ry[boundaryIndex] = ( (dt/dx) * (temphz2 - hz[i][j]) + \
           c4Sum[i][j] * ry[boundaryIndex] - c5Sum[i][j] * ryOld2[boundaryIndex] - \
           c1SumY[i][j] - c2SumY[i][j] ) / c3Sum[i][j];
         boundaryIndex++;
@@ -203,10 +203,6 @@ void RFieldUpdate (struct Grid *g) {
 
 void BFieldUpdate (struct Grid *g) {
   int i,j,regionIndex,boundaryIndex,xStop,xStart,yStop,yStart;
-
-  /***********************************************************************/
-  //     Update magnetic fields (HZ) in center (main) grid
-  /***********************************************************************/
 
   boundaryIndex = 0;
   for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
