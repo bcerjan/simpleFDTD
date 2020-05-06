@@ -190,14 +190,14 @@
 #define c4Grid C4GridG(g)
 #define c5Grid C5GridG(g)
 
-#define rx RxG(G)
-#define rxOld RxOldG(G)
-#define rxOld2 RxOld2G(G)
-#define ry RyG(G)
-#define ryOld RyOldG(G)
-#define ryOld2 RyOld2G(G)
-#define bz BzG(G)
-#define bzOld BzOldG(G)
+#define rx RxG(g)
+#define rxOld RxOldG(g)
+#define rxOld2 RxOld2G(g)
+#define ry RyG(g)
+#define ryOld RyOldG(g)
+#define ryOld2 RyOld2G(g)
+#define bz BzG(g)
+#define bzOld BzOldG(g)
 
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)
