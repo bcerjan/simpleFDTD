@@ -51,10 +51,14 @@ void iterateSimulation(struct Grid *g) {
       imageInit(g);
     } /* timeStep if Block */
     //printf("Loop step: %i\timeStep",timeStep);
-    HFieldUpdate(g, timeStep);
+    PFieldUpdate(g);
+    RFieldUpdate(g);
+    SFieldUpdate(g);
     EFieldUpdate(g);
-    JFieldUpdate(g);
-    lineSource(g, ABCSIZECONSTANT + 20, timeStep);
+    BFieldUpdate(g);
+    HFieldUpdate(g);
+    PMLFieldUpdate(g);
+    lineSource(g, xSource, timeStep);
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, timeStep);
 
@@ -66,6 +70,7 @@ void iterateSimulation(struct Grid *g) {
 
     timeStep++;
     if (timeStep % 200 == 0) {
+      printf("AbsMax Ey: %f\n", AbsArrayMax(ey,xSize,ySize));
       updateProgress(100.0 * (float )timeStep / (float )maximumIteration);
     }
 
