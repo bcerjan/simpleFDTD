@@ -18,7 +18,7 @@
 **/
 
 #include <math.h>
-
+#include <stdio.h>
 /* File containing array functions (max, min) */
 
 double ArrayMax(double **ptr, int xWidth, int yWidth)
@@ -51,24 +51,27 @@ double ArrayMin(double **ptr, int xWidth, int yWidth)
 
 double AbsArrayMax(double **ptr, int xWidth, int yWidth)
 {
-  int i,j;
-  double max = ptr[0][0];
+  int i,j,itemp=0,jtemp=0;
+  double max = fabs(ptr[0][0]);
   double temp = 0.0;
   for (i = 0; i < xWidth; i++) {
     for (j = 0; j < yWidth; j++) {
       temp = fabs(ptr[i][j]);
       if (temp > max) {
         max = temp;
+        itemp = i;
+        jtemp = j;
       } /* ifBlock */
     } /* jForLoop */
   } /* iForLoop */
+  printf("[i][j]: [%i][%i]\n",itemp,jtemp );
   return max;
 }
 
 double AbsArrayMin(double **ptr, int xWidth, int yWidth)
 {
   int i,j;
-  double min = ptr[0][0];
+  double min = fabs(ptr[0][0]);
   double temp = 0.0;
   for (i = 0; i < xWidth; i++) {
     for (j = 0; j < yWidth; j++) {
@@ -79,4 +82,20 @@ double AbsArrayMin(double **ptr, int xWidth, int yWidth)
     } /* jForLoop */
   } /* iForLoop */
   return min;
+}
+
+double AbsVectorMax(double *ptr, int length) {
+  int i,itemp;
+  itemp = 0;
+  double max = fabs(ptr[0]);
+  double temp = 0.0;
+  for (i = 0; i < length; i++) {
+    temp = fabs(ptr[i]);
+    if (temp > max) {
+      max = temp;
+      itemp = i;
+    }
+  }
+  printf("[i]: [%i]\n",itemp);
+  return max;
 }
