@@ -59,6 +59,7 @@ void iterateSimulation(struct Grid *g) {
     HFieldUpdate(g);
     PMLFieldUpdate(g);
     lineSource(g, xSource, timeStep);
+    //ey[100][100] = 1.0;
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, timeStep);
 
