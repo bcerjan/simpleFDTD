@@ -135,9 +135,12 @@ void PMLFieldUpdate (struct Grid *g) {
         ey[i][j] = eGrad1[boundaryIndex]*ey[i][j] + \
                    eGrad2[boundaryIndex]*pmlSy[boundaryIndex] - \
                    eGrad3[boundaryIndex]*pmlSyOld[boundaryIndex];
-        hz[i][j] = hGrad1[boundaryIndex]*hz[i][j] + \
+        //hz[i][j] = hGrad1[boundaryIndex]*hz[i][j] + \
                    hGrad2[boundaryIndex]*pmlTz[boundaryIndex] - \
                    hGrad3[boundaryIndex]*pmlTzOld[boundaryIndex];
+        hz[i][j] = hGrad1[boundaryIndex]*hz[i][j] + \
+                   hGrad2[boundaryIndex]*bz[boundaryIndex] - \
+                   hGrad3[boundaryIndex]*bzOld[boundaryIndex];
         boundaryIndex++;
       } /* jForLoop */
     } /* iForLoop */
