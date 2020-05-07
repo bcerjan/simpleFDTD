@@ -42,13 +42,19 @@ int main() {
   InitializeFdtd(g, 0, -1, 100.0, 1.0, 0.0); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
 
+
+  printf("AbsMax c3Sum: %.17g\n", AbsArrayMax(c3Sum,xSize,ySize));
+  printf("AbsMax c4Sum: %.17g\n", AbsArrayMax(c4Sum,xSize,ySize));
+  printf("AbsMax c5Sum: %.17g\n", AbsArrayMax(c5Sum,xSize,ySize));
+  printf("---------------------\n");
+
   maximumIteration = NUMBEROFITERATIONCONSTANT;
 
   int n;
   int outInterval = 0;
 
   //for (n = 0; n < maximumIteration; n++) {
-  for (n = 0; n < 800; n++) {
+  for (n = 0; n < 31; n++) {
 
     HFieldUpdate(g);
     //printf( "H Updated\n" );
@@ -67,18 +73,16 @@ int main() {
     lineSource(g, xSource, n);
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
-    if( n % 20 == 0 ){
-    printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
-    printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));/*
-    printf("c1SumY[0][0] manual: %.17g\n", py[0][0][0]*(c1Grid[0][0][0] - 1.0) + py[1][0][0]*(c1Grid[1][0][0]-1.0) );
-    printf("c1SumY[0][0]: %.17g\n", c1SumY[0][0] );
-    printf("AbsMax hz: %f\n", AbsArrayMax(hz, xSize, ySize));
-    printf("AbsMax c1SumY: %.17g\n", AbsArrayMax(c1SumY, xSize, ySize));
-    printf("AbsMax c2SumY: %.17g\n", AbsArrayMax(c2SumY, xSize, ySize));
-    printf("AbsMax py: %.17g\n", AbsArrayMax(py[0], xSize, ySize));
-    printf("AbsMax c4Sum: %.17g\n", AbsArrayMax(c4Sum, xSize, ySize));
-    printf("AbsMax c5Sum: %.17g\n", AbsArrayMax(c5Sum, xSize, ySize));
-    printf("dt / c3Sum: %0.17g\n", dt/AbsArrayMax(c3Sum,xSize,ySize));*/
+    if( n % 5 == 0 ){
+    printf("n: %i\n",n);
+    printf("AbsMax py: %.17g\n", AbsArrayMax(py[0],xSize,ySize));
+    printf("AbsMax ry: %.17g\n", AbsVectorMax(ry,9056));
+    printf("AbsMax bz: %.17g\n", AbsVectorMax(bz,9056));
+    printf("AbsMax c1SumY: %.17g\n", AbsArrayMax(c1SumY,xSize,ySize));
+    printf("AbsMax c2SumY: %.17g\n", AbsArrayMax(c2SumY,xSize,ySize));
+    printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+    //printf("AbsMax sy: %.17g\n", AbsVectorMax(pmlSy,9056));
+    //printf("AbsMax tz: %.17g\n", AbsVectorMax(pmlTz,9056));
     printf("---------------------\n");}
     /*char tranEyFilename[100] = "test_output/empty_tran_raw_ey.h";
     FILE *tranEyDataPtr;
