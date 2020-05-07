@@ -322,7 +322,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     /***********************************************************************/
     //     Grid Coefficients
     /***********************************************************************/
-    printf("c3TempSum[0]: %.17g\n", c3TempSum[0]);
+    /*printf("c3TempSum[0]: %.17g\n", c3TempSum[0]);
     printf("c3TempSum[1]: %.17g\n", c3TempSum[1]);
     printf("c4TempSum[0]: %.17g\n", c4TempSum[0]);
     printf("c4TempSum[1]: %.17g\n", c4TempSum[1]);
@@ -331,7 +331,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     printf("mediaDa[0]: %f\n", mediaDa[0]);
     printf("mediaDa[1]: %f\n", mediaDa[1]);
     printf("mediaDb[0]: %f\n", mediaDb[0]);
-    printf("mediaDb[1]: %f\n", mediaDb[1]);
+    printf("mediaDb[1]: %f\n", mediaDb[1]);*/
     //     Initialize entire grid to free space
 
     // Polarization grid values:
@@ -652,9 +652,9 @@ printf("Strucutre Added...\n" );
     printf("Max eGrad1: %.17g\n", AbsVectorMax(eGrad1,boundaryDataSize));
     printf("Max eGrad2: %.17g\n", AbsVectorMax(eGrad2,boundaryDataSize));
     printf("Max eGrad3: %.17g\n", AbsVectorMax(eGrad3,boundaryDataSize));
-    printf("Max hGrad1: %.17g\n", AbsVectorMax(hGrad1,boundaryDataSize));
-    printf("Max hGrad2: %.17g\n", AbsVectorMax(hGrad2,boundaryDataSize));
-    printf("Max hGrad3: %.17g\n", AbsVectorMax(hGrad3,boundaryDataSize));
+    printf("Max sGrad1: %.17g\n", AbsVectorMax(sGrad1,boundaryDataSize));
+    printf("Max sGrad2: %.17g\n", AbsVectorMax(sGrad2,boundaryDataSize));
+    printf("Max sGrad3: %.17g\n", AbsVectorMax(sGrad3,boundaryDataSize));
 
     // all done with Initialization!
 
