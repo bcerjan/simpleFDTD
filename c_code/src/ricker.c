@@ -46,7 +46,7 @@ void lineSource(struct Grid *g, int x_ind, int time) {
   double t = time;
   if(time < 500) {
     for (j = 0; j < ySize; j++) {
-      ey[x_ind][j] = ezInc(t, 0.0); // Y-Polarized source field
+      ey[x_ind][j] += ezInc(t, 0.0); // Y-Polarized source field
     } /* jForLoop */
   } /* if */
   return;
