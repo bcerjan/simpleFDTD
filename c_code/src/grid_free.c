@@ -67,6 +67,9 @@ void freeGrid(struct Grid *g) {
   freeTriplePtr(py, number_poles, xSize);
   freeTriplePtr(pxOld, number_poles, xSize);
   freeTriplePtr(pyOld, number_poles, xSize);
+  freeTriplePtr(pxOld2, number_poles, xSize);
+  freeTriplePtr(pyOld2, number_poles, xSize);
+
 
   freeDoublePtr(exOld, xSize);
   freeDoublePtr(eyOld, xSize + 1);
@@ -95,6 +98,13 @@ void freeGrid(struct Grid *g) {
   free(eGrad1);
   free(eGrad2);
   free(eGrad3);
+  free(sGrad1);
+  free(sGrad2);
+  free(sGrad3);
+  free(bGrad1);
+  free(bGrad2);
+  free(bGrad3);
+  free(bGrad4);
   free(pmlSx);
   free(pmlSxOld);
   free(pmlSy);
@@ -109,6 +119,7 @@ void freeGrid(struct Grid *g) {
   free(ryOld2);
   free(bz);
   free(bzOld);
+  free(bzOld2);
 
 
   // And finally the grid itself:
