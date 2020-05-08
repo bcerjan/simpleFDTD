@@ -39,11 +39,12 @@
 #define HGrad3G(G) G->hGrad3
 #define EGrad3G(G) G->eGrad3
 #define SGrad1G(G) G->sGrad1
-#define TGrad1G(G) G->tGrad1
+#define BGrad1G(G) G->bGrad1
 #define SGrad2G(G) G->sGrad2
-#define TGrad2G(G) G->tGrad2
+#define BGrad2G(G) G->bGrad2
 #define SGrad3G(G) G->sGrad3
-#define TGrad3G(G) G->tGrad3
+#define BGrad3G(G) G->bGrad3
+#define BGrad4G(G) G->bGrad4
 
 #define PmlSxG(G) G->pmlSx
 #define PmlSyG(G) G->pmlSy
@@ -60,7 +61,7 @@
 #define RyOld2G(G) G->ryOld2
 #define BzG(G) G->bz
 #define BzOldG(G) G->bzOld
-
+#define BzOld2G(G) G->bzOld2
 
 // Constants:
 #define xSizeG(G) G->xSize
@@ -81,6 +82,8 @@
 #define PyG(G) G->py
 #define PxOldG(G) G->pxOld
 #define PyOldG(G) G->pyOld
+#define PxOld2G(G) G->pxOld2
+#define PyOld2G(G) G->pyOld2
 #define ExOldG(G) G->exOld
 #define EyOldG(G) G->eyOld
 #define ExOld2G(G) G->exOld2
@@ -151,11 +154,12 @@
 #define hGrad3 HGrad3G(g)
 #define eGrad3 EGrad3G(g)
 #define sGrad1 SGrad1G(g)
-#define tGrad1 TGrad1G(g)
+#define bGrad1 BGrad1G(g)
 #define sGrad2 SGrad2G(g)
-#define tGrad2 TGrad2G(g)
+#define bGrad2 BGrad2G(g)
 #define sGrad3 SGrad3G(g)
-#define tGrad3 TGrad3G(g)
+#define bGrad3 BGrad3G(g)
+#define bGrad4 BGrad4G(g)
 
 #define pmlSx PmlSxG(g)
 #define pmlSy PmlSyG(g)
@@ -183,6 +187,8 @@
 #define py PyG(g)
 #define pxOld PxOldG(g)
 #define pyOld PyOldG(g)
+#define pxOld2 PxOld2G(g)
+#define pyOld2 PyOld2G(g)
 #define exOld ExOldG(g)
 #define eyOld EyOldG(g)
 #define exOld2 ExOld2G(g)
@@ -210,6 +216,7 @@
 #define ryOld2 RyOld2G(g)
 #define bz BzG(g)
 #define bzOld BzOldG(g)
+#define bzOld2 BzOld2G(g)
 
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)

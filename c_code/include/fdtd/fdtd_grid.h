@@ -59,11 +59,12 @@ struct Grid {
   double  *hGrad3;
   double  *eGrad3;
   double  *sGrad1;    // pml coefficients
-  double  *tGrad1;
+  double  *bGrad1;
   double  *sGrad2;
-  double  *tGrad2;
+  double  *bGrad2;
   double  *sGrad3;
-  double  *tGrad3;
+  double  *bGrad3;
+  double  *bGrad4;
 
   // PML fields:
   double  *pmlSx; // x electric field
@@ -79,6 +80,8 @@ struct Grid {
   double  ***py;       // "" for Jy
   double  ***pxOld;
   double  ***pyOld;
+  double  ***pxOld2;
+  double  ***pyOld2;
   double  **c1SumX; // Stored sum values as we need them in multiple locations
   double  **c2SumX;
   double  **c1SumY;
@@ -100,6 +103,7 @@ struct Grid {
   double  *ryOld2;
   double  *bz;
   double  *bzOld;
+  double  *bzOld2;
 
 
   double  **exOld;    // Matrix to store old Ex values for Drude metals
