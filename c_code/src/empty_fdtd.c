@@ -54,23 +54,26 @@ int main() {
   int outInterval = 0;
 
   //for (n = 0; n < maximumIteration; n++) {
-  for (n = 0; n < 31; n++) {
+  for (n = 0; n < 6; n++) {
 
-    HFieldUpdate(g);
-    //printf( "H Updated\n" );
-    EFieldUpdate(g);
-    //printf( "E Updated\n" );
-    BFieldUpdate(g);
-    //printf( "B Updated\n" );
-    PFieldUpdate(g);
-    //printf( "P Updated\n" );
+    StoreFields(g);
+    //printf( "Fields Stored\n" );
     RFieldUpdate(g);
     //printf( "R Updated\n" );
+    PPMLFieldUpdate(g);
+    //printf( "P PML Updated\n" );
     SFieldUpdate(g);
     //printf( "S Updated\n" );
-    PMLFieldUpdate(g);
-    //printf( "PML Updated\n" );
+    EFieldUpdate(g);
+    //printf( "E Updated\n" );
+    PFieldUpdate(g);
+    //printf( "P Updated\n" );
+    BFieldUpdate(g);
+    //printf( "B Updated\n" );
+    HFieldUpdate(g);
+    //printf( "H Updated\n" );
     lineSource(g, xSource, n);
+
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
     if( n % 5 == 0 ){
