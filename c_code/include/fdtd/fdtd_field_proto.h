@@ -22,15 +22,16 @@
 
 #include "fdtd_grid.h"
 
-void EFieldUpdate(struct Grid *g);
-void HFieldUpdate(struct Grid *g);
+void StoreFields(struct Grid *g);
 void BFieldUpdate(struct Grid *g);
-void PFieldUpdate(struct Grid *g);
+void HFieldUpdate(struct Grid *g);
 void RFieldUpdate(struct Grid *g);
+void PPMLFieldUpdate(struct Grid *g);
 void SFieldUpdate(struct Grid *g);
-void PMLFieldUpdate(struct Grid *g);
-void DFTUpdate(struct Grid *g, int n);
+void EFieldUpdate(struct Grid *g);
+void PFieldUpdate(struct Grid *g);
 
+void DFTUpdate(struct Grid *g, int n);
 
 void finishFullDFT(struct Grid *g);
 void finishEmptyDFT(struct Grid *g);
