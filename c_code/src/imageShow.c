@@ -106,7 +106,8 @@ void findMatEdge(struct Grid *g) {
         } /* kForLoop */
       } /* nForLoop */
 
-      edgeMat[i+1][j+1] = pow(Gx*Gx + Gy*Gy, 0.5);
+      //edgeMat[i+1][j+1] = pow(Gx*Gx + Gy*Gy, 0.5);
+      edgeMat[i][j] = pow(Gx*Gx + Gy*Gy, 0.5);
     } /* jForLoop */
   } /* iForLoop */
 
