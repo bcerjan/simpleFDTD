@@ -23,8 +23,8 @@
 #include "fdtd_macro.h"
 
 void structInit(int xCenter, int yCenter);
-void addDisk(struct Grid *g, double radius);
+void addDisk(struct Grid *g, double xRadius, double yRadius);
 void addRect(struct Grid *g, double width, double length);
-void addTriangle(struct Grid *g, double length);
+void addTriangle(struct Grid *g, double xLength, double yLength);
 
 #endif

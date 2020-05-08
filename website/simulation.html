@@ -27,16 +27,18 @@
       .card-header {
         cursor: pointer;
       }
-
+      .diagram {
+        height: 90px;
+        padding-bottom: 20px;
+      }
     </style>
   </head>
   <body>
   <br>
   <div class="container">
-    <div class="alert alert-warning" role="alert">
-      Results for silica are (reasonably) accurate, but the fits for the metals
-      aren't as good as you might like (yet). YMMV.
-    </div>
+    <!--<div class="alert alert-warning" role="alert">
+      Big alerts go here!
+    </div>-->
   </div>
   <div class="container">
     <div class="jumbotron">
@@ -62,7 +64,7 @@
           <div class="card-body">
             <div class="btn-group btn-group-toggle" role="group" data-toggle="buttons" aria-label="Material Choices">
               <label class="btn btn-secondary active">
-                <input type="radio" name="shapeOptions" id="fdtdDisk" value="0" checked>Disk
+                <input type="radio" name="shapeOptions" id="fdtdEllipse" value="0" checked>Ellipse
               </label>
               <label class="btn btn-secondary">
                 <input type="radio" name="shapeOptions" id="fdtdRectangle" value="1">Rectangle
@@ -89,10 +91,32 @@
         </div>
         <div id="sizeCollapse" class="collapse" aria-labelledby="sizeHeader" data-parent="#controlAccordion">
           <div class="card-body">
-            <div class="input-group md-3">
-              <input type="number" class="form-control" id="objectLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
-              <div class="input-group-append">
-                <span class="input-group-text" id="units">nm</span>
+            <div class="row d-flex align-items-center">
+              <div class="col-8">
+                <div class="input-group md-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="">X:</span>
+                  </div>
+                  <input type="number" class="form-control" id="objectXLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
+                  <div class="input-group-append">
+                    <span class="input-group-text" id="units">nm</span>
+                  </div>
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="">Y:</span>
+                  </div>
+                  <input type="number" class="form-control" id="objectYLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
+                  <div class="input-group-append">
+                    <span class="input-group-text" id="units">nm</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-auto">
+                <img src="images/e-field.png" class="img-fluid" style="height: 55px"/>
+              </div>
+              <div class="col-md-auto">
+                <img id="ellipseImg" src="images/ellipse-diagram.png" alt="Ellipse Geometry Diagram" class="diagram img-fluid"/>
+                <img id="rectImg" src="images/rect-diagram.png" alt="Rectangle Geometry Diagram" class="diagram img-fluid" style="display: none;"/>
+                <img id="triImg" src="images/triangle-diagram.png" alt="Rectangle Geometry Diagram" class="diagram img-fluid" style="display: none;"/>
               </div>
             </div>
           </div>
@@ -270,23 +294,60 @@
         onRuntimeInitialized: function() {
           // API for preparing image transfers:
           api = {
-            fdtd: Module.cwrap('fdtdSim','number', ['number','number','number','number','number','number']),
+            fdtd: Module.cwrap('fdtdSim','number', ['number','number','number','number','number','number','number']),
           };
           console.log('api defined...');
         },
 
       };
 
+      $('input[name=shapeOptions]').change(function(){
+        const shapeNum = $(this).val();
+        const shapeSwitch = parseInt(shapeNum);
+        const rectImg = $('#rectImg');
+        const ellipseImg = $('#ellipseImg');
+        const triImg = $('#triImg');
+
+        switch(shapeSwitch) {
+          case 0: // Ellipse
+            ellipseImg.css('display','inline-block');
+            rectImg.css('display','none');
+            triImg.css('display','none');
+            break;
+          case 1: // Rectangle
+            ellipseImg.css('display','none');
+            rectImg.css('display','inline-block');
+            triImg.css('display','none');
+            break;
+          case 2: // Triangle
+            ellipseImg.css('display','none');
+            rectImg.css('display','none');
+            triImg.css('display','inline-block');
+            break;
+          default: // Empty
+            ellipseImg.css('display','none');
+            rectImg.css('display','none');
+            triImg.css('display','none');
+            break;
+        }
+      })
+
+      // Global variables for simulation parameters so data download
+      // can access them later even if the user changes parameters (but doesn't
+      // re-run the simulation)
+      var shape, material, sizeX, sizeY, indexN, objectN, adaptive;
+
       // Buttons for simulation running
       document.querySelector('#runSim')
         .addEventListener('click', function() {
           console.log('Simulation Started');
-          const shape = $('input[name=shapeOptions]:checked').val();
-          const material = $('input[name=materialOptions]:checked').val();
-          const size = $('#objectLength').val();
-          const indexN = $('#dielectricEnvironment').val();
-          const objectN = $('#objectIndex').val();
-          var adaptive = 0;
+          shape = $('input[name=shapeOptions]:checked').val();
+          material = $('input[name=materialOptions]:checked').val();
+          sizeX = $('#objectXLength').val();
+          sizeY = $('#objectYLength').val();
+          indexN = $('#dielectricEnvironment').val();
+          objectN = $('#objectIndex').val();
+          adaptive = 0;
           if ( $('#adaptiveTiming').prop('checked') == true ) {
             adaptive = 1;
           }
@@ -298,7 +359,7 @@
           document.querySelector('#normData').value = 'norm';
           document.querySelector('#normData').innerHTML = 'Normalize Data';
           document.querySelector('#runSim').innerHTML = "Running...";
-          api.fdtd(material,shape,size,indexN,objectN,adaptive);
+          api.fdtd(material,shape,sizeX,sizeY,indexN,objectN,adaptive);
         });
         // Normalize Data
         document.querySelector('#normData')
@@ -453,10 +514,30 @@
       });
     }
 
+
     // Function to download a CSV of the data:
     // see: https://stackoverflow.com/a/14966131
     function downloadData(chart) {
-      var csvContent = "data:text/csv;charset=utf-8,wavelegnth(nm),reflection\r\n";
+      // If no simulation results yet, exit this
+      if( shape == null) {
+        alert('Run a simulation first!');
+        return;
+      }
+
+      const shapeText = convertShape(shape);
+      const materialText = convertMaterial(material);
+      if ( $('#adaptiveTiming').prop('checked') == true ) {
+        adaptive = 1;
+      }
+      var csvContent = "data:text/csv;charset=utf-8,"
+      + "shape="+shapeText+","
+      + "material="+materialText+","
+      + "objectX="+sizeX+","
+      + "objectY="+sizeY+","
+      + "backgroundIndex="+indexN+","
+      + "objectIndex="+objectN+","
+      + "adaptiveTiming="+adaptive+"\r\n"
+      + "wavelegnth(nm),reflection\r\n";
       var reflRows = [];
       var tranRows = [];
       chart.data.datasets[0].data.forEach((element) => {
@@ -482,8 +563,51 @@
       link.setAttribute("download", "simpleFDTD_data.csv");
       document.body.appendChild(link); // Required for FF
 
-      link.click(); // This will download the data file named "my_data.csv".
+      link.click(); // This will download the data file named "simpleFDTD_data.csv".
 
+    }
+
+    // Functions to convert shape / material from integer to value:
+    function convertShape(shapeNum) {
+      const shapeSwitch = parseInt(shapeNum);
+      switch(shapeSwitch) {
+        case 0:
+          return 'ellipse';
+          break;
+        case 1:
+          return 'rectangle';
+          break;
+        case 2:
+          return 'triangle';
+          break;
+        default:
+          return 'empty';
+          break;
+      }
+    }
+
+    function convertMaterial(matNum) {
+      const matSwitch = parseInt(matNum);
+      switch(matSwitch) {
+        case 0:
+          return 'aluminum';
+          break;
+        case 1:
+          return 'gold';
+          break;
+        case 2:
+          return 'silver';
+          break;
+        case 3:
+          return 'copper';
+          break;
+        case 4:
+          return 'silica';
+          break;
+        default:
+          return 'customDielectric';
+          break;
+      }
     }
 
     // Function for limiting allowed values in Dielectric Environment

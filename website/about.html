@@ -103,6 +103,18 @@
 
     <br>
 
+    <h1 class="display-4" id="drudeMetals">Metal Dielectric Functions</h1>
+    <p>This code uses a <a href="https://en.wikipedia.org/wiki/Drude_model">Drude
+      model</a> to model the dielectric properties of metals. While it does account
+      for loss in the metal, it <i>does not</i> account for interband transitions.
+      This means that results for gold and copper below about ~550 nm are not
+      to be trusted as the light starts getting absorbed. Similarly, right around
+      800 nm aluminum has a transition and so it is not accurate at the very end
+      of the reported spectrum.   
+     </p>
+
+    <br>
+
     <h1 class="display-4" id="bugs">Bugs / Using the Code</h1>
     <p>If you're particularly interested (or frustrated that I
        haven't fixed a bug you found), please stop by the
@@ -115,7 +127,8 @@
 
     <p>If you'd like to use this code to embed a simulation on your site, please
       do! So long as you respect the (fairly permissive)
-      <a href="https://github.com/bcerjan/simpleFDTD/blob/master/LICENSE.txt">license</a> and link people back to the GitHub,
+      <a href="https://github.com/bcerjan/simpleFDTD/blob/master/LICENSE.txt">license</a>
+      and link people back to the GitHub,
       feel free to use the code as you like.
     </p>
 

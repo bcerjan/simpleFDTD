@@ -68,7 +68,7 @@ int main() {
     temp = (double  )(i + minInd);
     backInd = temp / 10.0;
 
-    InitializeFdtd(g, 0, -1, 100.0, backInd, 0.0); // First int for metal, second for object shape
+    InitializeFdtd(g, 0, -1, 100.0, 100.0, backInd, 0.0); // First int for metal, second for object shape
 
     // Run simulation loop for this background index:
     for (n = 0; n < maximumIter; n++) {
