@@ -27,5 +27,7 @@ double ArrayMin(double **ptr, int xWidth, int yWidth);
 double AbsArrayMax(double **ptr, int xWidth, int yWidth);
 double AbsArrayMin(double **ptr, int xWidth, int yWidth);
 double AbsVectorMax(double *ptr, int length);
+double AbsPML1DMax(struct Grid *g, double *ptr);
+double AbsPML2DMax(struct Grid *g, double **ptr);
 
 #endif
