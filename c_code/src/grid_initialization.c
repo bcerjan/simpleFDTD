@@ -552,10 +552,10 @@ printf("Strucutre Added...\n" );
         eGrad3[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] - \
           0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt )/denominator;
 
-        denominator = electricalPermittivity0 + alphaPML/dt; // kappa_y = 1 and sigma_y = 0 for all parts of this boundary
-        bGrad1[boundaryIndex] = ( 0.5*alphaPML + electricalPermittivity0/dt )/denominator; // multiplied by curl(E[n+1])
-        bGrad2[boundaryIndex] = ( 0.5*alphaPML - electricalPermittivity0/dt )/denominator; // multiplied by curl(E[n])
-        bGrad3[boundaryIndex] = ( 0.5*alphaPML + 2*electricalPermittivity0 )/denominator; // multiplied by B[n]
+        denominator = electricalPermittivity0 + alphaPML*dt; // kappa_y = 1 and sigma_y = 0 for all parts of this boundary
+        bGrad1[boundaryIndex] = ( 0.5*alphaPML*dt*dt + electricalPermittivity0*dt )/denominator; // multiplied by curl(E[n+1])
+        bGrad2[boundaryIndex] = ( 0.5*alphaPML*dt*dt - electricalPermittivity0*dt )/denominator; // multiplied by curl(E[n])
+        bGrad3[boundaryIndex] = ( alphaPML*dt + 2.0*electricalPermittivity0 )/denominator; // multiplied by B[n]
         bGrad4[boundaryIndex] = ( electricalPermittivity0 )/denominator; // multiplied by B[n-1]
 
         denominator = magneticPermeability0*( 0.5*(alphaPML*kappaPML[k] + sigmaPML[k]) + \
@@ -584,11 +584,11 @@ printf("Strucutre Added...\n" );
         eGrad3[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] - \
           0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt )/denominator;
 
-        denominator = electricalPermittivity0 + alphaPML/dt; // kappa_y = 1 and sigma_y = 0 for all parts of this boundary
-        bGrad1[boundaryIndex] = ( 0.5*alphaPML + electricalPermittivity0/dt )/denominator; // multiplied by curl(E[n+1])
-        bGrad2[boundaryIndex] = ( 0.5*alphaPML - electricalPermittivity0/dt )/denominator; // multiplied by curl(E[n])
-        bGrad3[boundaryIndex] = ( 0.5*alphaPML + 2*electricalPermittivity0 )/denominator; // multiplied by B[n]
-        bGrad4[boundaryIndex] = ( electricalPermittivity0 )/denominator; // multiplied by B[n-1]
+        denominator = electricalPermittivity0 + alphaPML*dt; // kappa_y = 1 and sigma_y = 0 for all parts of this boundary
+        bGrad1[boundaryIndex] = ( 0.5*alphaPML*dt*dt + electricalPermittivity0*dt )/denominator; // multiplied by curl(E[n+1])
+        bGrad2[boundaryIndex] = ( 0.5*alphaPML*dt*dt - electricalPermittivity0*dt )/denominator; // multiplied by curl(E[n])
+        bGrad3[boundaryIndex] = ( alphaPML*electricalPermittivity0 )/denominator; // multiplied by B[n]
+        bGrad4[boundaryIndex] = ( alphaPML*dt - electricalPermittivity0 )/denominator; // multiplied by B[n-1]
 
         denominator = magneticPermeability0*( 0.5*(alphaPML*kappaPML[k] + sigmaPML[k]) + \
           electricalPermittivity0*kappaPML[k]/dt );
@@ -616,11 +616,11 @@ printf("Strucutre Added...\n" );
         eGrad3[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] - \
           0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt )/denominator;
 
-        denominator = electricalPermittivity0 + alphaPML/dt; // kappa_y = 1 and sigma_y = 0 for all parts of this boundary
-        bGrad1[boundaryIndex] = ( 0.5*alphaPML + electricalPermittivity0/dt )/denominator; // multiplied by curl(E[n+1])
-        bGrad2[boundaryIndex] = ( 0.5*alphaPML - electricalPermittivity0/dt )/denominator; // multiplied by curl(E[n])
-        bGrad3[boundaryIndex] = ( 0.5*alphaPML + 2*electricalPermittivity0 )/denominator; // multiplied by B[n]
-        bGrad4[boundaryIndex] = ( electricalPermittivity0 )/denominator; // multiplied by B[n-1]
+        denominator = electricalPermittivity0 + alphaPML*dt; // kappa_y = 1 and sigma_y = 0 for all parts of this boundary
+        bGrad1[boundaryIndex] = ( 0.5*alphaPML*dt*dt + electricalPermittivity0*dt )/denominator; // multiplied by curl(E[n+1])
+        bGrad2[boundaryIndex] = ( 0.5*alphaPML*dt*dt - electricalPermittivity0*dt )/denominator; // multiplied by curl(E[n])
+        bGrad3[boundaryIndex] = ( alphaPML*electricalPermittivity0 )/denominator; // multiplied by B[n]
+        bGrad4[boundaryIndex] = ( alphaPML*dt - electricalPermittivity0 )/denominator; // multiplied by B[n-1]
 
         denominator = magneticPermeability0*( 0.5*(alphaPML*kappaPML[k] + sigmaPML[k]) + \
           electricalPermittivity0*kappaPML[k]/dt );
@@ -648,18 +648,18 @@ printf("Strucutre Added...\n" );
         eGrad3[boundaryIndex] = ( electricalPermittivity0*kappaPML[k] - \
           0.5*(sigmaPML[k] + alphaPML*kappaPML[k])*dt )/denominator;
 
-        denominator = electricalPermittivity0 + alphaPML/dt; // kappa_y = 1 and sigma_y = 0 for all parts of this boundary
-        bGrad1[boundaryIndex] = ( 0.5*alphaPML + electricalPermittivity0/dt )/denominator; // multiplied by curl(E[n+1])
-        bGrad2[boundaryIndex] = ( 0.5*alphaPML - electricalPermittivity0/dt )/denominator; // multiplied by curl(E[n])
-        bGrad3[boundaryIndex] = ( 0.5*alphaPML + 2*electricalPermittivity0 )/denominator; // multiplied by B[n]
-        bGrad4[boundaryIndex] = ( electricalPermittivity0 )/denominator; // multiplied by B[n-1]
+        denominator = electricalPermittivity0 + alphaPML*dt; // kappa_y = 1 and sigma_y = 0 for all parts of this boundary
+        bGrad1[boundaryIndex] = ( 0.5*alphaPML*dt*dt + electricalPermittivity0*dt )/denominator; // multiplied by curl(E[n+1])
+        bGrad2[boundaryIndex] = ( 0.5*alphaPML*dt*dt - electricalPermittivity0*dt )/denominator; // multiplied by curl(E[n])
+        bGrad3[boundaryIndex] = ( alphaPML*electricalPermittivity0 )/denominator; // multiplied by B[n]
+        bGrad4[boundaryIndex] = ( alphaPML*dt - electricalPermittivity0 )/denominator; // multiplied by B[n-1]
 
-        denominator = magneticPermeability0*( 0.5*(alphaPML*kappaPML[k] + sigmaPML[k]) + \
-          electricalPermittivity0*kappaPML[k]/dt );
-        hGrad1[boundaryIndex] = ( 0.5*alphaPML + electricalPermittivity0/dt ) / denominator; // multiplied by B[n+1]
-        hGrad2[boundaryIndex] = ( 0.5*alphaPML - electricalPermittivity0/dt ) / denominator;  // multiplied by B[n]
-        hGrad3[boundaryIndex] = ( magneticPermeability0*( 0.5*(alphaPML*kappaPML[k] + sigmaPML[k]) - \
-          electricalPermittivity0*kappaPML[k]/dt ) )/denominator; // multiplied by H[n]
+        denominator = magneticPermeability0*( 0.5*dt*(alphaPML*kappaPML[k] + sigmaPML[k]) + \
+          electricalPermittivity0*kappaPML[k] );
+        hGrad1[boundaryIndex] = ( 0.5*alphaPML*dt + electricalPermittivity0 ) / denominator; // multiplied by B[n+1]
+        hGrad2[boundaryIndex] = ( 0.5*alphaPML*dt - electricalPermittivity0 ) / denominator;  // multiplied by B[n]
+        hGrad3[boundaryIndex] = ( magneticPermeability0*( 0.5*dt*(alphaPML*kappaPML[k] + sigmaPML[k]) - \
+          electricalPermittivity0*kappaPML[k] ) )/denominator; // multiplied by H[n]
         boundaryIndex++;
       } /* jForLoop */
     } /* iForLoop */
@@ -671,6 +671,11 @@ printf("Strucutre Added...\n" );
     printf("Max bGrad2: %.17g\n", AbsVectorMax(bGrad2,boundaryDataSize));
     printf("Max bGrad3: %.17g\n", AbsVectorMax(bGrad3,boundaryDataSize));
     printf("Max bGrad4: %.17g\n", AbsVectorMax(bGrad4,boundaryDataSize));
+
+    printf("Max hGrad1: %.17g\n", AbsVectorMax(hGrad1,boundaryDataSize));
+    printf("Max hGrad2: %.17g\n", AbsVectorMax(hGrad2,boundaryDataSize));
+    printf("Max hGrad3: %.17g\n", AbsVectorMax(hGrad3,boundaryDataSize));
+
 
     // all done with Initialization!
 
