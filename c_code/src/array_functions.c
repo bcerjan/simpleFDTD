@@ -19,6 +19,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include "fdtd_macro.h"
 /* File containing array functions (max, min) */
 
 double ArrayMax(double **ptr, int xWidth, int yWidth)
@@ -97,5 +98,56 @@ double AbsVectorMax(double *ptr, int length) {
     }
   }
   printf("[i]: [%i]\n",itemp);
+  return max;
+}
+
+/* Function to find max value in PML region of a 1-D pointer defined there */
+double AbsPML1DMax(struct Grid *g, double *ptr)
+{
+  int i,j,boundaryIndex,regionIndex,xStop,xStart,yStop,yStart;
+  double max = 0.0;
+  double temp = 0.0;
+  boundaryIndex = 0;
+  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+    xStart = regionData[regionIndex].xStart;
+    xStop  = regionData[regionIndex].xStop ;
+    yStart = regionData[regionIndex].yStart;
+    yStop  = regionData[regionIndex].yStop ;
+
+    for (i = xStart; i < xStop; i++) {
+      for (j = yStart; j < yStop; j++) {
+        temp = fabs(ptr[boundaryIndex]);
+        if (temp > max) {
+          max = temp;
+        } /* ifBlock */
+        boundaryIndex++;
+      } /* jForLoop */
+    } /* iForLoop */
+  } /* region forLoop */
+  return max;
+}
+
+/* Function to find max value in PML region of a 2-D pointer defined there */
+double AbsPML2DMax(struct Grid *g, double **ptr)
+{
+  int i,j,regionIndex,xStop,xStart,yStop,yStart;
+  double max = 0.0;
+  double temp = 0.0;
+
+  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
+    xStart = regionData[regionIndex].xStart;
+    xStop  = regionData[regionIndex].xStop ;
+    yStart = regionData[regionIndex].yStart;
+    yStop  = regionData[regionIndex].yStop ;
+
+    for (i = xStart; i < xStop; i++) {
+      for (j = yStart; j < yStop; j++) {
+        temp = fabs(ptr[i][j]);
+        if (temp > max) {
+          max = temp;
+        } /* ifBlock */
+      } /* jForLoop */
+    } /* iForLoop */
+  } /* region forLoop */
   return max;
 }
