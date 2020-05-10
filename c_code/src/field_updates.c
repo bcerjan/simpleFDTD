@@ -292,7 +292,7 @@ void BFieldUpdate (struct Grid *g) {
       for (j = yStart; j < yStop; j++) {
       bzOld2[boundaryIndex] = bzOld[boundaryIndex]; // Bz at n - 1
       bzOld[boundaryIndex] = bz[boundaryIndex]; // Bz at n
-      bz[boundaryIndex] = bGrad1[boundaryIndex] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] ) + \
+      bz[boundaryIndex] = -1.0*bGrad1[boundaryIndex] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] ) - \
         bGrad2[boundaryIndex] * ( exOld[i][j+1] - exOld[i][j] + eyOld[i][j] - eyOld[i+1][j] ) + \
         bGrad3[boundaryIndex] * bz[boundaryIndex] - bGrad4[boundaryIndex] * bzOld2[boundaryIndex]; // Bz at n + 1
       boundaryIndex++;
