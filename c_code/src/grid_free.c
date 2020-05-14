@@ -46,6 +46,13 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(ex, xSize);
   freeDoublePtr(ey, xSize + 1);
   freeDoublePtr(hz, xSize);
+  freeDoublePtr(caex, xSize);
+  freeDoublePtr(cbex, xSize);
+  freeDoublePtr(caey, xSize);
+  freeDoublePtr(cbey, xSize);
+  freeDoublePtr(dahz, xSize);
+  freeDoublePtr(dbhz, xSize);
+
   freeDoublePtr(c1SumX, xSize);
   freeDoublePtr(c2SumX, xSize);
   freeDoublePtr(c1SumY, xSize);
@@ -54,14 +61,16 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(c4Sum, xSize);
   freeDoublePtr(c5Sum, xSize);
 
+  freeDoublePtr(pxDrude, xSize);
+  freeDoublePtr(pyDrude, xSize);
+  freeDoublePtr(d1Grid, xSize);
+  freeDoublePtr(d2Grid, xSize);
+
   freeTriplePtr(c1Grid, number_poles, xSize);
   freeTriplePtr(c2Grid, number_poles, xSize);
   freeTriplePtr(c3Grid, number_poles, xSize);
   freeTriplePtr(c4Grid, number_poles, xSize);
   freeTriplePtr(c5Grid, number_poles, xSize);
-
-  freeDoublePtr(dahz, xSize);
-  freeDoublePtr(dbhz, xSize);
 
   freeTriplePtr(px, number_poles, xSize);
   freeTriplePtr(py, number_poles, xSize);
@@ -92,34 +101,9 @@ void freeGrid(struct Grid *g) {
   free(reflDFT);
   free(tranDFT);
   free(hzOld);
-  free(hGrad1);
-  free(hGrad2);
-  free(hGrad3);
-  free(eGrad1);
-  free(eGrad2);
-  free(eGrad3);
-  free(sGrad1);
-  free(sGrad2);
-  free(sGrad3);
-  free(bGrad1);
-  free(bGrad2);
-  free(bGrad3);
-  free(bGrad4);
-  free(pmlSx);
-  free(pmlSxOld);
-  free(pmlSy);
-  free(pmlSyOld);
-  free(pmlTz);
-  free(pmlTzOld);
-  free(rx);
-  free(rxOld);
-  free(rxOld2);
-  free(ry);
-  free(ryOld);
-  free(ryOld2);
-  free(bz);
-  free(bzOld);
-  free(bzOld2);
+  free(hzy);
+  free(dahzy);
+  free(dbhzy);
 
 
   // And finally the grid itself:
