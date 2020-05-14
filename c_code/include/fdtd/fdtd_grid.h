@@ -48,31 +48,16 @@ struct Grid {
   double  **ex;      // the fields
   double  **ey;      //  ""
   double  **hz;      //  ""
+  double  *hzy;      // PML split-field
 
+  double  **caex;
+  double  **cbex;
+  double  **caey;
+  double  **cbey;
   double  **dahz;    // in pml regions this holds dahzx
   double  **dbhz;
-
-  double  *hGrad1;    // pml coefficients
-  double  *eGrad1;
-  double  *hGrad2;
-  double  *eGrad2;
-  double  *hGrad3;
-  double  *eGrad3;
-  double  *sGrad1;    // pml coefficients
-  double  *bGrad1;
-  double  *sGrad2;
-  double  *bGrad2;
-  double  *sGrad3;
-  double  *bGrad3;
-  double  *bGrad4;
-
-  // PML fields:
-  double  *pmlSx; // x electric field
-  double  *pmlSy; // y
-  double  *pmlTz; // z magnetic (analogous to S, but for H)
-  double  *pmlSxOld;
-  double  *pmlSyOld;
-  double  *pmlTzOld;
+  double  *dahzy;
+  double  *dbhzy;
 
   // Values for Critical-Point Lorentz materials:
   int number_poles;
@@ -95,16 +80,11 @@ struct Grid {
   double  ***c4Grid;
   double  ***c5Grid;
 
-  double  *rx;
-  double  *rxOld;
-  double  *rxOld2;
-  double  *ry;
-  double  *ryOld;
-  double  *ryOld2;
-  double  *bz;
-  double  *bzOld;
-  double  *bzOld2;
-
+  // Drude Material data:
+  double  **pxDrude;
+  double  **pyDrude;
+  double  **d1Grid;
+  double  **d2Grid;
 
   double  **exOld;    // Matrix to store old Ex values for Drude metals
   double  **eyOld;    // "" Ey values

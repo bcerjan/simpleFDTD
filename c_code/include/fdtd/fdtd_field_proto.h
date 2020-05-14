@@ -23,11 +23,7 @@
 #include "fdtd_grid.h"
 
 void StoreFields(struct Grid *g);
-void BFieldUpdate(struct Grid *g);
 void HFieldUpdate(struct Grid *g);
-void RFieldUpdate(struct Grid *g);
-void PPMLFieldUpdate(struct Grid *g);
-void SFieldUpdate(struct Grid *g);
 void EFieldUpdate(struct Grid *g);
 void PFieldUpdate(struct Grid *g);
 

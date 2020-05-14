@@ -24,6 +24,7 @@
 
 // Main Region Fields:
 #define HzG(G) G->hz
+#define HzyG(G) G->hzy
 #define DahzG(G) G->dahz
 #define DbhzG(G) G->dbhz
 
@@ -32,36 +33,14 @@
 #define EyG(G) G->ey
 
 // PML Coefficients
-#define HGrad1G(G) G->hGrad1
-#define EGrad1G(G) G->eGrad1
-#define HGrad2G(G) G->hGrad2
-#define EGrad2G(G) G->eGrad2
-#define HGrad3G(G) G->hGrad3
-#define EGrad3G(G) G->eGrad3
-#define SGrad1G(G) G->sGrad1
-#define BGrad1G(G) G->bGrad1
-#define SGrad2G(G) G->sGrad2
-#define BGrad2G(G) G->bGrad2
-#define SGrad3G(G) G->sGrad3
-#define BGrad3G(G) G->bGrad3
-#define BGrad4G(G) G->bGrad4
-
-#define PmlSxG(G) G->pmlSx
-#define PmlSyG(G) G->pmlSy
-#define PmlTzG(G) G->pmlTz
-#define PmlSxOldG(G) G->pmlSxOld
-#define PmlSyOldG(G) G->pmlSyOld
-#define PmlTzOldG(G) G->pmlTzOld
-
-#define RxG(G) G->rx
-#define RxOldG(G) G->rxOld
-#define RxOld2G(G) G->rxOld2
-#define RyG(G) G->ry
-#define RyOldG(G) G->ryOld
-#define RyOld2G(G) G->ryOld2
-#define BzG(G) G->bz
-#define BzOldG(G) G->bzOld
-#define BzOld2G(G) G->bzOld2
+#define CaexG(G) G->caex
+#define CbexG(G) G->cbex
+#define CaeyG(G) G->caey
+#define CbeyG(G) G->cbey
+#define DahzG(G) G->dahz
+#define DbhzG(G) G->dbhz
+#define DahzyG(G) G->dahzy
+#define DbhzyG(G) G->dbhzy
 
 // Constants:
 #define xSizeG(G) G->xSize
@@ -103,6 +82,12 @@
 #define C4GridG(G) G->c4Grid
 #define C5GridG(G) G->c5Grid
 
+// Drude Material Data:
+#define PxDrudeG(G) G->pxDrude
+#define PyDrudeG(G) G->pyDrude
+#define D1GridG(G) G->d1Grid
+#define D2GridG(G) G->d2Grid
+
 // Values for tracking DFT:
 #define ReflXPosG(G) G->reflXPos
 #define TranXPosG(G) G->tranXPos
@@ -139,6 +124,7 @@
 // Now we assume that our grid will be called 'g'
 
 #define hz HzG(g)
+#define hzy HzyG(g)
 #define dahz DahzG(g)
 #define dbhz DbhzG(g)
 
@@ -147,26 +133,15 @@
 #define ey EyG(g)
 
 // PML Coefficients
-#define hGrad1 HGrad1G(g)
-#define eGrad1 EGrad1G(g)
-#define hGrad2 HGrad2G(g)
-#define eGrad2 EGrad2G(g)
-#define hGrad3 HGrad3G(g)
-#define eGrad3 EGrad3G(g)
-#define sGrad1 SGrad1G(g)
-#define bGrad1 BGrad1G(g)
-#define sGrad2 SGrad2G(g)
-#define bGrad2 BGrad2G(g)
-#define sGrad3 SGrad3G(g)
-#define bGrad3 BGrad3G(g)
-#define bGrad4 BGrad4G(g)
+#define caex CaexG(g)
+#define cbex CbexG(g)
+#define caey CaeyG(g)
+#define cbey CbeyG(g)
+#define dahz DahzG(g)
+#define dbhz DbhzG(g)
+#define dahzy DahzyG(g)
+#define dbhzy DbhzyG(g)
 
-#define pmlSx PmlSxG(g)
-#define pmlSy PmlSyG(g)
-#define pmlTz PmlTzG(g)
-#define pmlSxOld PmlSxOldG(g)
-#define pmlSyOld PmlSyOldG(g)
-#define pmlTzOld PmlTzOldG(g)
 
 // Constants:
 #define xSize xSizeG(g)
@@ -208,15 +183,11 @@
 #define c4Grid C4GridG(g)
 #define c5Grid C5GridG(g)
 
-#define rx RxG(g)
-#define rxOld RxOldG(g)
-#define rxOld2 RxOld2G(g)
-#define ry RyG(g)
-#define ryOld RyOldG(g)
-#define ryOld2 RyOld2G(g)
-#define bz BzG(g)
-#define bzOld BzOldG(g)
-#define bzOld2 BzOld2G(g)
+// Drude Material Data:
+#define pxDrude PxDrudeG(g)
+#define pyDrude PyDrudeG(g)
+#define d1Grid D1GridG(g)
+#define d2Grid D2GridG(g)
 
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)
