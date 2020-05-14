@@ -39,13 +39,17 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, -1, 100.0, 100.0, 1.0, 0.0); // First int for metal, second for object shape
+  InitializeFdtd(g, 0, 0, 100.0, 100.0, 1.0, 0.0); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
 
-
-  printf("AbsMax c3Sum: %.17g\n", AbsArrayMax(c3Sum,xSize,ySize));
-  printf("AbsMax c4Sum: %.17g\n", AbsArrayMax(c4Sum,xSize,ySize));
-  printf("AbsMax c5Sum: %.17g\n", AbsArrayMax(c5Sum,xSize,ySize));
+  printf("AbsMax d1Grid: %.17g\n", AbsArrayMax(d1Grid,xSize,ySize));
+  printf("AbsMax d2Grid: %.17g\n", AbsArrayMax(d2Grid,xSize,ySize));
+  printf("d1Grid[object]: %.17g\n", d1Grid[xSize - 38][133]);
+  printf("d2Grid[object]: %.17g\n", d2Grid[xSize - 38][133]);
+  /*printf("AbsMax caey: %.17g\n", AbsArrayMax(caey,xSize,ySize));
+  printf("AbsMax cbey: %.17g\n", AbsArrayMax(cbey,xSize,ySize));
+  printf("AbsMax dahz: %.17g\n", AbsArrayMax(dahz,xSize,ySize));
+  printf("AbsMax dbhz: %.17g\n", AbsArrayMax(dbhz,xSize,ySize));*/
   printf("---------------------\n");
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -58,32 +62,29 @@ int main() {
 
     StoreFields(g);
     //printf( "Fields Stored\n" );
-    RFieldUpdate(g);
-    //printf( "R Updated\n" );
-    PPMLFieldUpdate(g);
-    //printf( "P PML Updated\n" );
-    SFieldUpdate(g);
-    //printf( "S Updated\n" );
+    HFieldUpdate(g);
+    //printf( "H Updated\n" );
     EFieldUpdate(g);
     //printf( "E Updated\n" );
     PFieldUpdate(g);
     //printf( "P Updated\n" );
-    BFieldUpdate(g);
-    //printf( "B Updated\n" );
-    HFieldUpdate(g);
-    //printf( "H Updated\n" );
+
     lineSource(g, xSource, n);
 
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
-    if( n % 5 == 0 ){
+    if( n % 1 == 0 ){
     printf("n: %i\n",n);
-    printf("AbsMax py: %.17g\n", AbsArrayMax(py[0],xSize,ySize));
-    printf("AbsMax ry: %.17g\n", AbsVectorMax(ry,9056));
-    printf("AbsMax bz: %.17g\n", AbsVectorMax(bz,9056));
+
+    /*printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+    printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
     printf("AbsMax c1SumY: %.17g\n", AbsArrayMax(c1SumY,xSize,ySize));
     printf("AbsMax c2SumY: %.17g\n", AbsArrayMax(c2SumY,xSize,ySize));
-    printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+    printf("AbsMax c3Sum: %.17g\n", AbsArrayMax(c3Sum,xSize,ySize));
+    printf("AbsMax c4Sum: %.17g\n", AbsArrayMax(c4Sum,xSize,ySize));
+    printf("AbsMax c5Sum: %.17g\n", AbsArrayMax(c5Sum,xSize,ySize));*/
+    printf("ey[object]: %.17g\n", ey[xSize - 38][133]);
+    printf("pyDrude[object]: %.17g\n", pyDrude[xSize - 38][133]);
     //printf("AbsMax sy: %.17g\n", AbsVectorMax(pmlSy,9056));
     //printf("AbsMax tz: %.17g\n", AbsVectorMax(pmlTz,9056));
     printf("---------------------\n");}

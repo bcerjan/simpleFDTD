@@ -51,14 +51,10 @@ void iterateSimulation(struct Grid *g) {
     if (timeStep < 1) {
       imageInit(g);
     } /* timeStep if Block */
-    printf("Loop step: %i\timeStep",timeStep);
+    //printf("Loop step: %i\timeStep",timeStep);
     StoreFields(g);
-    RFieldUpdate(g);
-    PPMLFieldUpdate(g);
-    SFieldUpdate(g);
     EFieldUpdate(g);
     PFieldUpdate(g);
-    BFieldUpdate(g);
     HFieldUpdate(g);
 
 
