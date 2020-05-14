@@ -44,8 +44,8 @@
 #ifndef MATERIAL_DATA
 #define MATERIAL_DATA
 
-// Maximumum number of poles we'll eveer potentially need
-#define MAX_POLES (12)
+// Maximumum number of poles we'll ever potentially need
+#define MAX_POLES (8)
 
 struct cpParams {
   double bigA;
@@ -59,6 +59,8 @@ struct Material {
   double epsInf;
   double permeability;
   double conductivity;
+  double drudePlasma;
+  double drudeDamping;
   struct cpParams params[MAX_POLES];
 };
 
@@ -66,23 +68,71 @@ struct Material {
 
 static const struct Material materialData[5] = {
   { //0, Al, Cheng 2016
-    .num_poles = 2,
-    .epsInf = 4.1,
+    .num_poles = 3,
+    .epsInf = 504.939,
     .permeability = 1.0,
     .conductivity = 1.0e12,
+    .drudePlasma = 20.064e14,
+    .drudeDamping = 2.48281e14,
     .params[0] = {
-      .bigA = 2.0,
-      .Omega = 1.0,
-      .phi = 0.01,
-      .Gamma = -0.5,
+      .bigA = 223.167,
+      .Omega = 27.1198e14,
+      .phi = -6.15405,
+      .Gamma = 2.11272e9,
     },
     .params[1] = {
-      .bigA = 20.0,
-      .Omega = 10.0,
-      .phi = 00.01,
-      .Gamma = -0.05,
+      .bigA = 470.935,
+      .Omega = 35.9801e14,
+      .phi = -3.04908,
+      .Gamma = 3.87203e9,
+    },
+    .params[2] = {
+      .bigA = 1.84289,
+      .Omega = 3.45883e14,
+      .phi = -1.19693,
+      .Gamma = 0.475579e14,
     }
-  }
+  },
+  { //2, Au, Calculated
+    .num_poles = 2,
+    .epsInf = 1.11781,
+    .permeability = 1.0,
+    .conductivity = 1.0e12,
+    .drudePlasma = 13.1839e15,
+    .drudeDamping = 0.109093e15,
+    .params[0] = {
+      .bigA = 3.0392,
+      .Omega = 4.20979e15,
+      .phi = -1.09027,
+      .Gamma = 2.35485e15,
+    },
+    .params[1] = {
+      .bigA = 0.273624,
+      .Omega = 3.88228e15,
+      .phi = -0.412269,
+      .Gamma = 0.452509e15,
+    },
+  },
+  { //2, Ag, Calculated
+    .num_poles = 2,
+    .epsInf = 2.17741,
+    .permeability = 1.0,
+    .conductivity = 1.0e12,
+    .drudePlasma = 14.4203e15,
+    .drudeDamping = 0.0262676e15,
+    .params[0] = {
+      .bigA = 0.855074,
+      .phi = -0.175086,
+      .Omega = 7.77823e15,
+      .Gamma = 2.0376e15
+    },
+    .params[1] = {
+      .bigA = 0.193194,
+      .phi = -1.29864,
+      .Omega = 6.17219e15,
+      .Gamma = 0.409247e15
+    },
+  },
 };
 
 #endif
