@@ -30,14 +30,14 @@ int main() {
   printf( "Started main...\n" );
 
   double exmax, exmin, eymax, eymin, jymax;
-  double environmentIndex = 1.5;
+  double environmentIndex = 1.0;
   //struct Grid *g = malloc(sizeof(struct Grid));
   struct Grid *g;
   g = AllocateGridMemory();
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, 1, 200.0, 20000.0, environmentIndex, 2.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 0, -1, 100.0, 100.0, environmentIndex, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -45,24 +45,25 @@ int main() {
   int n;
   int outInterval = 0;
 
-  for (n = 0; n < maximumIteration; n++) {
-  //for (n = 0; n < 25; n++) {
-    HFieldUpdate(g, n);
+  //for (n = 0; n < maximumIteration; n++) {
+  for (n = 0; n < 5; n++) {
+    StoreFields(g);
+    HFieldUpdate(g);
     EFieldUpdate(g);
-    JFieldUpdate(g);
-    lineSource(g, ABCSIZECONSTANT + 20, n);
+    PFieldUpdate(g);
+    lineSource(g, xSource, n);
     //lineSource(g, xSize/2, n);
     //printf("ey at right edge: %f\n", ey[xSize - 10][ySize/2]);
     //printf("hz at right edge: %f\n----\n", hz[xSize - 10][ySize/2]);
     DFTUpdate(g, n);
 
-    /*
+/*
     char tranEyFilename[100] = "test_output/structure_tran_raw_ey.h";
     FILE *tranEyDataPtr;
 
     // Write to header file for use later
     tranEyDataPtr = fopen(tranEyFilename, "a");
-    fprintf(tranEyDataPtr, "%.17g,\n", ey[tranXPos][75]);
+    fprintf(tranEyDataPtr, "%.17g,\n", ey[tranXPos][100]);
     fclose(tranEyDataPtr);
 
     char reflEyFilename[100] = "test_output/structure_refl_raw_ey.h";
@@ -70,7 +71,7 @@ int main() {
 
     // Write to header file for use later
     reflEyDataPtr = fopen(reflEyFilename, "a");
-    fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][75]);
+    fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][100]);
     fclose(reflEyDataPtr);
 
     char tranHzFilename[100] = "test_output/structure_tran_raw_hz.h";

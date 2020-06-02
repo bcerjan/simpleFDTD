@@ -158,7 +158,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     media = MEDIACONSTANT;        // number of different medias, ie 2: vacuum, metallicCylinder
 
     refractiveIndexIndex = getIndexIndex(environmentIndex);
-
+    printf("refractiveIndexIndex %i\n", refractiveIndexIndex);
     // Number of poles in our dielectric function
     if (metalChoice > -1 && objectChoice > -1) {
       number_poles = materialData[metalChoice].num_poles;

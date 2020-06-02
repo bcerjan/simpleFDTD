@@ -67,7 +67,7 @@ struct Material {
 
 
 
-static const struct Material materialData[5] = {
+static const struct Material materialData[6] = {
   { //0, Al, Vial, 2011
     .num_poles = 2,
     .epsInf = 1.0,

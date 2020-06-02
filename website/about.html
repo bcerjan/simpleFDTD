@@ -12,6 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
+    <!-- MathJax for Equations -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+
     <title>About simpleFDTD</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
@@ -103,14 +106,29 @@
 
     <br>
 
-    <h1 class="display-4" id="drudeMetals">Metal Dielectric Functions</h1>
-    <p>This code uses a <a href="https://en.wikipedia.org/wiki/Drude_model">Drude
-      model</a> to model the dielectric properties of metals. While it does account
-      for loss in the metal, it <i>does not</i> account for interband transitions.
-      This means that results for gold and copper below about ~550 nm are not
-      to be trusted as the light starts getting absorbed. Similarly, right around
-      800 nm aluminum has a transition and so it is not accurate at the very end
-      of the reported spectrum.   
+    <h1 class="display-4" id="dielectricFunction">Metal Dielectric Functions</h1>
+    <p>This code uses a critical points model for the dielectric function of
+      materials. The general form of the dielectric function is:
+      $$
+        \epsilon_{r}(\omega) = \epsilon_{\infty} - \frac{\omega_{D}^{2}}{i \gamma \omega + \omega^{2}}
+        + \sum_{p=1}^{N} A_{p} \Omega_{p} \left( \frac{e^{-i \phi_{p}}}{\Omega_{p} + \omega + i \Gamma_{p}}
+        + \frac{e^{i \phi_{p}}}{\Omega_{p} - \omega - i \Gamma_{p}} \right) ,
+      $$
+      where \(\epsilon_{\infty}\) is the infinite-frequency permittivity of the
+      material; \(\omega_{D}\) and \(\gamma\) are the Drude frequency and damping;
+      and \( A_{p}, \Omega_{p}, \phi_{p},\) and \( \Gamma_{p} \) are
+      parameters for each critical point in the approximation with \(N\) terms.
+      \(\Omega_{p}\) specifies the frequency of the critical point, \(\Gamma_{p}\)
+      its damping, \(A_{p}\) is the magnitude of the response, while \(\phi_{p}\)
+      is the phase of the resonance.
+    </p>
+
+    <p>
+      Physically, each critical point term corresponds to things like interband
+      transitions and allows highly complex dielectric functions to be represented.
+      Each additional critical point term noticeably slows down the simulation
+      (as is evidenced by the difference in speed between Silica and any of the metals).
+
      </p>
 
     <br>

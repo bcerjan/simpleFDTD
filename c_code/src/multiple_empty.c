@@ -42,10 +42,10 @@ int main() {
   int outInterval = 0;
   double backInd, temp;
   // Divide by 10 to get actual background refractive index
-  //int minInd = 10;
-  //int maxInd = 40 + 1; // +1 is so you can write the max index you actually want
   int minInd = 10;
-  int maxInd = 12;
+  int maxInd = 40 + 1; // +1 is so you can write the max index you actually want
+  //int minInd = 10;
+  //int maxInd = 12;
   int numInd = maxInd - minInd;
   struct AuxIndexFields *Fields = malloc(sizeof(struct AuxIndexFields));
 
@@ -72,13 +72,11 @@ int main() {
 
     // Run simulation loop for this background index:
     for (n = 0; n < maximumIter; n++) {
-      PFieldUpdate(g);
-      RFieldUpdate(g);
-      SFieldUpdate(g);
-      EFieldUpdate(g);
-      BFieldUpdate(g);
+
+      StoreFields(g);
       HFieldUpdate(g);
-      PMLFieldUpdate(g);
+      EFieldUpdate(g);
+      PFieldUpdate(g);
 
       lineSource(g, xSource, n);
       //printf("ey at src: %f\n", ey[20][25]);
@@ -103,7 +101,7 @@ int main() {
       Fields->nImHz[i][j] = imHzReflDFT[j][ySize/2];
     } /* jForLoop */
 
-    printf( "Finished index loop\n" );
+    printf( "Finished index loop: %i\n", i );
 
     freeGrid(g);
   } /* iForLoop */
