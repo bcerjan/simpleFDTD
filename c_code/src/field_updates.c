@@ -20,183 +20,164 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <complex.h>
 #include "empty_refl_data.h"
 #include "empty_tran_data.h"
 #include "fdtd_macro.h"
 #include "fdtd_proto.h"
 
 
-/* Function to store R, S, and P fields at the top of each timestep: */
-void StoreFields (struct Grid *g) {
-  int i,j,p;
 
+/* Implementations of Thomas Algorithm for solving Tridiagonal System
+ *
+ * We use this here to do the left-hand side of each field update equation for
+ * a given field component and derivative direction.
+ */
 
-  /* Store Px / Py */
-  for (p = 0; p < number_poles; p++) {
-    for (i = 0; i < xSize; i++) {
-      for (j = 0; j < ySize; j++) { // j=0 -> pec
-        pxOld2[p][i][j] = pxOld[p][i][j]; // Px at n - 1
-        pxOld[p][i][j] = px[p][i][j]; // Px at n
-        pyOld2[p][i][j] = pyOld[p][i][j]; // Py at n - 1
-        pyOld[p][i][j] = py[p][i][j]; // Py at n
-      } /* jForLoop */
-    } /* iForLoop */
-  } /* pForLoop */
+/* As the equations are not symmetric (they are cyclic), each update gets its
+ * own function.
+ * Inputs:
+ * g = Grid struct that holds constants
+ * i,j = int for where in the grid we are computing (either one row or one column)
+ * d = Right-hand side of the update equation (d in the Thomas algorithm),
+ *     size of xSize or ySize (depending on which one is needed)
+ */
 
-  return;
+void exTriDiagonalSolve(struct Grid *g, int i, double *d /* d[ySize] */) {
+  if (i == 0) { // Is PEC, so the field here never changes anyway
+    return;
+  } else {
+    int k; // Thomas algorithm tracker
+    double *cPrime = AllocateMemory1D(ySize, 0.0);
+    double *dPrime = AllocateMemory1D(ySize, 0.0);
+    // Set j = 0 term:
+    cPrime[0] = c[i][0]/b[i][0];
+    dPrime[0] = d[0]/b[i][0];
+    for (k = 1; k < ySize; k++) {
+      cPrime[k] = c[i][k]/(b[i][k] - a[i][k]*cPrime[k-1]);
+      dPrime[k] = (d[k] - a[i][k]*dPrime[k-1]) / (b[i][k] - a[i][k]*cPrime[k-1]);
+    }
+
+    // Set j = ySize - 1 term:
+    ex[i][ySize-1] = dPrime[ySize-1];
+    for (k = ySize-2; k > -1; k--){
+      ex[i][k] = dPrime[k] - cPrime[k]*ex[i][k+1];
+    }
+
+    free(cPrime);
+    free(dPrime);
+
+    return;
+  }
+}
+
+void hzTriDiagonalSolve(struct Grid *g, int j, double *d /* d[xSize] */) {
+  if (j == 0) { // Is PEC, so the field here never changes anyway
+    return;
+  } else {
+    int k; // Thomas algorithm tracker
+    double *cPrime = AllocateMemory1D(xSize, 0.0);
+    double *dPrime = AllocateMemory1D(xSize, 0.0);
+    // Set j = 0 term:
+    cPrime[0] = c[0][j]/b[0][j];
+    dPrime[0] = d[0]/b[0][j];
+    for (k = 1; k < xSize; k++) {
+      cPrime[k] = c[k][j]/(b[k][j] - a[k][j]*cPrime[k-1]);
+      dPrime[k] = (d[k] - a[k][j]*dPrime[k-1]) / (b[k][j] - a[k][j]*cPrime[k-1]);
+    }
+
+    // Set i = ySize - 1 term:
+    hz[xSize-1][j] = dPrime[xSize-1];
+    for (k = ySize-2; k > -1; k--){
+      hz[k][j] = dPrime[k] - cPrime[k]*hz[k+1][j];
+    }
+
+    free(cPrime);
+    free(dPrime);
+
+    return;
+  }
 }
 
 void EFieldUpdate (struct Grid *g) {
-  int i,j,xStart,xStop,yStart,yStop,regionIndex;
-
-  xStart = regionData[0].xStart;
-  xStop  = regionData[0].xStop ;
-  yStart = regionData[0].yStart;
-  yStop  = regionData[0].yStop ;
-
+  int i,j;
+  double *d = AllocateMemory1D(ySize, 0.0);
   // See Prokopidis and Zografopoulos eq. 30
 
-  /* First, Update in Main Grid: */
-  for (i = xStart; i < xStop; i++) {
-    for (j = yStart; j < yStop; j++) {
-      exOld2[i][j] = exOld[i][j]; // E at n - 1
-      exOld[i][j] = ex[i][j]; // Store previous field for polarization (E at n)
 
-      ex[i][j] = ( cbex[i][j] * (hz[i][j] - hz[i][j-1]) + \
-        (1.0/c3Sum[i][j])*(c4Sum[i][j] * ex[i][j] - c5Sum[i][j] * exOld2[i][j] - \
-        (d1Grid[i][j] - 1.0)*pxDrude[i][j] - c1SumX[i][j] - c2SumX[i][j]) ); // E at n + 1
+  for (i = 0; i < xSize; i++) {
+    for (j = 1; j < ySize; j++) {
+      exOld[i][j] = ex[i][j]; // Store previous field
 
+      d[j] = iConst2[i][j]*ex[i][j] - ABConst[i][j]*(ex[i][j+1] - 2*ex[i][j] + ex[i][j-1]) + \
+             ehConst[i][j]*(hz[i][j+1]-hz[i][j]) - eqConst[i][j]*qxSum[i][j];
+    }
+    exTriDiagonalSolve(g,i,d);
+  }
 
-      eyOld2[i][j] = eyOld[i][j];
-      eyOld[i][j] = ey[i][j]; // Store previous field for polarization current
+  for (i = 0; i < xSize; i++) {
+    for (j = 0; j < ySize; j++) {
+      eyOld[i][j] = ey[i][j]; // Store previous field
 
-      ey[i][j] = ( cbey[i][j] * (hz[i-1][j] - hz[i][j]) + \
-        (1.0/c3Sum[i][j])*(c4Sum[i][j] * ey[i][j] - c5Sum[i][j] * eyOld2[i][j] - \
-        (d1Grid[i][j] - 1.0)*pyDrude[i][j] - c1SumY[i][j] - c2SumY[i][j]) );
+      // As Ey update depends on d/dz (which is 0 in 2D), we don't need to tri-Diagonal Solve
+      // The AB term has z-derivatives which are 0 in our 2D scheme
+      ey[i][j] = (iConst2[i][j]*ex[i][j] + \
+                 ehConst[i][j]*(hz[i+1][j]-hz[i][j]) - \
+                 eqConst[i][j]*qySum[i][j]) / (iConst1[i][j]);
+
+                 // Might need divide by iConst1 + ABConst depending on if
+                 // ey is 0 at +/- z direction or is the same as in our plane
+
+      //eyTriDiagonalSolve(g,i,j,temp);
 
     } /* jForLoop */
   } /* iForLoop */
 
-  /* Update Ex in PML */
-  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
-    xStart = regionData[regionIndex].xStart;
-    xStop  = regionData[regionIndex].xStop ;
-    yStart = regionData[regionIndex].yStart;
-    yStop  = regionData[regionIndex].yStop ;
-    if (yStart == 0) { // as j = 0 is PEC
-      yStart++;
-    }
-    for (i = xStart; i < xStop; i++) {
-      for (j = yStart; j < yStop; j++) {
-        ex[i][j] = cbex[i][j] * (hz[i][j] - hz[i][j-1]) + \
-          caex[i][j]*ex[i][j];
-      } /* jForLoop */
-    } /* iForLoop */
-  } /* region forLoop */
-
-  /* Update Ey in PML */
-  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
-    xStart = regionData[regionIndex].xStart;
-    xStop  = regionData[regionIndex].xStop ;
-    yStart = regionData[regionIndex].yStart;
-    yStop  = regionData[regionIndex].yStop ;
-    if (xStart == 0) { // As i = 0 is PEC
-      xStart++;
-    }
-    for (i = xStart; i < xStop; i++) {
-      for (j = yStart; j < yStop; j++) {
-        ey[i][j] = cbey[i][j] * (hz[i-1][j] - hz[i][j]) + \
-          caey[i][j]*ey[i][j];
-      } /* jForLoop */
-    } /* iForLoop */
-  } /* region forLoop */
-
+  free(d);
   return;
 }
 
-// Update Px/Py in main grid:
-void PFieldUpdate (struct Grid *g) { // I know, it's not actually a field, it's the polarization.
-  int i,j,p,xStop,xStart,yStop,yStart;
-  xStart = regionData[0].xStart;
-  xStop  = regionData[0].xStop ;
-  yStart = regionData[0].yStart;
-  yStop  = regionData[0].yStop ;
+// Update Qx/Qy:
+void QFieldUpdate (struct Grid *g) { // I know, it's not actually a field
+  int i,j,p;
 
-  /* Drude Term: */
-  for (i = xStart; i < xStop; i++) {
-    for (j = yStart; j < yStop; j++) {
-      pxDrude[i][j] = d1Grid[i][j]*pxDrude[i][j] - d2Grid[i][j]*(ex[i][j]+exOld[i][j]);
-      pyDrude[i][j] = d1Grid[i][j]*pyDrude[i][j] - d2Grid[i][j]*(ey[i][j]+eyOld[i][j]);
-    } /* iForLoop */
-  } /* jForLoop */
-
-  /* C-P Terms: */
   for (p = 0; p < number_poles; p++) {
-    for (i = xStart; i < xStop; i++) {
-      for (j = yStart; j < yStop; j++) { // i=0 = pec, so don't evaluate
-        px[p][i][j] = c1Grid[p][i][j]*px[p][i][j] + \
-         c2Grid[p][i][j]*pxOld2[p][i][j] + c3Grid[p][i][j]*ex[i][j] + \
-         c4Grid[p][i][j]*exOld[i][j] + c5Grid[p][i][j]*exOld2[i][j];
+    for (i = 0; i < xSize; i++) {
+      for (j = 0; j < ySize; j++) { // i=0 = pec, so don't evaluate
+        // Reset sums so they don't just continuously increment:
+        if (p == 0) {
+          qxSum[i][j] = 0.0 + 0.0*I;
+          qySum[i][j] = 0.0 + 0.0*I;
+        }
 
-         py[p][i][j] = c1Grid[p][i][j]*py[p][i][j] + \
-          c2Grid[p][i][j]*pyOld2[p][i][j] + c3Grid[p][i][j]*ey[i][j] + \
-          c4Grid[p][i][j]*eyOld[i][j] + c5Grid[p][i][j]*eyOld2[i][j];
-
-         if( p < 1 ) { // since we need to reset from previous time steps
-           c1SumX[i][j] = (c1Grid[p][i][j] - 1.0)*px[p][i][j];
-           c2SumX[i][j] = c2Grid[p][i][j]*pxOld2[p][i][j];
-           c1SumY[i][j] = (c1Grid[p][i][j] - 1.0)*py[p][i][j];
-           c2SumY[i][j] = c2Grid[p][i][j]*pyOld2[p][i][j];
-         } else { // Now we're doing our running sum:
-           c1SumX[i][j] += (c1Grid[p][i][j] - 1.0)*px[p][i][j];
-           c2SumX[i][j] += c2Grid[p][i][j]*pxOld2[p][i][j];
-           c1SumY[i][j] += (c1Grid[p][i][j] - 1.0)*py[p][i][j];
-           c2SumY[i][j] += c2Grid[p][i][j]*pyOld2[p][i][j];
-         } /* ifBlock */
+        qx[p][i][j] = qConst1[p][i][j]*qx[p][i][j] + qConst2[p][i][j]*(ex[i][j]+exOld[i][j]);
+        qy[p][i][j] = qConst1[p][i][j]*qy[p][i][j] + qConst2[p][i][j]*(ey[i][j]+eyOld[i][j]);
+        // Accumulate sums
+        qxSum[i][j] += creal(qx[p][i][j]);
+        qySum[i][j] += creal(qy[p][i][j]);
       } /* jForLoop */
     } /* iForLoop */
   } /* pForLoop */
+
   return;
 }
 
 
 /* Update H both in main grid and PML */
 void HFieldUpdate (struct Grid *g) {
-  int i,j,xStart,xStop,yStart,yStop,regionIndex,boundaryIndex;
-  double hzx;
+  int i,j;
+  double *d = AllocateMemory1D(xSize, 0.0);
 
-  xStart = regionData[0].xStart;
-  xStop  = regionData[0].xStop ;
-  yStart = regionData[0].yStart;
-  yStop  = regionData[0].yStop ;
-
-  /* Update Hz in Main Grid */
-
-  for (i = xStart; i < xStop; i++) {
-    for (j = yStart; j < yStop; j++) {
-      hz[i][j] = dahz[i][j] * hz[i][j] + dbhz[i][j] * ( ex[i][j+1] - ex[i][j] + ey[i][j] - ey[i+1][j] ); // Hz at n+1/2
-    } /* jForLoop */
-  } /* iForLoop */
-
-  /* Update Hz in PML */
-  boundaryIndex = 0;
-  for (regionIndex = 1; regionIndex < NUMBEROFREGIONS; regionIndex++) {
-    xStart = regionData[regionIndex].xStart;
-    xStop  = regionData[regionIndex].xStop ;
-    yStart = regionData[regionIndex].yStart;
-    yStop  = regionData[regionIndex].yStop ;
-    for (i = xStart; i < xStop; i++) {
-      for (j = yStart; j < yStop; j++) {
-
-        hzx = hz[i][j] - hzy[boundaryIndex];   // extract hzx
-        hzx = dahz[i][j] * hzx + dbhz[i][j] * ( ey[i][j] - ey[i+1][j] );    // dahz,dbhz holds dahzx,dbhzx
-        hzy[boundaryIndex] = dahzy[boundaryIndex] * hzy[boundaryIndex] + dbhzy[boundaryIndex] * ( ex[i][j+1] - ex[i][j] );
-        hz[i][j] = hzx +  hzy[boundaryIndex];  // update hz
-
-        boundaryIndex++;
-      } /* jForLoop */
+  for (j = 0; j < ySize; j++) { // THE ORDER HERE IS BACKWARDS. There might be a better way as this is an inefficient way to access these elements
+    for (i = 1; i < xSize; i++) {
+      d[i] = hz[i][j] - ABConst[i][j]*(hz[i+1][j] - 2*hz[i][j] + hz[i-1][j]) + \
+             heConst[i][j]*((ex[i][j+1] - ex[i][j]) - (ey[i+1][j] - ey[i][j])); // INCORRECT YEE LATTICE HERE MAYBE (maybe not...?)
+             // This also assume magnetic permeability = 1
     } /* iForLoop */
-  } /* region forLoop */
+    hzTriDiagonalSolve(g,j,d); // Now do the tri-diagonal solving
+  } /* jForLoop */
+
+  free(d);
   return;
 }
 

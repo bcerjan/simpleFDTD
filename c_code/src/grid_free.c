@@ -19,6 +19,7 @@
 
 #include "fdtd_macro.h"
 #include <stdlib.h>
+#include <complex.h>
 
 
 void freeDoublePtr(double **ptr, int imax) {
@@ -41,49 +42,53 @@ void freeTriplePtr(double ***ptr, int imax, int jmax) {
   return;
 }
 
+void freeComplexDoublePtr(complex double **ptr, int imax) {
+  int i;
+  for (i = 0; i < imax; i++) {
+    free(ptr[i]);
+  } /* iForLoop */
+
+  free(ptr);
+
+  return;
+}
+
+void freeComplexTriplePtr(complex double ***ptr, int imax, int jmax) {
+  int i;
+  for (i = 0; i < imax; i++) {
+    freeComplexDoublePtr(ptr[i],jmax);
+  }
+  free(ptr);
+  return;
+}
+
 void freeGrid(struct Grid *g) {
   // First, free all arrays:
   freeDoublePtr(ex, xSize);
   freeDoublePtr(ey, xSize + 1);
-  freeDoublePtr(hz, xSize);
-  freeDoublePtr(caex, xSize);
-  freeDoublePtr(cbex, xSize);
-  freeDoublePtr(caey, xSize);
-  freeDoublePtr(cbey, xSize);
-  freeDoublePtr(dahz, xSize);
-  freeDoublePtr(dbhz, xSize);
+  freeDoublePtr(hz, xSize + 1);
 
-  freeDoublePtr(c1SumX, xSize);
-  freeDoublePtr(c2SumX, xSize);
-  freeDoublePtr(c1SumY, xSize);
-  freeDoublePtr(c2SumY, xSize);
-  freeDoublePtr(c3Sum, xSize);
-  freeDoublePtr(c4Sum, xSize);
-  freeDoublePtr(c5Sum, xSize);
+  freeDoublePtr(heConst, xSize);
+  freeDoublePtr(ehConst, xSize);
+  freeDoublePtr(eqConst, xSize);
+  freeDoublePtr(ABConst, xSize);
+  freeComplexTriplePtr(qConst1, number_poles, xSize);
+  freeComplexTriplePtr(qConst2, number_poles, xSize);
+  freeComplexTriplePtr(qx, number_poles, xSize);
+  freeComplexTriplePtr(qy, number_poles, xSize);
+  freeDoublePtr(qxSum, xSize);
+  freeDoublePtr(qySum, xSize);
+  freeDoublePtr(iConst1, xSize);
+  freeDoublePtr(iConst2, xSize);
 
-  freeDoublePtr(pxDrude, xSize);
-  freeDoublePtr(pyDrude, xSize);
-  freeDoublePtr(d1Grid, xSize);
-  freeDoublePtr(d2Grid, xSize);
-
-  freeTriplePtr(c1Grid, number_poles, xSize);
-  freeTriplePtr(c2Grid, number_poles, xSize);
-  freeTriplePtr(c3Grid, number_poles, xSize);
-  freeTriplePtr(c4Grid, number_poles, xSize);
-  freeTriplePtr(c5Grid, number_poles, xSize);
-
-  freeTriplePtr(px, number_poles, xSize);
-  freeTriplePtr(py, number_poles, xSize);
-  freeTriplePtr(pxOld, number_poles, xSize);
-  freeTriplePtr(pyOld, number_poles, xSize);
-  freeTriplePtr(pxOld2, number_poles, xSize);
-  freeTriplePtr(pyOld2, number_poles, xSize);
-
+  // Tridiagonal values:
+  freeDoublePtr(a, xSize);
+  freeDoublePtr(b, xSize);
+  freeDoublePtr(c, xSize);
 
   freeDoublePtr(exOld, xSize);
   freeDoublePtr(eyOld, xSize + 1);
-  freeDoublePtr(exOld2, xSize);
-  freeDoublePtr(eyOld2, xSize + 1);
+
   freeDoublePtr(e2Field, xSize);
   freeDoublePtr(edgeMat, xSize);
   freeDoublePtr(object_locs, xSize);
@@ -100,11 +105,6 @@ void freeGrid(struct Grid *g) {
   // Now, all individual pointers:
   free(reflDFT);
   free(tranDFT);
-  free(hzOld);
-  free(hzy);
-  free(dahzy);
-  free(dbhzy);
-
 
   // And finally the grid itself:
   free(g);

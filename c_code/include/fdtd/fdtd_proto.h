@@ -20,6 +20,7 @@
 #ifndef FDTD_PROTOTYPES
 #define FDTD_PROTOTYPES
 
+#include <complex.h>
 #include "fdtd_grid.h"
 
 void InitializeFdtd(struct Grid *g, int metalChoice, int objectChoice,
@@ -27,8 +28,13 @@ void InitializeFdtd(struct Grid *g, int metalChoice, int objectChoice,
    double environmentIndex, double objectIndex);
 void freeGrid(struct Grid *g);
 void freeDoublePtr(double **ptr, int imax);
+void freeComplexDoublePtr(complex double **ptr, int imax);
+void freeComplexTriplePtr(complex double **ptr, int imax, int jmax);
+
 double **AllocateMemory(int imax, int jmax, double initialValue);
+complex double **AllocateComplexMemory(int imax, int jmax, complex double initialValue);
 double ***AllocateMemory3D(int imax, int jmax, int kmax, double *initArray);
+complex double ***AllocateComplexMemory3D(int imax, int jmax, int kmax, complex double *initArray);
 double *AllocateMemory1D(int size, double initialValue);
 double *AllocateGridMemory();
 void EvaluateFdtd(struct Grid *g, double minimumValue, double maximumValue);

@@ -24,23 +24,14 @@
 
 // Main Region Fields:
 #define HzG(G) G->hz
-#define HzyG(G) G->hzy
-#define DahzG(G) G->dahz
-#define DbhzG(G) G->dbhz
-
 #define ExG(G) G->ex
-
 #define EyG(G) G->ey
+#define ExOldG(G) G->exOld
+#define EyOldG(G) G->eyOld
 
-// PML Coefficients
-#define CaexG(G) G->caex
-#define CbexG(G) G->cbex
-#define CaeyG(G) G->caey
-#define CbeyG(G) G->cbey
-#define DahzG(G) G->dahz
-#define DbhzG(G) G->dbhz
-#define DahzyG(G) G->dahzy
-#define DbhzyG(G) G->dbhzy
+
+#define QxG(G) G->qx
+#define QyG(G) G->qy
 
 // Constants:
 #define xSizeG(G) G->xSize
@@ -55,38 +46,23 @@
 #define SpeedOfLightG(G) G->speedOfLight
 #define EnvIndexG(G) G->envIndex
 
-// Critical-Point Material Data (Polarization)
+// Update Equation Constants:
+#define HeConstG(G) G->heConst
+#define EhConstG(G) G->ehConst
+#define EqConstG(G) G->eqConst
+#define ABConstG(G) G->ABConst
+#define QConst1G(G) G->qConst1
+#define QConst2G(G) G->qConst2
+#define QxSumG(G) G->qxSum
+#define QySumG(G) G->qySum
+#define IConst1G(G) G->iConst1
+#define IConst2G(G) G->iConst2
 #define Number_polesG(G) G->number_poles
-#define PxG(G) G->px
-#define PyG(G) G->py
-#define PxOldG(G) G->pxOld
-#define PyOldG(G) G->pyOld
-#define PxOld2G(G) G->pxOld2
-#define PyOld2G(G) G->pyOld2
-#define ExOldG(G) G->exOld
-#define EyOldG(G) G->eyOld
-#define ExOld2G(G) G->exOld2
-#define EyOld2G(G) G->eyOld2
-#define HzOldG(G) G->hzOld
 
-#define C1SumXG(G) G->c1SumX
-#define C2SumXG(G) G->c2SumX
-#define C1SumYG(G) G->c1SumY
-#define C2SumYG(G) G->c2SumY
-#define C3SumG(G) G->c3Sum
-#define C4SumG(G) G->c4Sum
-#define C5SumG(G) G->c5Sum
-#define C1GridG(G) G->c1Grid
-#define C2GridG(G) G->c2Grid
-#define C3GridG(G) G->c3Grid
-#define C4GridG(G) G->c4Grid
-#define C5GridG(G) G->c5Grid
-
-// Drude Material Data:
-#define PxDrudeG(G) G->pxDrude
-#define PyDrudeG(G) G->pyDrude
-#define D1GridG(G) G->d1Grid
-#define D2GridG(G) G->d2Grid
+// Tridiagonal values:
+#define AG(G) G->a
+#define BG(G) G->b
+#define CG(G) G->c
 
 // Values for tracking DFT:
 #define ReflXPosG(G) G->reflXPos
@@ -124,24 +100,15 @@
 // Now we assume that our grid will be called 'g'
 
 #define hz HzG(g)
-#define hzy HzyG(g)
-#define dahz DahzG(g)
-#define dbhz DbhzG(g)
-
 #define ex ExG(g)
-
 #define ey EyG(g)
 
-// PML Coefficients
-#define caex CaexG(g)
-#define cbex CbexG(g)
-#define caey CaeyG(g)
-#define cbey CbeyG(g)
-#define dahz DahzG(g)
-#define dbhz DbhzG(g)
-#define dahzy DahzyG(g)
-#define dbhzy DbhzyG(g)
+#define exOld ExOldG(g)
+#define eyOld EyOldG(g)
 
+
+#define qx QxG(g)
+#define qy QyG(g)
 
 // Constants:
 #define xSize xSizeG(g)
@@ -156,38 +123,22 @@
 #define speedOfLight SpeedOfLightG(g)
 #define envIndex EnvIndexG(g)
 
-// Critical Point Materials (Polarization)
+// Update Equation Constants:
+#define heConst HeConstG(g)
+#define ehConst EhConstG(g)
+#define eqConst EqConstG(g)
+#define ABConst ABConstG(g)
+#define qConst1 QConst1G(g)
+#define qConst2 QConst2G(g)
+#define qxSum QxSumG(g)
+#define qySum QySumG(g)
+#define iConst1 IConst1G(g)
+#define iConst2 IConst2G(g)
 #define number_poles Number_polesG(g)
-#define px PxG(g)
-#define py PyG(g)
-#define pxOld PxOldG(g)
-#define pyOld PyOldG(g)
-#define pxOld2 PxOld2G(g)
-#define pyOld2 PyOld2G(g)
-#define exOld ExOldG(g)
-#define eyOld EyOldG(g)
-#define exOld2 ExOld2G(g)
-#define eyOld2 EyOld2G(g)
-#define hzOld HzOldG(g)
-
-#define c1SumX C1SumXG(g)
-#define c2SumX C2SumXG(g)
-#define c1SumY C1SumYG(g)
-#define c2SumY C2SumYG(g)
-#define c3Sum C3SumG(g)
-#define c4Sum C4SumG(g)
-#define c5Sum C5SumG(g)
-#define c1Grid C1GridG(g)
-#define c2Grid C2GridG(g)
-#define c3Grid C3GridG(g)
-#define c4Grid C4GridG(g)
-#define c5Grid C5GridG(g)
-
-// Drude Material Data:
-#define pxDrude PxDrudeG(g)
-#define pyDrude PyDrudeG(g)
-#define d1Grid D1GridG(g)
-#define d2Grid D2GridG(g)
+// Tridiagonal values:
+#define a AG(g)
+#define b BG(g)
+#define c CG(g)
 
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)

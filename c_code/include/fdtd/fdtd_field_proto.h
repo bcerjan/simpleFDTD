@@ -25,7 +25,7 @@
 void StoreFields(struct Grid *g);
 void HFieldUpdate(struct Grid *g);
 void EFieldUpdate(struct Grid *g);
-void PFieldUpdate(struct Grid *g);
+void QFieldUpdate(struct Grid *g);
 
 void DFTUpdate(struct Grid *g, int n);
 

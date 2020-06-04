@@ -42,10 +42,7 @@ int main() {
   InitializeFdtd(g, 0, 0, 100.0, 100.0, 1.0, 0.0); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
 
-  printf("AbsMax d1Grid: %.17g\n", AbsArrayMax(d1Grid,xSize,ySize));
-  printf("AbsMax d2Grid: %.17g\n", AbsArrayMax(d2Grid,xSize,ySize));
-  printf("d1Grid[object]: %.17g\n", d1Grid[xSize - 38][133]);
-  printf("d2Grid[object]: %.17g\n", d2Grid[xSize - 38][133]);
+
   /*printf("AbsMax caey: %.17g\n", AbsArrayMax(caey,xSize,ySize));
   printf("AbsMax cbey: %.17g\n", AbsArrayMax(cbey,xSize,ySize));
   printf("AbsMax dahz: %.17g\n", AbsArrayMax(dahz,xSize,ySize));
@@ -60,14 +57,14 @@ int main() {
   //for (n = 0; n < maximumIteration; n++) {
   for (n = 0; n < 6; n++) {
 
-    StoreFields(g);
-    //printf( "Fields Stored\n" );
-    HFieldUpdate(g);
-    //printf( "H Updated\n" );
+
+
     EFieldUpdate(g);
-    //printf( "E Updated\n" );
-    PFieldUpdate(g);
-    //printf( "P Updated\n" );
+    printf( "E Updated\n" );
+    QFieldUpdate(g);
+    printf( "Q Updated\n" );
+    HFieldUpdate(g);
+    printf( "H Updated\n" );
 
     lineSource(g, xSource, n);
 
@@ -84,7 +81,7 @@ int main() {
     printf("AbsMax c4Sum: %.17g\n", AbsArrayMax(c4Sum,xSize,ySize));
     printf("AbsMax c5Sum: %.17g\n", AbsArrayMax(c5Sum,xSize,ySize));*/
     printf("ey[object]: %.17g\n", ey[xSize - 38][133]);
-    printf("pyDrude[object]: %.17g\n", pyDrude[xSize - 38][133]);
+
     //printf("AbsMax sy: %.17g\n", AbsVectorMax(pmlSy,9056));
     //printf("AbsMax tz: %.17g\n", AbsVectorMax(pmlTz,9056));
     printf("---------------------\n");}

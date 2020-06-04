@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <complex.h>
 #include "fdtd_macro.h"
 #include "fdtd_proto.h"
 #include "structure_funcs.h"
@@ -85,10 +86,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity(metalChoice)};     // sim
     double  drudePlasma[MEDIACONSTANT] = {0.0};
     double  drudeDamping[MEDIACONSTANT] = {HUGE_VAL}; // initialize vacuum to have huge damping
-    double  mediaCa[MEDIACONSTANT];
-    double  mediaCb[MEDIACONSTANT];
-    double  mediaDa[MEDIACONSTANT];
-    double  mediaDb[MEDIACONSTANT];
+    complex double  mediaA[MEDIACONSTANT][MAX_POLES] = {0.0};
+    complex double  mediaC[MEDIACONSTANT][MAX_POLES] = {0.0};
     double  magneticPermeability0,electricalPermittivity0,frequency,wavelength,angularFrequency;
     double  reflectionCoefficient0,gradingOrder,temporary,electricalImpedance0,temp1,temp2,temp3;
     int  i,j,k,p, boundaryDataSize, media, boundaryIndex,xSizeMain,ySizeMain,numFreqs;
@@ -166,26 +165,6 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
       number_poles = 0;
     }
 
-    // Constants for our approximation:
-    double **Ap,**Omegap,**phip,**Gammap;
-    Ap = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-    Omegap = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-    phip = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-    Gammap = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-
-    for (i = 1; i < media; i++) {
-      for (p = 0; p < number_poles; p++) {
-        Ap[i][p] = materialData[metalChoice].params[p].bigA;
-        Omegap[i][p] = materialData[metalChoice].params[p].Omega;
-        phip[i][p] = materialData[metalChoice].params[p].phi;
-        Gammap[i][p] = materialData[metalChoice].params[p].Gamma;
-      } /* pForLoop */
-    } /* iForLoop */
-
-    for (i = 1; i < media; i++) {
-      drudePlasma[i] = materialData[metalChoice].drudePlasma;
-      drudeDamping[i] = materialData[metalChoice].drudeDamping;
-    }
 
     /***********************************************************************/
     //     Wave excitation
@@ -199,29 +178,19 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     ex = AllocateMemory(xSize,    ySize + 1, 0.0 );        // 1 extra in y direction for pec
     ey = AllocateMemory(xSize + 1,ySize,     0.0 );        // 1 extra in x direction for pec
-    hz = AllocateMemory(xSize,    ySize,     0.0 );
-    hzy = AllocateMemory1D(boundaryDataSize, 0.0);         // For split-field data in PML
-
-    hzOld = AllocateMemory1D(boundaryDataSize, 0.0);
+    hz = AllocateMemory(xSize + 1,ySize + 1, 0.0 );
 
     e2Field = AllocateMemory(xSize, ySize, 0.0);           // E^2 for plotting
     edgeMat = AllocateMemory(xSize, ySize, 0.0);
 
     /* Polarization Current Fields */
-    double initArray[MAX_POLES] = {0.0};
-    px = AllocateMemory3D(number_poles, xSize, ySize, initArray);
-    py = AllocateMemory3D(number_poles, xSize, ySize, initArray);
-    pxOld = AllocateMemory3D(number_poles, xSize, ySize, initArray);
-    pyOld = AllocateMemory3D(number_poles, xSize, ySize, initArray);
-    pxOld2 = AllocateMemory3D(number_poles, xSize, ySize, initArray);
-    pyOld2 = AllocateMemory3D(number_poles, xSize, ySize, initArray);
-    exOld = AllocateMemory(xSize, ySize + 1, 0.0);
-    exOld2 = AllocateMemory(xSize, ySize + 1, 0.0);
-    eyOld = AllocateMemory(xSize + 1, ySize, 0.0);
-    eyOld2 = AllocateMemory(xSize + 1, ySize, 0.0);
+    complex double initArray[MAX_POLES] = {0.0};
+    qx = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+    qy = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
 
-    pxDrude = AllocateMemory(xSize, ySize, 0.0);
-    pyDrude = AllocateMemory(xSize, ySize, 0.0);
+    exOld = AllocateMemory(xSize, ySize + 1, 0.0);
+    eyOld = AllocateMemory(xSize + 1, ySize, 0.0);
+
 
     /*printf("cjjTemp[0]: %.5e\n", cjjTemp[0]);
     printf("cjjTemp[1]: %.5e\n", cjjTemp[1]);
@@ -269,23 +238,22 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Media coefficients
     /***********************************************************************/
 
-    double **c1,**c2,**c3,**c4,**c5,*c3TempSum,*c4TempSum,*c5TempSum;
-    c1 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-    c2 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-    c3 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-    c4 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-    c5 = AllocateMemory(MEDIACONSTANT, number_poles, 0.0);
-    c3TempSum = AllocateMemory1D(MEDIACONSTANT, 0.0);
-    c4TempSum = AllocateMemory1D(MEDIACONSTANT, 0.0);
-    c5TempSum = AllocateMemory1D(MEDIACONSTANT, 0.0);
+    heConst = AllocateMemory(xSize, ySize, dt/magneticPermeability0);
+    ehConst = AllocateMemory(xSize, ySize, dt/electricalPermittivity0);
+    eqConst = AllocateMemory(xSize, ySize, 4.0*dt/electricalPermittivity0);
+    qxSum   = AllocateMemory(xSize, ySize, 0.0);
+    qySum   = AllocateMemory(xSize, ySize, 0.0);
+    qConst1 = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+    qConst2 = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+    ABConst = AllocateMemory(xSize, ySize, dt*dt/(4.0*magneticPermeability0*electricalPermittivity0));
 
 
-    /* Pre-compute values that will be placed in to cjj and cje */
-    double cjjTemp[media], cjeTemp[media];
-    double AZero,AOne,BZero,BOne,BTwo,cP,d2,cond;
-    double nDamping;
-
-
+    // Temp storage values:
+    complex double **qC1 = AllocateComplexMemory(media, number_poles, 0.0);
+    complex double **qC2 = AllocateComplexMemory(media, number_poles, 0.0);
+    double iCSum[MEDIACONSTANT] = {0.0};
+    double iC1[MEDIACONSTANT] = {0.0};
+    double iC2[MEDIACONSTANT] = {0.0};
     /* For terms and formulation, see: A Unified FDTD/PML Scheme Based on Critical
       Points for Accurate Studies of Plasmonic Structures. Prokopidis and
       Zografopoulos, JOURNAL OF LIGHTWAVE TECHNOLOGY, VOL. 31, NO. 15, AUGUST 1, 2013 */
@@ -295,110 +263,39 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     for (i = 0; i < media; i++) {
       for (p = 0; p < number_poles; p++){
         /* C-P Parameters */
-        AZero = 2.0*electricalPermittivity0*Ap[i][p]*Omegap[i][p] * \
-          ( Omegap[i][p]*cos(phip[i][p]) - Gammap[i][p]*sin(phip[i][p]) );
-        AOne = -2.0*electricalPermittivity0*Ap[i][p]*Omegap[i][p]*sin(phip[i][p]);
-        BZero = pow(Omegap[i][p],2) + pow(Gammap[i][p],2);
-        BOne = 2.0*Gammap[i][p];
-        BTwo = 1.0;
-        cP = BTwo/(dt*dt) + BOne/(2.0*dt) + BZero/4.0;
+        qC1[i][p] = (2.0 + mediaA[i][p]*dt) / (2.0 - mediaA[i][p]*dt);
+        qC2[i][p] = electricalPermittivity0*mediaC[i][p]*dt / (2.0 - mediaA[i][p]*dt);
 
-        c1[i][p] = (2.0*BTwo/(dt*dt) - BZero/2.0)/cP;
-        c2[i][p] = (BOne/(2.0*dt) - BTwo/(dt*dt) - BZero/4.0)/cP;
-        c3[i][p] = (AZero/4.0 + AOne/(2.0*dt))/cP;
-        c4[i][p] = AZero/(2.0*cP);
-        c5[i][p] = (AZero/4.0 - AOne/(2.0*dt))/cP;
-
-        c3TempSum[i] += c3[i][p];
-        c4TempSum[i] -= c4[i][p];
-        c5TempSum[i] += c5[i][p];
+        iCSum[i] += creal( mediaC[i][p]/(2.0 - mediaA[i][p]*dt) );
       } /* pForLoop */
-
-      /* Drude d2 parameter: */
-      d2 = electricalPermittivity0*drudePlasma[i]*drudePlasma[i]*dt / \
-        ( (2.0 + drudeDamping[i]*dt)*drudeDamping[i] );
-      cond = electricalPermittivity0*drudePlasma[i]*drudePlasma[i] / drudeDamping[i];
-
-      // See eq. 23 in the paper:
-      c3TempSum[i] += electricalPermittivity0*mediaPermittivity[i] + \
-        0.5*cond*dt - d2;
-      c4TempSum[i] += electricalPermittivity0*mediaPermittivity[i] - \
-        0.5*cond*dt + d2;
     } /* iForLoop */
 
-    // Field Update Constants:
+    // Set Q factors to vacuum values everywhere:
+    for (p = 0; p < number_poles; p++) {
+      for (i = 0; i< xSize; i++) {
+        for (j = 0; j< ySize; j++) {
+          qConst1[p][i][j] = qC1[0][p];
+          qConst2[p][i][j] = qC2[0][p];
+        } /* jForLoop */
+      } /* iForLoop */
+    } /* pForLoop */
+
+    // Identity matrix coefficients
     for (i = 0; i < media; i++) {
-      //mediaCa[i] = 1.0/c3TempSum[i]; // Multiplied by E and P terms in E update equation
-      mediaCa[i] = 1.0; // Only used in PML
-      mediaCb[i] = dt / (dx * c3TempSum[i]); // Multiplied by H in E update
-      //temporary = mediaConductivity[i] * dt / (2.0 * electricalPermittivity0 * mediaPermittivity[i]); // Schneider 8.13 - 8.18
-      mediaDa[i] = 1.0; // assuming magnetic conductivity is 0
-      mediaDb[i] = dt / ( dx*magneticPermeability0 * mediaPermeability[i]); // Multiplied by E in H update equation
-      //mediaDb[i] = dt;
+      iC1[i] = 1.0 + \
+               mediaConductivity[i]*dt/(2.0*electricalPermittivity0*mediaPermittivity[i]) + \
+               2.0*dt*iCSum[i]/(mediaPermittivity[i]);
+      iC2[i] = 1.0 - \
+               mediaConductivity[i]*dt/(2.0*electricalPermittivity0*mediaPermittivity[i]) - \
+               2.0*dt*iCSum[i]/(mediaPermittivity[i]);
     } /* iForLoop */
+
+    iConst1 = AllocateMemory(xSize, ySize, iC1[0]);
+    iConst2 = AllocateMemory(xSize, ySize, iC2[0]);
 
     /***********************************************************************/
     //     Grid Coefficients
     /***********************************************************************/
-    /*printf("c3TempSum[0]: %.17g\n", c3TempSum[0]);
-    printf("c3TempSum[1]: %.17g\n", c3TempSum[1]);
-    printf("c4TempSum[0]: %.17g\n", c4TempSum[0]);
-    printf("c4TempSum[1]: %.17g\n", c4TempSum[1]);
-    printf("c5TempSum[0]: %.17g\n", c5TempSum[0]);
-    printf("c5TempSum[1]: %.17g\n", c5TempSum[1]);
-    printf("mediaDa[0]: %f\n", mediaDa[0]);
-    printf("mediaDa[1]: %f\n", mediaDa[1]);
-    printf("mediaDb[0]: %f\n", mediaDb[0]);
-    printf("mediaDb[1]: %f\n", mediaDb[1]);
-    printf("mediaCa[0]: %f\n", mediaCa[0]);
-    printf("mediaCa[1]: %f\n", mediaCa[1]);
-    printf("mediaCb[0]: %f\n", mediaCb[0]);
-    printf("mediaCb[1]: %f\n", mediaCb[1]);*/
-    //     Initialize entire grid to free space
-
-    // Polarization grid values:
-    c1SumX = AllocateMemory(xSize, ySize, 0.0); // No temp sums for c1 and c2, and this is 0 anyway
-    c2SumX = AllocateMemory(xSize, ySize, 0.0);
-    c1SumY = AllocateMemory(xSize, ySize, 0.0);
-    c2SumY = AllocateMemory(xSize, ySize, 0.0);
-    c3Sum = AllocateMemory(xSize, ySize, c3TempSum[0]);
-    c4Sum = AllocateMemory(xSize, ySize, c4TempSum[0]);
-    c5Sum = AllocateMemory(xSize, ySize, c5TempSum[0]);
-
-
-    // Make so we don't have to loop over each array twice on initialization...
-    c1Grid = AllocateMemory3D(number_poles, xSize, ySize, c1[0]);
-    c2Grid = AllocateMemory3D(number_poles, xSize, ySize, c2[0]);
-    c3Grid = AllocateMemory3D(number_poles, xSize, ySize, c3[0]);
-    c4Grid = AllocateMemory3D(number_poles, xSize, ySize, c4[0]);
-    c5Grid = AllocateMemory3D(number_poles, xSize, ySize, c5[0]);
-
-    d1Grid = AllocateMemory(xSize, ySize, 0.0);
-    d2Grid = AllocateMemory(xSize, ySize, 0.0);
-
-/*    for (i = 0; i < xSize; i++) {
-      for (j = 0; j < ySize; j++) {
-        for (p = 0; p < number_poles; p++) {
-          c1Grid[p][i][j] = c1[0][p];
-          c2Grid[p][i][j] = c2[0][p];
-          c3Grid[p][i][j] = c3[0][p];
-          c4Grid[p][i][j] = c4[0][p];
-          c5Grid[p][i][j] = c5[0][p];
-        }*/ /* pForLoop */
-      //} /* jForLoop */
-    //} /* iForLoop */
-
-
-
-    /* Values for PML updates: */
-    caex = AllocateMemory(xSize, ySize, mediaCa[0] );     // note: don't need to allocate for pec region, as it is not evaluated
-    cbex = AllocateMemory(xSize, ySize, mediaCb[0] );     // also: Initialize the entire grid to vacuum.
-    caey = AllocateMemory(xSize, ySize, mediaCa[0] );
-    cbey = AllocateMemory(xSize, ySize, mediaCb[0] );
-    dahz = AllocateMemory(xSize, ySize, mediaDa[0] );
-    dbhz = AllocateMemory(xSize, ySize, mediaDb[0] );
-    dahzy = AllocateMemory1D(boundaryDataSize, mediaDa[0] );        // for the split-field data for hz in the pml regions
-    dbhzy = AllocateMemory1D(boundaryDataSize, mediaDb[0] );        // for the split-field data for hz in the pml regions
 
     /* Array to track where our object is/is not */
     object_locs = AllocateMemory(xSize, ySize, 0.0); // This really shouldn't be an array of doubles -- we're wasting memory here
@@ -443,49 +340,42 @@ printf("Strucutre Init...\n" );
       for (j = 0; j < ySize; j++) {
         if (object_locs[i][j] > 0.5) {
           // Material Constants:
-          c3Sum[i][j] = c3TempSum[1];
-          c4Sum[i][j] = c4TempSum[1];
-          c5Sum[i][j] = c5TempSum[1];
+          ABConst[i][j] /= mediaPermittivity[1];
+          ehConst[i][j] /= mediaPermittivity[1];
+          eqConst[i][j] /= mediaPermittivity[1];
 
-          caex[i][j] = mediaCa[1];
-          caey[i][j] = mediaCa[1];
-          cbex[i][j] = mediaCb[1];
-          cbey[i][j] = mediaCb[1];
-          dahz[i][j] = mediaDa[1];
-          dbhz[i][j] = mediaDb[1];
+          iConst1[i][j] = iC1[1];
+          iConst2[i][j] = iC2[1];
+
            /* C-P C coefficients */
           for(p = 0; p < number_poles; p++) {
             /* Polarization Constants: */
-            c1Grid[p][i][j] = c1[1][p];
-            c2Grid[p][i][j] = c2[1][p];
-            c3Grid[p][i][j] = c3[1][p];
-            c4Grid[p][i][j] = c4[1][p];
-            c5Grid[p][i][j] = c5[1][p];
+            qConst1[p][i][j] = qC1[1][p];
+            qConst2[p][i][j] = qC2[1][p];
           } /* pForLoop */
-
-          /* Drude Coefficients */
-          d1Grid[i][j] = (2.0 - drudeDamping[1]*dt)/(2.0 + drudeDamping[1]*dt);
-          d2Grid[i][j] = electricalPermittivity0*drudePlasma[1]*drudePlasma[1]*dt / \
-            ( (2.0 + drudeDamping[1]*dt)*drudeDamping[1] );
         } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
 
-    // Free arrays only used here:
-    freeDoublePtr(c1, MEDIACONSTANT);
-    freeDoublePtr(c2, MEDIACONSTANT);
-    freeDoublePtr(c3, MEDIACONSTANT);
-    freeDoublePtr(c4, MEDIACONSTANT);
-    freeDoublePtr(c5, MEDIACONSTANT);
-    freeDoublePtr(Ap, MEDIACONSTANT);
-    freeDoublePtr(Gammap, MEDIACONSTANT);
-    freeDoublePtr(phip, MEDIACONSTANT);
-    freeDoublePtr(Omegap, MEDIACONSTANT);
-    free(c3TempSum);
-    free(c4TempSum);
-    free(c5TempSum);
+    freeComplexDoublePtr(qC1, media);
+    freeComplexDoublePtr(qC2, media);
 
-printf("Strucutre Added...\n" );
+printf("Structure Added...\n" );
+
+    /* Values for Tridiagonal Solver: */
+    a = AllocateMemory(xSize, ySize, 0.0);
+    b = AllocateMemory(xSize, ySize, 0.0);
+    c = AllocateMemory(xSize, ySize, 0.0);
+
+    for (i = 0; i < xSize; i++) {
+      for (j = 0; j< ySize; j++) {
+        a[i][j] = -1.0 * ABConst[i][j]/(dx*dx);
+        b[i][j] = iConst1[i][j] + 2.0*ABConst[i][j]/(dx*dx);
+        c[i][j] = a[i][j];
+      }
+    }
+
+
     /***********************************************************************/
     //     Initialize the RegionDataValues structure
     /***********************************************************************/
@@ -565,51 +455,6 @@ printf("Strucutre Added...\n" );
         gradientDb1[i] = (1.0 - gradientDa1[i]) / (gradientResistivity * dx);                                      // ditto, but note sign change from Taflove1995
     } /* iForLoop */
 
-    // ex --- front/back
-    for (j = 0; j < abcSize; j++) {                            // do coefficients for ex
-        for (i = 0; i < xSize; i++) {
-            // do coefficients for ex for front and back regions
-            caex[i][abcSize - j]         = gradientCa1[j];        // front
-            cbex[i][abcSize - j]         = gradientCb1[j];
-            caex[i][ySize - abcSize + j] = gradientCa1[j];        // back
-            cbex[i][ySize - abcSize + j] = gradientCb1[j];
-        } /* iForLoop */
-    } /* jForLoop */
-
-    // ey & hzx --- left/right
-    for (i = 0; i < abcSize; i++) {                            // do coefficients for ey and hzx
-        for (j = 0; j < ySize; j++) {
-            // do coefficients for ey for left and right regions
-            caey[abcSize - i][j]         = gradientCa1[i];     // left
-            cbey[abcSize - i][j]         = gradientCb1[i];
-            caey[xSize - abcSize + i][j] = gradientCa1[i];     // right
-            cbey[xSize - abcSize + i][j] = gradientCb1[i];
-            dahz[abcSize - i - 1][j]     = gradientDa1[i];     // dahz holds dahzx , left, (note that the index is offset by 1 from caey)
-            dbhz[abcSize - i - 1][j]     = gradientDb1[i];     // dbhz holds dbhzx         ( ditto )
-            dahz[xSize - abcSize + i][j] = gradientDa1[i];     // dahz holds dahzx , right
-            dbhz[xSize - abcSize + i][j] = gradientDb1[i];     // dbhz holds dbhzx
-        } /* iForLoop */
-    } /* jForLoop */
-
-    boundaryIndex = 0;
-    // ALERT: special case for hzy:
-    // dahzy and dbhzy arrays must be initialized in the same order that they will be accessed in the main time-stepping loop.
-    // Therefore it is critical to increment boundaryIndex in the right order for the front/back regions
-    // For the left and right regions dahzy,dbhzy use vacuum values, which they are initialized to by default.
-    for (i = regionData[1].xStart; i < regionData[1].xStop; i++) {       // front
-        for (j = regionData[1].yStart, k=(abcSize - 1); j < regionData[1].yStop; j++, k--) {
-            dahzy[boundaryIndex] = gradientDa1[k];
-            dbhzy[boundaryIndex] = gradientDb1[k];
-            boundaryIndex++;
-        } /* jForLoop */
-    } /* iForLoop */
-    for (i = regionData[2].xStart; i < regionData[2].xStop; i++) {       // back
-        for (j = regionData[2].yStart, k=0; j < regionData[2].yStop; j++, k++) {
-            dahzy[boundaryIndex] = gradientDa1[k];
-            dbhzy[boundaryIndex] = gradientDb1[k];
-            boundaryIndex++;
-        } /* jForLoop */
-    } /* iForLoop */
 
     // all done with Initialization!
 

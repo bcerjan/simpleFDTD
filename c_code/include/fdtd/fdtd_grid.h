@@ -20,6 +20,8 @@
 #ifndef FDTD_GRID
 #define FDTD_GRID
 
+#include <complex.h>
+
 #define  ABCSIZECONSTANT    (8)                      // thickness of PML region
 #define  MEDIACONSTANT    (2)                        // number of different media, ie 2: vacuum, metal object
 #define  NUMBEROFITERATIONCONSTANT    (3000)          // Number of timesteps
@@ -48,49 +50,28 @@ struct Grid {
   double  **ex;      // the fields
   double  **ey;      //  ""
   double  **hz;      //  ""
-  double  *hzy;      // PML split-field
 
-  double  **caex;
-  double  **cbex;
-  double  **caey;
-  double  **cbey;
-  double  **dahz;    // in pml regions this holds dahzx
-  double  **dbhz;
-  double  *dahzy;
-  double  *dbhzy;
-
-  // Values for Critical-Point Lorentz materials:
+  complex double  ***qx;
+  complex double  ***qy;
   int number_poles;
-  double  ***px;       // x-direction polarization current (actually delta*Jx)
-  double  ***py;       // "" for Jy
-  double  ***pxOld;
-  double  ***pyOld;
-  double  ***pxOld2;
-  double  ***pyOld2;
-  double  **c1SumX; // Stored sum values as we need them in multiple locations
-  double  **c2SumX;
-  double  **c1SumY;
-  double  **c2SumY;
-  double  **c3Sum;
-  double  **c4Sum;
-  double  **c5Sum;
-  double  ***c1Grid; // Stored parameters at each grid point
-  double  ***c2Grid;
-  double  ***c3Grid;
-  double  ***c4Grid;
-  double  ***c5Grid;
+  double **heConst;
+  double **ehConst;
+  double **eqConst;
+  double **ABConst;
+  complex double ***qConst1;
+  complex double ***qConst2;
+  double **qxSum;
+  double **qySum;
+  double **iConst1;
+  double **iConst2;
 
-  // Drude Material data:
-  double  **pxDrude;
-  double  **pyDrude;
-  double  **d1Grid;
-  double  **d2Grid;
+  // Tridiagonal values:
+  double  **a;
+  double  **b;
+  double  **c;
 
   double  **exOld;    // Matrix to store old Ex values for Drude metals
   double  **eyOld;    // "" Ey values
-  double  **exOld2;   // From two steps in past
-  double  **eyOld2;
-  double  *hzOld;
 
   // Values for tracking DFT
   int reflXPos,tranXPos;          // Positions of the line monitors used to find reflected / transmitted fields
