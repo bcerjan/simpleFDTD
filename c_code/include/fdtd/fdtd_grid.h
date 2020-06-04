@@ -53,6 +53,7 @@ struct Grid {
 
   complex double  ***qx;
   complex double  ***qy;
+  complex double  ***qSumC;
   int number_poles;
   double **heConst;
   double **ehConst;

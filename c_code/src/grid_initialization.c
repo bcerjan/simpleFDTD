@@ -120,8 +120,9 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     // Set grid spacing:
     dx = 10.0e-9; // 10 nm
     double dxnm = dx*1e9; // Grid step size in nm
-    dt = dx / (2.0 * speedOfLight);
-    courantS = (dt * speedOfLight) / (dx); // Changed from original -- might break things?
+
+    courantS = 1.0/2.0;
+    dt = courantS * dx / speedOfLight;
 //printf( "dx: %f\n", dx );
 //printf( "dt: %f\n", dt );
 //printf( "courantS: %f\n", courantS );
@@ -238,15 +239,21 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Media coefficients
     /***********************************************************************/
 
-    heConst = AllocateMemory(xSize, ySize, dt/magneticPermeability0);
-    ehConst = AllocateMemory(xSize, ySize, dt/electricalPermittivity0);
+    heConst = AllocateMemory(xSize, ySize, dt/(dx*magneticPermeability0));
+    ehConst = AllocateMemory(xSize, ySize, dt/(dx*electricalPermittivity0));
     eqConst = AllocateMemory(xSize, ySize, 4.0*dt/electricalPermittivity0);
     qxSum   = AllocateMemory(xSize, ySize, 0.0);
     qySum   = AllocateMemory(xSize, ySize, 0.0);
     qConst1 = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
     qConst2 = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
-    ABConst = AllocateMemory(xSize, ySize, dt*dt/(4.0*magneticPermeability0*electricalPermittivity0));
+    qSumC   = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+    ABConst = AllocateMemory(xSize, ySize, dt*dt/(4.0*magneticPermeability0*electricalPermittivity0*dx*dx));
 
+
+    printf("heConst: %.5e\n", heConst[0][0]);
+    printf("ehConst: %.5e\n", ehConst[0][0]);
+    printf("eqConst: %.5e\n", eqConst[0][0]);
+    printf("ABConst: %.5e\n", ABConst[0][0]);
 
     // Temp storage values:
     complex double **qC1 = AllocateComplexMemory(media, number_poles, 0.0);
@@ -276,6 +283,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
         for (j = 0; j< ySize; j++) {
           qConst1[p][i][j] = qC1[0][p];
           qConst2[p][i][j] = qC2[0][p];
+
+          qSumC[p][i][j] = mediaA[0][p] / (2.0-mediaA[0][p]*dt);
         } /* jForLoop */
       } /* iForLoop */
     } /* pForLoop */
@@ -292,6 +301,11 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     iConst1 = AllocateMemory(xSize, ySize, iC1[0]);
     iConst2 = AllocateMemory(xSize, ySize, iC2[0]);
+
+    printf("iC1[0]: %.5e\n", iC1[0]);
+    printf("iC1[1]: %.5e\n", iC1[1]);
+    printf("iC2[0]: %.5e\n", iC2[0]);
+    printf("iC2[1]: %.5e\n", iC2[1]);
 
     /***********************************************************************/
     //     Grid Coefficients
@@ -340,9 +354,10 @@ printf("Strucutre Init...\n" );
       for (j = 0; j < ySize; j++) {
         if (object_locs[i][j] > 0.5) {
           // Material Constants:
-          ABConst[i][j] /= mediaPermittivity[1];
+          ABConst[i][j] /= mediaPermittivity[1]*mediaPermeability[1];
           ehConst[i][j] /= mediaPermittivity[1];
           eqConst[i][j] /= mediaPermittivity[1];
+          heConst[i][j] /= mediaPermeability[1];
 
           iConst1[i][j] = iC1[1];
           iConst2[i][j] = iC2[1];
@@ -352,6 +367,8 @@ printf("Strucutre Init...\n" );
             /* Polarization Constants: */
             qConst1[p][i][j] = qC1[1][p];
             qConst2[p][i][j] = qC2[1][p];
+
+            qSumC[p][i][j] = mediaA[1][p] / (2.0-mediaA[1][p]*dt);
           } /* pForLoop */
         } /* ifBlock */
       } /* jForLoop */
@@ -369,12 +386,18 @@ printf("Structure Added...\n" );
 
     for (i = 0; i < xSize; i++) {
       for (j = 0; j< ySize; j++) {
-        a[i][j] = -1.0 * ABConst[i][j]/(dx*dx);
-        b[i][j] = iConst1[i][j] + 2.0*ABConst[i][j]/(dx*dx);
+        a[i][j] = -1.0 * ABConst[i][j];
+        b[i][j] = iConst1[i][j] + 2.0*ABConst[i][j];
         c[i][j] = a[i][j];
       }
     }
 
+    /*printf("a: %.17g\n", AbsArrayMax(a,xSize,ySize));
+    printf("b: %.17g\n", AbsArrayMax(b,xSize,ySize));
+    printf("c: %.17g\n", AbsArrayMax(c,xSize,ySize));*/
+    printf("a: %.17g\n", a[10][10]);
+    printf("b: %.17g\n", b[10][10]);
+    printf("c: %.17g\n", c[10][10]);
 
     /***********************************************************************/
     //     Initialize the RegionDataValues structure

@@ -52,11 +52,9 @@ void iterateSimulation(struct Grid *g) {
       imageInit(g);
     } /* timeStep if Block */
     //printf("Loop step: %i\timeStep",timeStep);
-    StoreFields(g);
     EFieldUpdate(g);
-    PFieldUpdate(g);
+    QFieldUpdate(g);
     HFieldUpdate(g);
-
 
     lineSource(g, xSource, timeStep);
     //ey[100][100] = 1.0;

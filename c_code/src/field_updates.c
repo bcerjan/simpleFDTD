@@ -27,7 +27,6 @@
 #include "fdtd_proto.h"
 
 
-
 /* Implementations of Thomas Algorithm for solving Tridiagonal System
  *
  * We use this here to do the left-hand side of each field update equation for
@@ -72,7 +71,7 @@ void exTriDiagonalSolve(struct Grid *g, int i, double *d /* d[ySize] */) {
 }
 
 void hzTriDiagonalSolve(struct Grid *g, int j, double *d /* d[xSize] */) {
-  if (j == 0) { // Is PEC, so the field here never changes anyway
+  if (j == -1) { // Is PEC, so the field here never changes anyway
     return;
   } else {
     int k; // Thomas algorithm tracker
@@ -109,24 +108,27 @@ void EFieldUpdate (struct Grid *g) {
     for (j = 1; j < ySize; j++) {
       exOld[i][j] = ex[i][j]; // Store previous field
 
-      d[j] = iConst2[i][j]*ex[i][j] - ABConst[i][j]*(ex[i][j+1] - 2*ex[i][j] + ex[i][j-1]) + \
-             ehConst[i][j]*(hz[i][j+1]-hz[i][j]) - eqConst[i][j]*qxSum[i][j];
+      d[j] = iConst2[i][j]*ex[i][j] - ABConst[i][j]*(ex[i][j+1] - 2.0*ex[i][j] + ex[i][j-1]) + \
+             ehConst[i][j]*(hz[i][j]-hz[i][j-1]) - eqConst[i][j]*qxSum[i][j];
+      if(i == xSource && j == ySize - 1){
+        //printf("d[254]: %.17g\n", d[254]);
+      }
     }
     exTriDiagonalSolve(g,i,d);
   }
 
-  for (i = 0; i < xSize; i++) {
+  for (i = 1; i < xSize; i++) {
     for (j = 0; j < ySize; j++) {
       eyOld[i][j] = ey[i][j]; // Store previous field
 
       // As Ey update depends on d/dz (which is 0 in 2D), we don't need to tri-Diagonal Solve
       // The AB term has z-derivatives which are 0 in our 2D scheme
-      ey[i][j] = (iConst2[i][j]*ex[i][j] + \
-                 ehConst[i][j]*(hz[i+1][j]-hz[i][j]) - \
+      ey[i][j] = (iConst2[i][j]*ey[i][j] + \
+                 ehConst[i][j]*(hz[i-1][j]-hz[i][j]) - \
                  eqConst[i][j]*qySum[i][j]) / (iConst1[i][j]);
 
                  // Might need divide by iConst1 + ABConst depending on if
-                 // ey is 0 at +/- z direction or is the same as in our plane
+                 // ey is 0 in +/- z direction or is the same as in our plane
 
       //eyTriDiagonalSolve(g,i,j,temp);
 
@@ -153,8 +155,8 @@ void QFieldUpdate (struct Grid *g) { // I know, it's not actually a field
         qx[p][i][j] = qConst1[p][i][j]*qx[p][i][j] + qConst2[p][i][j]*(ex[i][j]+exOld[i][j]);
         qy[p][i][j] = qConst1[p][i][j]*qy[p][i][j] + qConst2[p][i][j]*(ey[i][j]+eyOld[i][j]);
         // Accumulate sums
-        qxSum[i][j] += creal(qx[p][i][j]);
-        qySum[i][j] += creal(qy[p][i][j]);
+        qxSum[i][j] += creal(qSumC[p][i][j]*qx[p][i][j]);
+        qySum[i][j] += creal(qSumC[p][i][j]*qy[p][i][j]);
       } /* jForLoop */
     } /* iForLoop */
   } /* pForLoop */

@@ -88,6 +88,25 @@ double *AllocateMemory1D (int size, double initialValue)
     return(pointer) ;
 }
 
+// standard C memory allocation for 1-D array
+complex double *AllocateComplexMemory1D (int size, complex double initialValue)
+{
+//    printf("In 1D Allocation...\n");
+    int  j;
+    complex double  *pointer;
+    pointer = malloc(size * sizeof(complex double));
+    if (pointer == NULL) {
+        printf("Error! memory not allocated.\n");
+        exit(0);
+    }
+
+//    printf("1D pointer generated...\n");
+    for (j = 0; j < size; j++) {
+        pointer[j] = initialValue;
+    } /* jForLoop */
+    return(pointer) ;
+}
+
 // standard memory allocation for 3-D array
 double ***AllocateMemory3D (int  imax, int  jmax, int kmax, double *initArray) {
   int i;

@@ -32,6 +32,7 @@
 
 #define QxG(G) G->qx
 #define QyG(G) G->qy
+#define QSumCG(G) G->qSumC
 
 // Constants:
 #define xSizeG(G) G->xSize
@@ -109,6 +110,7 @@
 
 #define qx QxG(g)
 #define qy QyG(g)
+#define qSumC QSumCG(g)
 
 // Constants:
 #define xSize xSizeG(g)

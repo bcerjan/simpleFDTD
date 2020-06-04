@@ -39,7 +39,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, 0, 100.0, 100.0, 1.0, 0.0); // First int for metal, second for object shape
+  InitializeFdtd(g, 0, -1, 100.0, 100.0, 1.0, 0.0); // First int for metal, second for object shape
   printf( "Initialized Grid\n" );
 
 
@@ -55,35 +55,33 @@ int main() {
   int outInterval = 0;
 
   //for (n = 0; n < maximumIteration; n++) {
-  for (n = 0; n < 6; n++) {
-
+  for (n = 0; n < 15; n++) {
 
 
     EFieldUpdate(g);
-    printf( "E Updated\n" );
+    //printf( "E Updated\n" );
     QFieldUpdate(g);
-    printf( "Q Updated\n" );
+    //printf( "Q Updated\n" );
     HFieldUpdate(g);
-    printf( "H Updated\n" );
+    //printf( "H Updated\n" );
 
-    lineSource(g, xSource, n);
+    //lineSource(g, xSource, n);
+    if ( n == 3 ){
+      ey[xSource][133] = 1.0;
+    }
 
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
     if( n % 1 == 0 ){
     printf("n: %i\n",n);
 
-    /*printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+    printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
+    printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
     printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
-    printf("AbsMax c1SumY: %.17g\n", AbsArrayMax(c1SumY,xSize,ySize));
-    printf("AbsMax c2SumY: %.17g\n", AbsArrayMax(c2SumY,xSize,ySize));
-    printf("AbsMax c3Sum: %.17g\n", AbsArrayMax(c3Sum,xSize,ySize));
-    printf("AbsMax c4Sum: %.17g\n", AbsArrayMax(c4Sum,xSize,ySize));
-    printf("AbsMax c5Sum: %.17g\n", AbsArrayMax(c5Sum,xSize,ySize));*/
-    printf("ey[object]: %.17g\n", ey[xSize - 38][133]);
+    //printf("ey[object]: %.17g\n", ey[xSize - 38][133]);
+    //printf("ey[xSouce + 60]: %.17g\n", ey[xSource+60][133]);
+    //printf("ey[source]: %.17g\n", ey[xSource][133]);
 
-    //printf("AbsMax sy: %.17g\n", AbsVectorMax(pmlSy,9056));
-    //printf("AbsMax tz: %.17g\n", AbsVectorMax(pmlTz,9056));
     printf("---------------------\n");}
     /*char tranEyFilename[100] = "test_output/empty_tran_raw_ey.h";
     FILE *tranEyDataPtr;

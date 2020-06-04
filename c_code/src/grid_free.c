@@ -105,6 +105,7 @@ void freeGrid(struct Grid *g) {
   // Now, all individual pointers:
   free(reflDFT);
   free(tranDFT);
+  free(qSumC);
 
   // And finally the grid itself:
   free(g);
