@@ -22,7 +22,7 @@
 
 #include <complex.h>
 
-#define  ABCSIZECONSTANT    (8)                      // thickness of PML region
+#define  ABCSIZECONSTANT    (25)                      // thickness of PML region
 #define  MEDIACONSTANT    (2)                        // number of different media, ie 2: vacuum, metal object
 #define  NUMBEROFITERATIONCONSTANT    (3000)          // Number of timesteps
 #define  NUMBEROFREGIONS    (5)                      // center(main), front, back, left, right
@@ -67,12 +67,19 @@ struct Grid {
   double **iConst2;
 
   // Tridiagonal values:
-  double  **a;
-  double  **b;
-  double  **c;
+  double  **aex;
+  double  **bex;
+  double  **cex;
+  double  **ahz;
+  double  **bhz;
+  double  **chz;
 
   double  **exOld;    // Matrix to store old Ex values for Drude metals
   double  **eyOld;    // "" Ey values
+
+  // PML Field values:
+  double  **PMLkx;
+  double  **PMLky;
 
   // Values for tracking DFT
   int reflXPos,tranXPos;          // Positions of the line monitors used to find reflected / transmitted fields

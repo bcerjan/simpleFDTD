@@ -130,8 +130,10 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Grid parameters
     /***********************************************************************/
 
-    xSizeMain = 300;                              // number of main grid cells in x-direction
-    ySizeMain = 250;                               // number of main grid cells in y-direction
+    /*xSizeMain = 300;                              // number of main grid cells in x-direction
+    ySizeMain = 250;*/
+    xSizeMain = 200;
+    ySizeMain = 150;                               // number of main grid cells in y-direction
     abcSize = ABCSIZECONSTANT;                    // thickness of PML region
     xSize = xSizeMain + 2 * abcSize;              // number of total grid cells in x-direction
     ySize = ySizeMain + 2 * abcSize;              // number of total grid cells in y-direction
@@ -139,17 +141,16 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     boundaryDataSize  = 2 * xSize * abcSize;                      // front edge + back edge
     boundaryDataSize += 2 * (abcSize * (ySize - 2 * abcSize));    // left + right edges
 
-    //xSource = 50 + abcSize;                          //location of z-directed hard source
+    xSource = 50 + abcSize;                          //location of z-directed hard source
     //ySource = 50 + abcSize;                          //location of z-directed hard source
-    xSource = 20 + abcSize;                       //location of z-directed hard source
+    //xSource = 20 + abcSize;                       //location of z-directed hard source
     ySource = ySize / 2;                          //location of z-directed hard source
 
     envIndex = environmentIndex;                  // Background refractive index
 
     maximumIteration = NUMBEROFITERATIONCONSTANT;                 //total number of time steps
 
-    reflectionCoefficient0 = 1.0e-7;              // for PML, Nikolova part4 p.25
-    gradingOrder = 3;                             // for PML, (m) was 2;  optimal values: 2 <= m <= 6,  Nikolova part4 p.29
+
 
     /***********************************************************************/
     //     Material parameters
@@ -158,7 +159,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     media = MEDIACONSTANT;        // number of different medias, ie 2: vacuum, metallicCylinder
 
     refractiveIndexIndex = getIndexIndex(environmentIndex);
-    printf("refractiveIndexIndex %i\n", refractiveIndexIndex);
+    //printf("refractiveIndexIndex %i\n", refractiveIndexIndex);
     // Number of poles in our dielectric function
     if (metalChoice > -1 && objectChoice > -1) {
       number_poles = materialData[metalChoice].num_poles;
@@ -250,10 +251,10 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     ABConst = AllocateMemory(xSize, ySize, dt*dt/(4.0*magneticPermeability0*electricalPermittivity0*dx*dx));
 
 
-    printf("heConst: %.5e\n", heConst[0][0]);
+    /*printf("heConst: %.5e\n", heConst[0][0]);
     printf("ehConst: %.5e\n", ehConst[0][0]);
     printf("eqConst: %.5e\n", eqConst[0][0]);
-    printf("ABConst: %.5e\n", ABConst[0][0]);
+    printf("ABConst: %.5e\n", ABConst[0][0]);*/
 
     // Temp storage values:
     complex double **qC1 = AllocateComplexMemory(media, number_poles, 0.0);
@@ -279,8 +280,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     // Set Q factors to vacuum values everywhere:
     for (p = 0; p < number_poles; p++) {
-      for (i = 0; i< xSize; i++) {
-        for (j = 0; j< ySize; j++) {
+      for (i = 0; i < xSize; i++) {
+        for (j = 0; j < ySize; j++) {
           qConst1[p][i][j] = qC1[0][p];
           qConst2[p][i][j] = qC2[0][p];
 
@@ -302,10 +303,10 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     iConst1 = AllocateMemory(xSize, ySize, iC1[0]);
     iConst2 = AllocateMemory(xSize, ySize, iC2[0]);
 
-    printf("iC1[0]: %.5e\n", iC1[0]);
+    /*printf("iC1[0]: %.5e\n", iC1[0]);
     printf("iC1[1]: %.5e\n", iC1[1]);
     printf("iC2[0]: %.5e\n", iC2[0]);
-    printf("iC2[1]: %.5e\n", iC2[1]);
+    printf("iC2[1]: %.5e\n", iC2[1]);*/
 
     /***********************************************************************/
     //     Grid Coefficients
@@ -379,57 +380,9 @@ printf("Strucutre Init...\n" );
 
 printf("Structure Added...\n" );
 
-    /* Values for Tridiagonal Solver: */
-    a = AllocateMemory(xSize, ySize, 0.0);
-    b = AllocateMemory(xSize, ySize, 0.0);
-    c = AllocateMemory(xSize, ySize, 0.0);
-
-    for (i = 0; i < xSize; i++) {
-      for (j = 0; j< ySize; j++) {
-        a[i][j] = -1.0 * ABConst[i][j];
-        b[i][j] = iConst1[i][j] + 2.0*ABConst[i][j];
-        c[i][j] = a[i][j];
-      }
-    }
-
-    /*printf("a: %.17g\n", AbsArrayMax(a,xSize,ySize));
-    printf("b: %.17g\n", AbsArrayMax(b,xSize,ySize));
-    printf("c: %.17g\n", AbsArrayMax(c,xSize,ySize));*/
-    printf("a: %.17g\n", a[10][10]);
-    printf("b: %.17g\n", b[10][10]);
-    printf("c: %.17g\n", c[10][10]);
 
     /***********************************************************************/
-    //     Initialize the RegionDataValues structure
-    /***********************************************************************/
-
-    // regions are arranged in this order: center(main), front, back, left, right
-    // note: the region order is "important" in order to make the split-field data line up right for hzy (see the Fill the PML section below)
-    // this structure is for calculating Hz. (need to break Hz up into pml (split-field) regions and main grid)
-    // how they are used: loopIndex = regionData.start, loopIndex < regionData.stop
-    regionData[0].xStart = abcSize;                    // main grid
-    regionData[0].xStop  = abcSize + xSizeMain;
-    regionData[0].yStart = abcSize;
-    regionData[0].yStop  = abcSize + ySizeMain;
-    regionData[1].xStart = 0;                          // bottom grid
-    regionData[1].xStop  = xSize;
-    regionData[1].yStart = 0;
-    regionData[1].yStop  = abcSize;
-    regionData[2].xStart = 0;                          // top grid
-    regionData[2].xStop  = xSize;
-    regionData[2].yStart = ySize - abcSize;
-    regionData[2].yStop  = ySize;
-    regionData[3].xStart = 0;                          // left grid
-    regionData[3].xStop  = abcSize;
-    regionData[3].yStart = abcSize;
-    regionData[3].yStop  = abcSize + ySizeMain;
-    regionData[4].xStart = xSize - abcSize;            // right grid
-    regionData[4].xStop  = xSize;
-    regionData[4].yStart = abcSize;
-    regionData[4].yStop  = abcSize + ySizeMain;
-
-    /***********************************************************************/
-    //     Fill the PML regions    ---  (Caution...Here there be Tygers!)
+    //     Fill the PML with lossy terms
     /***********************************************************************/
 
     // The most important part of the PML fdtd simulation is getting the
@@ -440,43 +393,95 @@ printf("Structure Added...\n" );
     // be working properly. However a detailed analysis of reflections off the PML
     // will show they may be (much) larger than those for a correctly designed PML.
 
+    gradingOrder = 4.0;                             // for PML, (m) was 2;  optimal values: 2 <= m <= 6,  Nikolova part4 p.29
+
+    double gradKx[ABCSIZECONSTANT] = {0.0};
+    double gradKy[ABCSIZECONSTANT] = {0.0};
+    double kMax = 4.0;
+    PMLkx = AllocateMemory(xSize, ySize, 1.0); // Multipled anywhere we have d^2 / dx^2 derivatives
+    PMLky = AllocateMemory(xSize, ySize, 1.0); // " but for y-derivatives
+    //PMLkz = AllocateMemory(xSize, ySize, 1.0); // This is always 1.0, but it's nice to have for symmetry
+
+
     boundaryWidth = (double  )abcSize * dx;    // width of PML region (in mm)
-
-    // SigmaMaximum, using polynomial grading (Nikolova part 4, p.30)
-    electricalConductivityMaximum = -log(reflectionCoefficient0) * (gradingOrder + 1.0) * electricalPermittivity0 * speedOfLight / (2.0 * boundaryWidth);
-
-    // boundaryFactor comes from the polynomial grading equation: sigma_x = sigmaxMaximum * (x/d)^m, where d=width of PML, m=gradingOrder, sigmaxMaximum = electricalConductivityMaximum    (Nikolova part4, p.28)
-    //  IMPORTANT: The conductivity (sigma) must use the "average" value at each mesh point as follows:
-    //  sigma_x = sigma_Maximum/dx * Integral_from_x0_to_x1 of (x/d)^m dx,  where x0=currentx-0.5, x1=currentx+0.5   (Nikolova part 4, p.32)
-    //  integrating gives: sigma_x = (sigmaMaximum / (dx * d^m * m+1)) * ( x1^(m+1) - x0^(m+1) )     (Nikolova part 4, p.32)
-    //  the first part is "boundaryFactor", so, sigma_x = boundaryFactor * ( x1^(m+1) - x0^(m+1) )   (Nikolova part 4, p.32)
-    // note: it's not exactly clear what the term eps[0] is for. It's probably to cover the case in which eps[0] is not equal to one (ie the main grid area next to the pml boundary is not vacuum)
-    boundaryFactor = mediaPermittivity[0] * electricalConductivityMaximum / ( dx * (pow(boundaryWidth,gradingOrder)) * (gradingOrder + 1));
+    double prefactor = (kMax-1.0)/(dx * pow(boundaryWidth,gradingOrder)) * (gradingOrder + 1.0);
 
     // build the gradient
     //  caution: if the gradient is built improperly, the PML will not function correctly
     for (i = 0, x = 0.0; i < abcSize; i++, x++) {
-        // 0=border between pml and vacuum
-        // even: for ex and ey
         x1 = (x + 0.5) * dx;       // upper bounds for point i
         x2 = (x - 0.5) * dx;       // lower bounds for point i
         if (i == 0) {
-            gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1))  );   //   polynomial grading  (special case: on the edge, 1/2 = pml, 1/2 = vacuum)
+            temporary = 1.0 + prefactor * (pow(x1,(gradingOrder+1))  );   //   polynomial grading  (special case: on the edge, 1/2 = pml, 1/2 = vacuum)
         } /* if */
         else {
-            gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1)) - pow(x2,(gradingOrder+1)) );   //   polynomial grading
+            temporary = 1.0 + prefactor * (pow(x1,(gradingOrder+1)) - pow(x2,(gradingOrder+1)) );   //   polynomial grading
         } /* else */
-        gradientCa1[i] = exp (-gradientConductivity * dt / (electricalPermittivity0 * mediaPermittivity[0]) );     // exponential time step, Taflove1995 p.77,78
-        gradientCb1[i] = (1.0 - gradientCa1[i]) / (gradientConductivity * dx);                                     // ditto, but note sign change from Taflove1995
+        gradKy[i] = temporary;
 
-        // odd: for hzx and hzy
         x1 = (x + 1.0) * dx;       // upper bounds for point i
         x2 = (x + 0.0) * dx;       // lower bounds for point i
-        gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1)) - pow(x2,(gradingOrder+1)) );   //   polynomial grading
-        gradientResistivity = gradientConductivity * (magneticPermeability0 / (electricalPermittivity0 * mediaPermittivity[0]) );  // Taflove1995 p.182  (for no reflection: sigmaM = sigmaE * mu0/eps0)
-        gradientDa1[i] = exp(-gradientResistivity * dt / magneticPermeability0);                                   // exponential time step, Taflove1995 p.77,78
-        gradientDb1[i] = (1.0 - gradientDa1[i]) / (gradientResistivity * dx);                                      // ditto, but note sign change from Taflove1995
+        gradKx[i] = 1.0 + prefactor * (pow(x1,(gradingOrder+1)) - pow(x2,(gradingOrder+1)) );   //   polynomial grading
+
     } /* iForLoop */
+
+    printf("Order: %f\n", gradingOrder);
+    printf("gradKx[0]: %.17g\n", gradKx[0]);
+    printf("gradKx[7]: %.17g\n", gradKx[7]);
+
+    // Now, loop through PML regions and set PML-k terms where appropriate:
+    // Left/Right PML Region:
+    for (i = 0; i < abcSize; i++) {
+      for (j = 0; j < ySize; j++) {
+        PMLkx[abcSize - 1 - i][j]     = 1.0/gradKx[i];
+        PMLkx[xSize - abcSize + i][j] = 1.0/gradKx[i];
+      }
+    }
+
+    // Top/Bottom
+    for (j = 0; j < abcSize; j++) {
+      for (i = 0; i < xSize; i++) {
+        PMLky[i][abcSize - 1 - j]     = 1.0/gradKy[j];
+        PMLky[i][ySize - abcSize + j] = 1.0/gradKy[j];
+      }
+    }
+    /*
+    printf("PMLkx[7][133]: %.17g\n", PMLkx[7][133]);
+    printf("ABCConst*PMLkx[7][133]: %.17g\n", ABConst[7][133]*PMLkx[7][133]);
+    printf("PMLkx[0][0]: %.17g\n", PMLkx[0][0]);
+    printf("ABCConst*PMLkx[0][0]: %.17g\n", ABConst[0][0]*PMLkx[0][0]);
+    */
+
+    // Finally, set values for our tridiagonal solver(s)
+    // This needs to be done last as they take the values from the PML where necessary
+
+    // For dx^2 terms (used in hzTriDiagonalSolve):
+    ahz = AllocateMemory(xSize, ySize, 0.0);
+    bhz = AllocateMemory(xSize, ySize, 0.0);
+    chz = AllocateMemory(xSize, ySize, 0.0);
+    // for dy^2 terms (used in exTriDiagonalSolve):
+    aex = AllocateMemory(xSize, ySize, 0.0);
+    bex = AllocateMemory(xSize, ySize, 0.0);
+    cex = AllocateMemory(xSize, ySize, 0.0);
+    // No dz^2 terms as this is 2D!
+
+    for (i = 0; i < xSize; i++) {
+      for (j = 0; j < ySize; j++) {
+        ahz[i][j] = -1.0 * PMLkx[i][j]*ABConst[i][j];
+        bhz[i][j] = iConst1[i][j] + 2.0*PMLkx[i][j]*ABConst[i][j];
+        chz[i][j] = ahz[i][j];
+
+        aex[i][j] = -1.0 * PMLky[i][j]*ABConst[i][j];
+        bex[i][j] = iConst1[i][j] + 2.0*PMLky[i][j]*ABConst[i][j];
+        cex[i][j] = aex[i][j];
+      }
+    }
+
+    printf("ahz: %.17g\n", ahz[4][0]);
+    printf("bhz: %.17g\n", bhz[4][0]);
+
+    printf("aex: %.17g\n", aex[4][0]);
+    printf("bex: %.17g\n", bex[4][0]);
 
 
     // all done with Initialization!

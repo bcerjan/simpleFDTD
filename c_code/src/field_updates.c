@@ -43,18 +43,18 @@
  */
 
 void exTriDiagonalSolve(struct Grid *g, int i, double *d /* d[ySize] */) {
-  if (i == 0) { // Is PEC, so the field here never changes anyway
+  if (i == -1) { // Is PEC, so the field here never changes anyway
     return;
   } else {
     int k; // Thomas algorithm tracker
     double *cPrime = AllocateMemory1D(ySize, 0.0);
     double *dPrime = AllocateMemory1D(ySize, 0.0);
     // Set j = 0 term:
-    cPrime[0] = c[i][0]/b[i][0];
-    dPrime[0] = d[0]/b[i][0];
+    cPrime[0] = cex[i][0]/bex[i][0];
+    dPrime[0] = d[0]/bex[i][0];
     for (k = 1; k < ySize; k++) {
-      cPrime[k] = c[i][k]/(b[i][k] - a[i][k]*cPrime[k-1]);
-      dPrime[k] = (d[k] - a[i][k]*dPrime[k-1]) / (b[i][k] - a[i][k]*cPrime[k-1]);
+      cPrime[k] = cex[i][k]/(bex[i][k] - aex[i][k]*cPrime[k-1]);
+      dPrime[k] = (d[k] - aex[i][k]*dPrime[k-1]) / (bex[i][k] - aex[i][k]*cPrime[k-1]);
     }
 
     // Set j = ySize - 1 term:
@@ -78,16 +78,16 @@ void hzTriDiagonalSolve(struct Grid *g, int j, double *d /* d[xSize] */) {
     double *cPrime = AllocateMemory1D(xSize, 0.0);
     double *dPrime = AllocateMemory1D(xSize, 0.0);
     // Set j = 0 term:
-    cPrime[0] = c[0][j]/b[0][j];
-    dPrime[0] = d[0]/b[0][j];
+    cPrime[0] = chz[0][j]/bhz[0][j];
+    dPrime[0] = d[0]/bhz[0][j];
     for (k = 1; k < xSize; k++) {
-      cPrime[k] = c[k][j]/(b[k][j] - a[k][j]*cPrime[k-1]);
-      dPrime[k] = (d[k] - a[k][j]*dPrime[k-1]) / (b[k][j] - a[k][j]*cPrime[k-1]);
+      cPrime[k] = chz[k][j]/(bhz[k][j] - ahz[k][j]*cPrime[k-1]);
+      dPrime[k] = (d[k] - ahz[k][j]*dPrime[k-1]) / (bhz[k][j] - ahz[k][j]*cPrime[k-1]);
     }
 
     // Set i = ySize - 1 term:
     hz[xSize-1][j] = dPrime[xSize-1];
-    for (k = ySize-2; k > -1; k--){
+    for (k = xSize-2; k > -1; k--){
       hz[k][j] = dPrime[k] - cPrime[k]*hz[k+1][j];
     }
 
@@ -108,11 +108,9 @@ void EFieldUpdate (struct Grid *g) {
     for (j = 1; j < ySize; j++) {
       exOld[i][j] = ex[i][j]; // Store previous field
 
-      d[j] = iConst2[i][j]*ex[i][j] - ABConst[i][j]*(ex[i][j+1] - 2.0*ex[i][j] + ex[i][j-1]) + \
+      d[j] = iConst2[i][j]*ex[i][j] - \
+             PMLky[i][j]*ABConst[i][j]*(ex[i][j+1] - 2.0*ex[i][j] + ex[i][j-1]) + \
              ehConst[i][j]*(hz[i][j]-hz[i][j-1]) - eqConst[i][j]*qxSum[i][j];
-      if(i == xSource && j == ySize - 1){
-        //printf("d[254]: %.17g\n", d[254]);
-      }
     }
     exTriDiagonalSolve(g,i,d);
   }
@@ -129,8 +127,6 @@ void EFieldUpdate (struct Grid *g) {
 
                  // Might need divide by iConst1 + ABConst depending on if
                  // ey is 0 in +/- z direction or is the same as in our plane
-
-      //eyTriDiagonalSolve(g,i,j,temp);
 
     } /* jForLoop */
   } /* iForLoop */
@@ -172,7 +168,7 @@ void HFieldUpdate (struct Grid *g) {
 
   for (j = 0; j < ySize; j++) { // THE ORDER HERE IS BACKWARDS. There might be a better way as this is an inefficient way to access these elements
     for (i = 1; i < xSize; i++) {
-      d[i] = hz[i][j] - ABConst[i][j]*(hz[i+1][j] - 2*hz[i][j] + hz[i-1][j]) + \
+      d[i] = hz[i][j] - PMLkx[i][j]*ABConst[i][j]*(hz[i+1][j] - 2*hz[i][j] + hz[i-1][j]) + \
              heConst[i][j]*((ex[i][j+1] - ex[i][j]) - (ey[i+1][j] - ey[i][j])); // INCORRECT YEE LATTICE HERE MAYBE (maybe not...?)
              // This also assume magnetic permeability = 1
     } /* iForLoop */

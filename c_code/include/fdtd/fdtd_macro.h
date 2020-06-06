@@ -61,9 +61,16 @@
 #define Number_polesG(G) G->number_poles
 
 // Tridiagonal values:
-#define AG(G) G->a
-#define BG(G) G->b
-#define CG(G) G->c
+#define AexG(G) G->aex
+#define BexG(G) G->bex
+#define CexG(G) G->cex
+#define AhzG(G) G->ahz
+#define BhzG(G) G->bhz
+#define ChzG(G) G->chz
+
+// PML values:
+#define PMLkxG(G) G->PMLkx
+#define PMLkyG(G) G->PMLky
 
 // Values for tracking DFT:
 #define ReflXPosG(G) G->reflXPos
@@ -138,9 +145,15 @@
 #define iConst2 IConst2G(g)
 #define number_poles Number_polesG(g)
 // Tridiagonal values:
-#define a AG(g)
-#define b BG(g)
-#define c CG(g)
+#define aex AexG(g)
+#define bex BexG(g)
+#define cex CexG(g)
+#define ahz AhzG(g)
+#define bhz BhzG(g)
+#define chz ChzG(g)
+
+#define PMLkx PMLkxG(g)
+#define PMLky PMLkyG(g)
 
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)

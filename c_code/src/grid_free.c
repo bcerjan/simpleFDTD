@@ -82,9 +82,16 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(iConst2, xSize);
 
   // Tridiagonal values:
-  freeDoublePtr(a, xSize);
-  freeDoublePtr(b, xSize);
-  freeDoublePtr(c, xSize);
+  freeDoublePtr(aex, xSize);
+  freeDoublePtr(bex, xSize);
+  freeDoublePtr(cex, xSize);
+  freeDoublePtr(ahz, xSize);
+  freeDoublePtr(bhz, xSize);
+  freeDoublePtr(chz, xSize);
+
+  // PML Values:
+  freeDoublePtr(PMLkx, xSize);
+  freeDoublePtr(PMLky, xSize);
 
   freeDoublePtr(exOld, xSize);
   freeDoublePtr(eyOld, xSize + 1);

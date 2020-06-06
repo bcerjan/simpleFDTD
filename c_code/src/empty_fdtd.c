@@ -55,7 +55,7 @@ int main() {
   int outInterval = 0;
 
   //for (n = 0; n < maximumIteration; n++) {
-  for (n = 0; n < 15; n++) {
+  for (n = 0; n < 250; n++) {
 
 
     EFieldUpdate(g);
@@ -65,20 +65,20 @@ int main() {
     HFieldUpdate(g);
     //printf( "H Updated\n" );
 
-    //lineSource(g, xSource, n);
-    if ( n == 3 ){
-      ey[xSource][133] = 1.0;
-    }
+    lineSource(g, xSource, n);
 
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
-    if( n % 1 == 0 ){
+    if( n % 5 == 0 && n > 240 ){
     printf("n: %i\n",n);
 
-    printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
-    printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
-    printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
-    //printf("ey[object]: %.17g\n", ey[xSize - 38][133]);
+    //printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
+    //printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+    //printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
+    printf("ey[7]: %.17g\n", ey[7][133]);
+    //printf("ey[PML+2]: %.17g\n", ey[ABCSIZECONSTANT+2][133]);
+    printf("hz[7]: %.17g\n", hz[7][133]);
+    //printf("hz[PML+2]: %.17g\n", hz[ABCSIZECONSTANT+2][133]);
     //printf("ey[xSouce + 60]: %.17g\n", ey[xSource+60][133]);
     //printf("ey[source]: %.17g\n", ey[xSource][133]);
 
