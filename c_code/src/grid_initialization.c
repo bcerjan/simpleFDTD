@@ -484,25 +484,25 @@ printf("Structure Added...\n" );
     // Leapgfrog ADI-FDTD Method", Gan and Tan, IEEE Asia-Pacific Conf. 2012
 
     // As Ex depends on j-terms:
-    for (j = 0; j < ySize; j++) {
-      aex[0][j] = 0.0;
-      bex[0][j] = 1.0;
-      cex[0][j] = -1.0*absConst;
+    for (i = 0; i < xSize; i++) {
+      aex[i][0] = 0.0;
+      bex[i][0] = 1.0;
+      cex[i][0] = -1.0*absConst;
 
-      aex[xSize-1][j] = -1.0*absConst;
-      bex[xSize-1][j] = 1.0;
-      cex[xSize-1][j] = 0.0;
+      aex[i][ySize-1] = -1.0*absConst;
+      bex[i][ySize-1] = 1.0;
+      cex[i][ySize-1] = 0.0;
     }
 
     // While Hz depends on i-terms:
-    for (i = 0; i < xSize; i++) {
-      ahz[i][0] = 0.0;
-      bhz[i][0] = 1.0;
-      chz[i][0] = -1.0*absConst;
+    for (j = 0; j < ySize; j++) {
+      ahz[0][j] = 0.0;
+      bhz[0][j] = 1.0;
+      chz[0][j] = -1.0*absConst;
 
-      ahz[i][ySize-1] = -1.0*absConst;
-      bhz[i][ySize-1] = 1.0;
-      chz[i][ySize-1] = 0.0;
+      ahz[xSize-1][j] = -1.0*absConst;
+      bhz[xSize-1][j] = 1.0;
+      chz[xSize-1][j] = 0.0;
     }
 
     printf("ahz: %.17g\n", ahz[4][0]);
