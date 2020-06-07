@@ -103,17 +103,23 @@ void EFieldUpdate (struct Grid *g) {
   double *d = AllocateMemory1D(ySize, 0.0);
   // See Prokopidis and Zografopoulos eq. 30
 
-
+  /* Main Grid Updates: */
   for (i = 0; i < xSize; i++) {
     for (j = 1; j < ySize; j++) {
       exOld[i][j] = ex[i][j]; // Store previous field
 
-      d[j] = iConst2[i][j]*ex[i][j] - \
-             PMLky[i][j]*ABConst[i][j]*(ex[i][j+1] - 2.0*ex[i][j] + ex[i][j-1]) + \
-             ehConst[i][j]*(hz[i][j]-hz[i][j-1]) - eqConst[i][j]*qxSum[i][j];
-    }
+      if ( i == 0 ) {
+        d[j] = ex[i+1][j] - absConst*ex[i][j];
+      } else if ( i == xSize - 1 ){
+        d[j] = ex[i-1][j] - absConst*ex[i][j];
+      } else {
+        d[j] = iConst2[i][j]*ex[i][j] - \
+               ABConst[i][j]*(ex[i][j+1] - 2.0*ex[i][j] + ex[i][j-1]) + \
+               ehConst[i][j]*(hz[i][j]-hz[i][j-1]) - eqConst[i][j]*qxSum[i][j];
+      } /* if-else */
+    } /* jForLoop */
     exTriDiagonalSolve(g,i,d);
-  }
+  } /* iForLoop */
 
   for (i = 1; i < xSize; i++) {
     for (j = 0; j < ySize; j++) {
@@ -130,6 +136,28 @@ void EFieldUpdate (struct Grid *g) {
 
     } /* jForLoop */
   } /* iForLoop */
+
+  /* ABC Region Updates for Ey (explicit updates): */
+  // Left
+  i = 0;
+  for (j = 0; j < ySize; j++) {
+    ey[i][j] = eyOld[i+1][j] + absConst*(ey[i+1][j] - eyOld[i][j]); // eq. 4
+  }
+  // Right:
+  i = xSize-1;
+  for (j = 0; j < ySize; j++) {
+    ey[i][j] = eyOld[i-1][j] + absConst*(ey[i-1][j] - eyOld[i][j]);
+  }
+  // Bottom:
+  j = 0;
+  for (i = 0; i < xSize; i++) {
+    ey[i][j] = eyOld[i][j+1] + absConst*(ey[i][j+1] - eyOld[i][j]); // eq. 4
+  }
+  // Top:
+  j = ySize-1;
+  for (i = 0; i < xSize; i++) {
+    ey[i][j] = eyOld[i][j-1] + absConst*(ey[i][j-1] - eyOld[i][j]); // eq. 4
+  }
 
   free(d);
   return;
@@ -168,12 +196,42 @@ void HFieldUpdate (struct Grid *g) {
 
   for (j = 0; j < ySize; j++) { // THE ORDER HERE IS BACKWARDS. There might be a better way as this is an inefficient way to access these elements
     for (i = 1; i < xSize; i++) {
-      d[i] = hz[i][j] - PMLkx[i][j]*ABConst[i][j]*(hz[i+1][j] - 2*hz[i][j] + hz[i-1][j]) + \
-             heConst[i][j]*((ex[i][j+1] - ex[i][j]) - (ey[i+1][j] - ey[i][j])); // INCORRECT YEE LATTICE HERE MAYBE (maybe not...?)
+
+      hzOld[i][j] = hz[i][j];
+      if ( j == 0 ) {
+        d[j] = hz[i][j+1] - absConst*hz[i][j];
+      } else if ( j == ySize - 1 ){
+        d[j] = hz[i][j-1] - absConst*hz[i][j];
+      } else {
+        d[i] = hz[i][j] - ABConst[i][j]*(hz[i+1][j] - 2*hz[i][j] + hz[i-1][j]) + \
+               heConst[i][j]*((ex[i][j+1] - ex[i][j]) - (ey[i+1][j] - ey[i][j])); // INCORRECT YEE LATTICE HERE MAYBE (maybe not...?)
              // This also assume magnetic permeability = 1
+      } /* if-else */
     } /* iForLoop */
     hzTriDiagonalSolve(g,j,d); // Now do the tri-diagonal solving
   } /* jForLoop */
+
+  /* ABC Region Updates: */
+  // Left
+  i = 0;
+  for (j = 0; j < ySize; j++) {
+    hz[i][j] = hzOld[i+1][j] - absConst*hzOld[i][j] + absConst*hz[i+1][j]; // eq. 5
+  }
+  // Right
+  i = xSize - 1;
+  for (j = 0; j < ySize; j++) {
+    hz[i][j] = hzOld[i-1][j] - absConst*hzOld[i][j] + absConst*hz[i-1][j]; // eq. 5
+  }
+  // Bottom
+  j = 0;
+  for (i = 0; i < xSize; i++) {
+    hz[i][j] = hzOld[i][j+1] - absConst*hzOld[i][j] + absConst*hz[i][j+1]; // eq. 5
+  }
+  // Top
+  j = ySize - 1;
+  for (i = 0; i < xSize; i++) {
+    hz[i][j] = hzOld[i][j-1] - absConst*hzOld[i][j] + absConst*hz[i][j-1]; // eq. 5
+  }
 
   free(d);
   return;
