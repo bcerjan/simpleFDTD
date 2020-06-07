@@ -123,6 +123,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     courantS = 1.0/2.0;
     dt = courantS * dx / speedOfLight;
+
+    absConst = (speedOfLight*dt - dx) / (speedOfLight*dt + dx);
 //printf( "dx: %f\n", dx );
 //printf( "dt: %f\n", dt );
 //printf( "courantS: %f\n", courantS );
@@ -192,6 +194,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     exOld = AllocateMemory(xSize, ySize + 1, 0.0);
     eyOld = AllocateMemory(xSize + 1, ySize, 0.0);
+    hzOld = AllocateMemory(xSize + 1, ySize + 1, 0.0);
 
 
     /*printf("cjjTemp[0]: %.5e\n", cjjTemp[0]);
@@ -431,7 +434,7 @@ printf("Structure Added...\n" );
 
     // Now, loop through PML regions and set PML-k terms where appropriate:
     // Left/Right PML Region:
-    for (i = 0; i < abcSize; i++) {
+    /*for (i = 0; i < abcSize; i++) {
       for (j = 0; j < ySize; j++) {
         PMLkx[abcSize - 1 - i][j]     = 1.0/gradKx[i];
         PMLkx[xSize - abcSize + i][j] = 1.0/gradKx[i];
@@ -444,7 +447,7 @@ printf("Structure Added...\n" );
         PMLky[i][abcSize - 1 - j]     = 1.0/gradKy[j];
         PMLky[i][ySize - abcSize + j] = 1.0/gradKy[j];
       }
-    }
+    }*/
     /*
     printf("PMLkx[7][133]: %.17g\n", PMLkx[7][133]);
     printf("ABCConst*PMLkx[7][133]: %.17g\n", ABConst[7][133]*PMLkx[7][133]);
@@ -475,6 +478,31 @@ printf("Structure Added...\n" );
         bex[i][j] = iConst1[i][j] + 2.0*PMLky[i][j]*ABConst[i][j];
         cex[i][j] = aex[i][j];
       }
+    }
+
+    // Add Mur ABC conditions from "Mur Absorbing Boundary Condition for 2-D
+    // Leapgfrog ADI-FDTD Method", Gan and Tan, IEEE Asia-Pacific Conf. 2012
+
+    // As Ex depends on j-terms:
+    for (j = 0; j < ySize; j++) {
+      aex[0][j] = 0.0;
+      bex[0][j] = 1.0;
+      cex[0][j] = -1.0*absConst;
+
+      aex[xSize-1][j] = -1.0*absConst;
+      bex[xSize-1][j] = 1.0;
+      cex[xSize-1][j] = 0.0;
+    }
+
+    // While Hz depends on i-terms:
+    for (i = 0; i < xSize; i++) {
+      ahz[i][0] = 0.0;
+      bhz[i][0] = 1.0;
+      chz[i][0] = -1.0*absConst;
+
+      ahz[i][ySize-1] = -1.0*absConst;
+      bhz[i][ySize-1] = 1.0;
+      chz[i][ySize-1] = 0.0;
     }
 
     printf("ahz: %.17g\n", ahz[4][0]);
