@@ -199,9 +199,9 @@ void HFieldUpdate (struct Grid *g) {
 
       hzOld[i][j] = hz[i][j];
       if ( i == 0 ) {
-        d[j] = hz[i+1][j] - absConst*hz[i][j];
+        d[i] = hz[i+1][j] - absConst*hz[i][j];
       } else if ( i == xSize - 1 ){
-        d[j] = hz[i-1][j] - absConst*hz[i][j];
+        d[i] = hz[i-1][j] - absConst*hz[i][j];
       } else {
         d[i] = hz[i][j] - ABConst[i][j]*(hz[i+1][j] - 2*hz[i][j] + hz[i-1][j]) + \
                heConst[i][j]*((ex[i][j+1] - ex[i][j]) - (ey[i+1][j] - ey[i][j])); // INCORRECT YEE LATTICE HERE MAYBE (maybe not...?)
