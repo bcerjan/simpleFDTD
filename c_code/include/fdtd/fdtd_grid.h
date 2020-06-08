@@ -76,6 +76,10 @@ struct Grid {
 
   double  **exOld;    // Matrix to store old Ex values for Drude metals
   double  **eyOld;    // "" Ey values
+  double  **hzOld;
+
+  // ABC update value:
+  double  absConst; 
 
   // PML Field values:
   double  **PMLkx;

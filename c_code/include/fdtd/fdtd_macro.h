@@ -28,6 +28,7 @@
 #define EyG(G) G->ey
 #define ExOldG(G) G->exOld
 #define EyOldG(G) G->eyOld
+#define HzOldG(G) G->hzOld
 
 
 #define QxG(G) G->qx
@@ -67,6 +68,9 @@
 #define AhzG(G) G->ahz
 #define BhzG(G) G->bhz
 #define ChzG(G) G->chz
+
+// Absorbing boundary factor:
+#define AbsConstG(G) G->absConst
 
 // PML values:
 #define PMLkxG(G) G->PMLkx
@@ -113,7 +117,7 @@
 
 #define exOld ExOldG(g)
 #define eyOld EyOldG(g)
-
+#define hzOld HzOldG(g)
 
 #define qx QxG(g)
 #define qy QyG(g)
@@ -151,6 +155,8 @@
 #define ahz AhzG(g)
 #define bhz BhzG(g)
 #define chz ChzG(g)
+
+#define absConst AbsConstG(g)
 
 #define PMLkx PMLkxG(g)
 #define PMLky PMLkyG(g)
