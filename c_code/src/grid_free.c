@@ -74,6 +74,7 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(ABConst, xSize);
   freeComplexTriplePtr(qConst1, number_poles, xSize);
   freeComplexTriplePtr(qConst2, number_poles, xSize);
+  freeComplexTriplePtr(qSumC, number_poles, xSize);
   freeComplexTriplePtr(qx, number_poles, xSize);
   freeComplexTriplePtr(qy, number_poles, xSize);
   freeDoublePtr(qxSum, xSize);
@@ -88,10 +89,6 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(ahz, xSize);
   freeDoublePtr(bhz, xSize);
   freeDoublePtr(chz, xSize);
-
-  // PML Values:
-  freeDoublePtr(PMLkx, xSize);
-  freeDoublePtr(PMLky, xSize);
 
   freeDoublePtr(exOld, xSize);
   freeDoublePtr(eyOld, xSize + 1);
@@ -113,7 +110,6 @@ void freeGrid(struct Grid *g) {
   // Now, all individual pointers:
   free(reflDFT);
   free(tranDFT);
-  free(qSumC);
 
   // And finally the grid itself:
   free(g);
