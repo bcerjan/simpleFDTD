@@ -72,9 +72,6 @@
 // Absorbing boundary factor:
 #define AbsConstG(G) G->absConst
 
-// PML values:
-#define PMLkxG(G) G->PMLkx
-#define PMLkyG(G) G->PMLky
 
 // Values for tracking DFT:
 #define ReflXPosG(G) G->reflXPos
