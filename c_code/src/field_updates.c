@@ -85,7 +85,7 @@ void hzTriDiagonalSolve(struct Grid *g, int j, double *d /* d[xSize] */) {
       dPrime[k] = (d[k] - ahz[k][j]*dPrime[k-1]) / (bhz[k][j] - ahz[k][j]*cPrime[k-1]);
     }
 
-    // Set i = ySize - 1 term:
+    // Set i = xSize - 1 term:
     hz[xSize-1][j] = dPrime[xSize-1];
     for (k = xSize-2; k > -1; k--){
       hz[k][j] = dPrime[k] - cPrime[k]*hz[k+1][j];
@@ -106,6 +106,7 @@ void EFieldUpdate (struct Grid *g) {
   /* Main Grid Updates: */
   for (i = 0; i < xSize; i++) {
     for (j = 0; j < ySize; j++) {
+
       exOld[i][j] = ex[i][j]; // Store previous field
 
       if ( j == 0 ) {
@@ -141,6 +142,7 @@ void EFieldUpdate (struct Grid *g) {
   // Left
   i = 0;
   for (j = 0; j < ySize; j++) {
+    eyOld[i][j] = ey[i][j]; // This row is skipped above and so eyOld is always 0 otherwise for i = 0
     ey[i][j] = eyOld[i+1][j] + absConst*(ey[i+1][j] - eyOld[i][j]); // eq. 4
   }
   // Right:
@@ -211,28 +213,6 @@ void HFieldUpdate (struct Grid *g) {
     hzTriDiagonalSolve(g,j,d); // Now do the tri-diagonal solving
   } /* jForLoop */
 
-  /* ABC Region Updates: */
-  // Left
-  /*i = 0;
-  for (j = 0; j < ySize; j++) {
-    hz[i][j] = hzOld[i+1][j] - absConst*hzOld[i][j] + absConst*hz[i+1][j]; // eq. 5
-  }
-  // Right
-  i = xSize - 1;
-  for (j = 0; j < ySize; j++) {
-    hz[i][j] = hzOld[i-1][j] - absConst*hzOld[i][j] + absConst*hz[i-1][j]; // eq. 5
-  }
-  // Bottom
-  j = 0;
-  for (i = 0; i < xSize; i++) {
-    hz[i][j] = hzOld[i][j+1] - absConst*hzOld[i][j] + absConst*hz[i][j+1]; // eq. 5
-  }
-  // Top
-  j = ySize - 1;
-  for (i = 0; i < xSize; i++) {
-    hz[i][j] = hzOld[i][j-1] - absConst*hzOld[i][j] + absConst*hz[i][j-1]; // eq. 5
-  }*/
-
   free(d);
   return;
 }
@@ -250,12 +230,9 @@ void DFTUpdate (struct Grid *g, int n) {
   /***********************************************************************/
   //     Update DFT values
   /***********************************************************************/
-  regionIndex = 0;    // center (main) grid
-  yStart = regionData[regionIndex].yStart;
-  yStop  = regionData[regionIndex].yStop ;
 
   for (i = 0; i < NUMBERDFTFREQS; i++) {
-    for (j = yStart; j < yStop; j++) {
+    for (j = 0; j < ySize; j++) {
       kVal = (double )kList[i];
 
       // First do Ey accumulations:
@@ -288,9 +265,6 @@ void DFTUpdate (struct Grid *g, int n) {
 // reflected and transmitted fields:
 void finishFullDFT (struct Grid *g) {
   int i,j;
-  int regionIndex = 0;    // center (main) grid
-  int yStart = regionData[regionIndex].yStart;
-  int yStop  = regionData[regionIndex].yStop ;
   double reEy,imEy,reHz,imHz;
   /**double emptyReEyRefl[NUMBERDFTFREQS][ySize],\
   emptyImEyRefl[NUMBERDFTFREQS][ySize],\
@@ -299,7 +273,7 @@ void finishFullDFT (struct Grid *g) {
 
   // First do Transmission as it is simpler:
   for (i = 0; i < NUMBERDFTFREQS; i++) {
-    for (j = yStart; j < yStop; j++) {
+    for (j = 0; j < ySize; j++) {
       tranDFT[i] += ( (reEyTranDFT[i][j] * reHzTranDFT[i][j]) + (imHzTranDFT[i][j] * imEyTranDFT[i][j]) );
     } /* jForLoop */
 
@@ -311,7 +285,7 @@ void finishFullDFT (struct Grid *g) {
   // See: https://meep.readthedocs.io/en/latest/Introduction/#transmittancereflectance-spectra
 
   for (i = 0; i < NUMBERDFTFREQS; i++) {
-    for (j = yStart; j < yStop; j++) {
+    for (j = 0; j < ySize; j++) {
       reEy = reEyReflDFT[i][j] - emptyReEyRefl[refractiveIndexIndex][i];
       imEy = imEyReflDFT[i][j] - emptyImEyRefl[refractiveIndexIndex][i];
       reHz = reHzReflDFT[i][j] - emptyReHzRefl[refractiveIndexIndex][i];
@@ -329,12 +303,10 @@ void finishEmptyDFT (struct Grid *g) {
   int i,j;
 
   int regionIndex = 0;    // center (main) grid
-  int yStart = regionData[regionIndex].yStart;
-  int yStop  = regionData[regionIndex].yStop ;
 
   // Poynting flux calculation Integral of (Ey* x Hz):
   for (i = 0 ; i < NUMBERDFTFREQS; i++) {
-    for (j = yStart; j < yStop; j++) {
+    for (j = 0; j < ySize; j++) {
       tranDFT[i] += ( (reEyTranDFT[i][j] * reHzTranDFT[i][j]) + (imHzTranDFT[i][j] * imEyTranDFT[i][j]) );
       reflDFT[i] -= ( (reEyReflDFT[i][j] * reHzReflDFT[i][j]) + (imHzReflDFT[i][j] * imEyReflDFT[i][j]) ); // Minus as we want -X direction
     } /* jForLoop */
