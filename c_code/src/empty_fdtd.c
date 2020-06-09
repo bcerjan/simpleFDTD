@@ -55,65 +55,67 @@ int main() {
   int outInterval = 0;
 
   //for (n = 0; n < maximumIteration; n++) {
-  for (n = 0; n < 250; n++) {
+  for (n = 0; n < 5; n++) {
 
 
     EFieldUpdate(g);
     //printf( "E Updated\n" );
+    lineSource(g, xSource, n);
     QFieldUpdate(g);
     //printf( "Q Updated\n" );
     HFieldUpdate(g);
     //printf( "H Updated\n" );
 
-    lineSource(g, xSource, n);
+
 
     //printf("ey at src: %f\n", ey[20][25]);
     DFTUpdate(g, n);
-    if( n % 5 == 0 && n > 240 ){
-    printf("n: %i\n",n);
+    if( n % 1 == 0 ){
+      //printf("n: %i\n",n);
 
-    //printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
-    //printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
-    //printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
-    printf("ey[7]: %.17g\n", ey[7][133]);
-    //printf("ey[PML+2]: %.17g\n", ey[ABCSIZECONSTANT+2][133]);
-    printf("hz[7]: %.17g\n", hz[7][133]);
-    //printf("hz[PML+2]: %.17g\n", hz[ABCSIZECONSTANT+2][133]);
-    //printf("ey[xSouce + 60]: %.17g\n", ey[xSource+60][133]);
-    //printf("ey[source]: %.17g\n", ey[xSource][133]);
+      //printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
+      //printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+      //printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
+      //printf("ey[7]: %.17g\n", ey[7][133]);
+      //printf("ey[PML+2]: %.17g\n", ey[ABCSIZECONSTANT+2][133]);
+      //printf("hz[7]: %.17g\n", hz[7][133]);
+      //printf("hz[PML+2]: %.17g\n", hz[ABCSIZECONSTANT+2][133]);
+      //printf("ey[xSouce + 60]: %.17g\n", ey[xSource+60][133]);
+      //printf("ey[source]: %.17g\n", ey[xSource][133]);
 
-    printf("---------------------\n");}
-    /*char tranEyFilename[100] = "test_output/empty_tran_raw_ey.h";
-    FILE *tranEyDataPtr;
+      //printf("---------------------\n");}
+      char tranEyFilename[100] = "test_output/empty_tran_raw_ey.h";
+      FILE *tranEyDataPtr;
 
-    // Write to header file for use later
-    tranEyDataPtr = fopen(tranEyFilename, "a");
-    fprintf(tranEyDataPtr, "%.17g,\n", ey[tranXPos][75]);
-    fclose(tranEyDataPtr);
+      // Write to header file for use later
+      tranEyDataPtr = fopen(tranEyFilename, "a");
+      fprintf(tranEyDataPtr, "%.17g,\n", ey[tranXPos][75]);
+      fclose(tranEyDataPtr);
 
-    char reflEyFilename[100] = "test_output/empty_refl_raw_ey.h";
-    FILE *reflEyDataPtr;
+      char reflEyFilename[100] = "test_output/empty_refl_raw_ey.h";
+      FILE *reflEyDataPtr;
 
-    // Write to header file for use later
-    reflEyDataPtr = fopen(reflEyFilename, "a");
-    fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][75]);
-    fclose(reflEyDataPtr);
+      // Write to header file for use later
+      reflEyDataPtr = fopen(reflEyFilename, "a");
+      fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][75]);
+      fclose(reflEyDataPtr);
 
-    char tranHzFilename[100] = "test_output/empty_tran_raw_hz.h";
-    FILE *tranHzDataPtr;
+      /*char tranHzFilename[100] = "test_output/empty_tran_raw_hz.h";
+      FILE *tranHzDataPtr;
 
-    // Write to header file for use later
-    tranHzDataPtr = fopen(tranHzFilename, "a");
-    fprintf(tranHzDataPtr, "%.17g,\n", hz[tranXPos][75]);
-    fclose(tranHzDataPtr);
+      // Write to header file for use later
+      tranHzDataPtr = fopen(tranHzFilename, "a");
+      fprintf(tranHzDataPtr, "%.17g,\n", hz[tranXPos][75]);
+      fclose(tranHzDataPtr);
 
-    char reflHzFilename[100] = "test_output/empty_refl_raw_hz.h";
-    FILE *reflHzDataPtr;
+      char reflHzFilename[100] = "test_output/empty_refl_raw_hz.h";
+      FILE *reflHzDataPtr;
 
-    // Write to header file for use later
-    reflHzDataPtr = fopen(reflHzFilename, "a");
-    fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
-    fclose(reflHzDataPtr);*/
+      // Write to header file for use later
+      reflHzDataPtr = fopen(reflHzFilename, "a");
+      fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
+      fclose(reflHzDataPtr);*/
+    }
 
     interval++;
   } /* nForLoop */

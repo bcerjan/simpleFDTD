@@ -37,7 +37,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, -1, 100.0, 100.0, environmentIndex, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 1, 1, 2.0, 10000.0, environmentIndex, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -47,15 +47,30 @@ int main() {
 
   //for (n = 0; n < maximumIteration; n++) {
   for (n = 0; n < 5; n++) {
-    StoreFields(g);
-    HFieldUpdate(g);
+
+
     EFieldUpdate(g);
-    PFieldUpdate(g);
     lineSource(g, xSource, n);
-    //lineSource(g, xSize/2, n);
-    //printf("ey at right edge: %f\n", ey[xSize - 10][ySize/2]);
-    //printf("hz at right edge: %f\n----\n", hz[xSize - 10][ySize/2]);
+    QFieldUpdate(g);
+    HFieldUpdate(g);
+
     DFTUpdate(g, n);
+
+    /*if( n % 50 == 0 ){
+      printf("n: %i\n",n);
+
+      //printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
+      printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+      //printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
+      //printf("ey[7]: %.17g\n", ey[7][133]);
+      //printf("ey[PML+2]: %.17g\n", ey[ABCSIZECONSTANT+2][133]);
+      //printf("hz[7]: %.17g\n", hz[7][133]);
+      //printf("hz[PML+2]: %.17g\n", hz[ABCSIZECONSTANT+2][133]);
+      //printf("ey[xSouce + 60]: %.17g\n", ey[xSource+60][133]);
+      //printf("ey[source]: %.17g\n", ey[xSource][133]);
+
+      printf("---------------------\n");
+    }*/
 
 /*
     char tranEyFilename[100] = "test_output/structure_tran_raw_ey.h";
