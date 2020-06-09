@@ -66,8 +66,8 @@ void findMatEdge(struct Grid *g) {
   //double **out = AllocateMemory(sizeX, sizeY, 0.0);
   double Gx;
   double Gy;
-  double gx[3][3] = {0};
-  double gy[3][3] = {0};
+  double gx[3][3] = {0.0};
+  double gy[3][3] = {0.0};
 
   // Specify Sobel Operators:
   gx[0][0] = -1.0;
