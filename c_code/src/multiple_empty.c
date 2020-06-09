@@ -43,7 +43,7 @@ int main() {
   double backInd, temp;
   // Divide by 10 to get actual background refractive index
   int minInd = 10;
-  int maxInd = 40 + 1; // +1 is so you can write the max index you actually want
+  int maxInd = 12 + 1; // +1 is so you can write the max index you actually want
   //int minInd = 10;
   //int maxInd = 12;
   int numInd = maxInd - minInd;
@@ -73,12 +73,13 @@ int main() {
     // Run simulation loop for this background index:
     for (n = 0; n < maximumIter; n++) {
 
-      StoreFields(g);
-      HFieldUpdate(g);
-      EFieldUpdate(g);
-      PFieldUpdate(g);
 
+
+      EFieldUpdate(g);
       lineSource(g, xSource, n);
+      QFieldUpdate(g);
+      HFieldUpdate(g);
+
       //printf("ey at src: %f\n", ey[20][25]);
       DFTUpdate(g, n);
 
@@ -101,7 +102,7 @@ int main() {
       Fields->nImHz[i][j] = imHzReflDFT[j][ySize/2];
     } /* jForLoop */
 
-    printf( "Finished index loop: %i\n", i );
+    printf( "Finished index loop: %i of %i\n", i, numInd - 1 );
 
     freeGrid(g);
   } /* iForLoop */
