@@ -100,6 +100,11 @@
 #define RegionDataG(G) G->regionData
 
 #define ObjectLocsG(G) G->object_locs
+#define ObjectXMaxG(G) G->objectXMax
+#define ObjectYMaxG(G) G->objectYMax
+#define ObjectXMinG(G) G->objectXMin
+#define ObjectYMinG(G) G->objectYMin
+
 #define RefractiveIndexIndexG(G) G->refractiveIndexIndex
 
 // Variables for tracking loop state in emscripten
@@ -155,9 +160,6 @@
 
 #define absConst AbsConstG(g)
 
-#define PMLkx PMLkxG(g)
-#define PMLky PMLkyG(g)
-
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)
 #define tranXPos TranXPosG(g)
@@ -185,6 +187,12 @@
 #define regionData RegionDataG(g)
 
 #define object_locs ObjectLocsG(g)
+#define objectXMax ObjectXMaxG(g)
+#define objectYMax ObjectYMaxG(g)
+#define objectXMin ObjectXMinG(g)
+#define objectYMin ObjectYMinG(g)
+
+
 #define refractiveIndexIndex RefractiveIndexIndexG(g)
 
 // For emscripten animation:

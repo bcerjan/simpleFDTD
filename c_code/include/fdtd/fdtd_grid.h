@@ -81,10 +81,6 @@ struct Grid {
   // ABC update value:
   double  absConst;
 
-  // PML Field values:
-  double  **PMLkx;
-  double  **PMLky;
-
   // Values for tracking DFT
   int reflXPos,tranXPos;          // Positions of the line monitors used to find reflected / transmitted fields
   double *reflDFT;                // Values for reflection DFT at some number of wavelengths
@@ -113,6 +109,10 @@ struct Grid {
 
   // Array to track where our object is/is not:
   double **object_locs;
+  int  objectXMax; // Variables to store greatest extent of the object so we don't have to update Q over the entire simulation space
+  int  objectYMax;
+  int  objectXMin;
+  int  objectYMin;
 
   // Index for our "empty" runs to track what index we're using now:
   int refractiveIndexIndex; // unfortunately named...
