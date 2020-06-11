@@ -170,8 +170,8 @@ void QFieldUpdate (struct Grid *g) { // I know, it's not actually a field
   int i,j,p;
 
   for (p = 0; p < number_poles; p++) {
-    for (i = 0; i < xSize; i++) {
-      for (j = 0; j < ySize; j++) { // i=0 = pec, so don't evaluate
+    for (i = objectXMin; i < objectXMax; i++) {
+      for (j = objectYMin; j < objectYMax; j++) { // i=0 = pec, so don't evaluate
         // Reset sums so they don't just continuously increment:
         if (p == 0) {
           qxSum[i][j] = 0.0 + 0.0*I;

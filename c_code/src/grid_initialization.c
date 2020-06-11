@@ -111,7 +111,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     double dxnm = dx*1e9; // Grid step size in nm
 
     //courantS = 1.0/2.0;
-    courantS = 4.0/2.0;
+    courantS = 3.0/2.0;
     dt = courantS * dx / speedOfLight;
 
     absConst = (speedOfLight*dt - dx) / (speedOfLight*dt + dx);
@@ -313,17 +313,27 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 printf("Strucutre Init...\n" );
 
     // Sanity checks on input sizes:
-    double x_size,y_size;
+    double x_size,y_size,x_steps,y_steps;
     if( objectXSize < 0.0 ) {
       x_size = 0.0;
+      objectXMax = 2; // Should never be used, but just in case
+      objectXMin = 1; // ""
     } else {
       x_size = objectXSize * dx / dxnm;
+      x_steps = objectXSize * 1.0e-9 / dx; // Assumes units are in nm
+      objectXMax = xCenter + (int )ceil(x_steps/2.0);
+      objectXMin = xCenter - (int )floor(x_steps/2.0);
     } /* ifBlock */
 
     if( objectYSize < 0.0 ) {
       y_size = 0.0;
+      objectYMax = 2; // Should never be used, but just in case
+      objectYMin = 1; // ""
     } else {
       y_size = objectYSize * dx / dxnm;
+      y_steps = objectYSize * 1.0e-9 / dx; // Assumes units are in nm
+      objectYMax = yCenter + (int )ceil(y_steps/2.0);
+      objectYMin = yCenter - (int )floor(y_steps/2.0);
     } /* ifBlock */
 
     // Switch Block to pick structure geometry (default is no object):
