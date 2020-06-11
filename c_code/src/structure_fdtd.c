@@ -37,7 +37,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 1, 1, 2.0, 10000.0, environmentIndex, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 1, 1, 20.0, 10000.0, environmentIndex, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -45,8 +45,8 @@ int main() {
   int n;
   int outInterval = 0;
 
-  //for (n = 0; n < maximumIteration; n++) {
-  for (n = 0; n < 5; n++) {
+  for (n = 0; n < maximumIteration; n++) {
+  //for (n = 0; n < 5; n++) {
 
 
     EFieldUpdate(g);
@@ -111,11 +111,12 @@ int main() {
 
   // Scale our DFT's by the empty run:
   finishFullDFT(g);
-
+/*
   for (n = 0; n < NUMBERDFTFREQS; n++) {
     printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
     printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
   }
+*/
   printf( "Finished loop\n" );
 
   freeGrid(g);
