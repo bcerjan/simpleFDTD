@@ -312,7 +312,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     structInit(xCenter, yCenter);
 printf("Strucutre Init...\n" );
 
-    // Sanity checks on input sizes:
+    // Sanity checks on input sizes, if statements make sure we're never trying
+    // to update outside the grid or beyond the monitor positions:
     double x_size,y_size,x_steps,y_steps;
     if( objectXSize < 0.0 ) {
       x_size = 0.0;
@@ -322,7 +323,9 @@ printf("Strucutre Init...\n" );
       x_size = objectXSize * dx / dxnm;
       x_steps = objectXSize * 1.0e-9 / dx; // Assumes units are in nm
       objectXMax = xCenter + (int )ceil(x_steps/2.0);
+      if (objectXMax > 2*xSize-tranXPos+1) { objectXMax = 2*xSize-tranXPos+1; }
       objectXMin = xCenter - (int )floor(x_steps/2.0);
+      if (objectXMin < reflXPos+1) { objectYMax = reflXPos+1; }
     } /* ifBlock */
 
     if( objectYSize < 0.0 ) {
@@ -333,7 +336,9 @@ printf("Strucutre Init...\n" );
       y_size = objectYSize * dx / dxnm;
       y_steps = objectYSize * 1.0e-9 / dx; // Assumes units are in nm
       objectYMax = yCenter + (int )ceil(y_steps/2.0);
+      if (objectYMax > ySize-1) { objectYMax = ySize-1; }
       objectYMin = yCenter - (int )floor(y_steps/2.0);
+      if (objectYMin < 1) { objectYMin = 1; }
     } /* ifBlock */
 
     // Switch Block to pick structure geometry (default is no object):
