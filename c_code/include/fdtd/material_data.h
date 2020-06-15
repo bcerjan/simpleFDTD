@@ -41,6 +41,11 @@
 
 #include <complex.h>
 
+#define PLANCK_H 4.135667e-15 // eV/sec
+#define EPS0 8.854187e-12
+#define SPEEDC 2.99792458e8 // m/sec
+#define CONVERSION 6.28319/PLANCK_H // Conversion for constants that have units of energy (2 PI/h) to get to rad/sec
+
 struct cpParams {
   complex double ap;
   complex double cp;
@@ -51,6 +56,7 @@ struct Material {
   double epsInf;
   double permeability;
   double conductivity;
+
   struct cpParams params[MAX_POLES];
 };
 
@@ -59,30 +65,31 @@ struct Material {
 static const struct Material materialData[6] = {
   { //0, Al, Vial, 2011
     .num_poles = 2,
-    .epsInf = 0.329431,
+    .epsInf = 0.329666,
+    //.epsInf = 1.329666,
     .permeability = 1.0,
-    .conductivity = 9.92393e14,
+    .conductivity = 254.536 * EPS0 * CONVERSION,
     .params[0] = {
-      .ap = (-0.10057 + I*0.0936978)*1.0e14,
-      .cp = (-2.38438 - I*1506.82)*1.0e14,
+      .ap = (-0.0783386 + I*0.0699538)*CONVERSION,
+      .cp = (-128.853 - I*732.243)*CONVERSION,
     },
     .params[1] = {
-      .ap = (-0.388929 - I*2.22844)*1.0e14,
-      .cp = (4.26389 + I*8.17685)*1.0e14,
+      .ap = (-0.255539 - I*1.46655)*CONVERSION,
+      .cp = (2.81621 + I*5.36337)*CONVERSION,
     },
   },
   { //1, Au, Johnson and Christy
     .num_poles = 2,
-    .epsInf = 0.804299,
+    .epsInf = 1.0,
     .permeability = 1.0,
-    .conductivity = 0.0110692e14,
+    .conductivity = 5.19039 * EPS0 * CONVERSION,
     .params[0] = {
-      .ap = (0.026735 - I*0.275802)*1.0e14,
-      .cp = (5.77798 + I*278.993)*1.0e14,
+      .ap = (-0.994406 + I*2.45951)*CONVERSION,
+      .cp = (7.01819 - I*0.31594)*CONVERSION,
     },
     .params[1] = {
-      .ap = (-1.34043 - I*3.57964)*1.0e14,
-      .cp = (9.37691 - I*2.12891)*1.0e14,
+      .ap = (-0.0219569 + I*0.224007)*CONVERSION,
+      .cp = (-0.67478 - I*155.767)*CONVERSION,
     },
   },
   { //2, Ag, Wu, 2014
@@ -91,12 +98,12 @@ static const struct Material materialData[6] = {
     .permeability = 1.0,
     .conductivity = 1.0e12,
     .params[0] = {
-      .ap = (-0.388929 - I*2.22844)*1.0e14,
-      .cp = (4.26389 + I*8.17685)*1.0e14,
+      .ap = (-0.388929 - I*2.22844)*CONVERSION,
+      .cp = (4.26389 + I*8.17685)*CONVERSION,
     },
     .params[1] = {
-      .ap = (-0.388929 - I*2.22844)*1.0e14,
-      .cp = (4.26389 + I*8.17685)*1.0e14,
+      .ap = (-0.388929 - I*2.22844)*CONVERSION,
+      .cp = (4.26389 + I*8.17685)*CONVERSION,
     },
   },
   { //3, Cu, J&C
@@ -105,19 +112,19 @@ static const struct Material materialData[6] = {
     .permeability = 1.0,
     .conductivity = 1.0e12,
     .params[0] = {
-      .ap = (-0.388929 - I*2.22844)*1.0e14,
-      .cp = (4.26389 + I*8.17685)*1.0e14,
+      .ap = (-0.388929 - I*2.22844)*CONVERSION,
+      .cp = (4.26389 + I*8.17685)*CONVERSION,
     },
     .params[1] = {
-      .ap = (-0.388929 - I*2.22844)*1.0e14,
-      .cp = (4.26389 + I*8.17685)*1.0e14,
+      .ap = (-0.388929 - I*2.22844)*CONVERSION,
+      .cp = (4.26389 + I*8.17685)*CONVERSION,
     },
   },
   { //4, SiO2, Lemarchand, 2013
     .num_poles = 0,
     .epsInf = 2.22439,
     .permeability = 1.0,
-    .conductivity = 1.0e12,
+    .conductivity = 1.0e-10, // needs to be non-0 for stability
   },
   { //5, Si, Green, 2008
     .num_poles = 3,
@@ -125,16 +132,16 @@ static const struct Material materialData[6] = {
     .permeability = 1.0,
     .conductivity = 1.0e12,
     .params[0] = {
-      .ap = (-0.388929 - I*2.22844)*1.0e14,
-      .cp = (4.26389 + I*8.17685)*1.0e14,
+      .ap = (-0.388929 - I*2.22844)*CONVERSION,
+      .cp = (4.26389 + I*8.17685)*CONVERSION,
     },
     .params[1] = {
-      .ap = (-0.388929 - I*2.22844)*1.0e14,
-      .cp = (4.26389 + I*8.17685)*1.0e14,
+      .ap = (-0.388929 - I*2.22844)*CONVERSION,
+      .cp = (4.26389 + I*8.17685)*CONVERSION,
     },
     .params[2] = {
-      .ap = (-0.388929 - I*2.22844)*1.0e14,
-      .cp = (4.26389 + I*8.17685)*1.0e14,
+      .ap = (-0.388929 - I*2.22844)*CONVERSION,
+      .cp = (4.26389 + I*8.17685)*CONVERSION,
     },
   },
 };
