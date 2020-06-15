@@ -111,7 +111,7 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     double dxnm = dx*1e9; // Grid step size in nm
 
     //courantS = 1.0/2.0;
-    courantS = 3.0/2.0;
+    courantS = 2.5/2.0;
     dt = courantS * dx / speedOfLight;
 
     absConst = (speedOfLight*dt - dx) / (speedOfLight*dt + dx);
@@ -122,10 +122,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Grid parameters
     /***********************************************************************/
 
-    /*xSizeMain = 300;                              // number of main grid cells in x-direction
-    ySizeMain = 250;*/
-    xSizeMain = 300;
-    ySizeMain = 250;                               // number of main grid cells in y-direction
+    xSizeMain = 300; //300                             // number of main grid cells in x-direction
+    ySizeMain = 250; //250                              // number of main grid cells in y-direction
     //abcSize = ABCSIZECONSTANT;                    // thickness of PML region
     xSize = xSizeMain; //+ 2 * abcSize;              // number of total grid cells in x-direction
     ySize = ySizeMain; //+ 2 * abcSize;              // number of total grid cells in y-direction
@@ -231,15 +229,15 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Media coefficients
     /***********************************************************************/
 
-    heConst = AllocateMemory(xSize, ySize, dt/(dx*magneticPermeability0));
-    ehConst = AllocateMemory(xSize, ySize, dt/(dx*electricalPermittivity0));
-    eqConst = AllocateMemory(xSize, ySize, 4.0*dt/electricalPermittivity0);
+    heConst = AllocateMemory(xSize, ySize, dt/(dx*magneticPermeability0*mediaPermeability[0]));
+    ehConst = AllocateMemory(xSize, ySize, dt/(dx*electricalPermittivity0*mediaPermittivity[0]));
+    eqConst = AllocateMemory(xSize, ySize, 4.0*dt/(electricalPermittivity0*mediaPermittivity[0]));
     qxSum   = AllocateMemory(xSize, ySize, 0.0);
     qySum   = AllocateMemory(xSize, ySize, 0.0);
     qConst1 = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
     qConst2 = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
     qSumC   = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
-    ABConst = AllocateMemory(xSize, ySize, dt*dt/(4.0*magneticPermeability0*electricalPermittivity0*dx*dx));
+    ABConst = AllocateMemory(xSize, ySize, dt*dt/(4.0*magneticPermeability0*electricalPermittivity0*dx*dx*mediaPermeability[0]*mediaPermittivity[0]));
 
 
     /*printf("heConst: %.5e\n", heConst[0][0]);
@@ -361,10 +359,10 @@ printf("Strucutre Init...\n" );
       for (j = 0; j < ySize; j++) {
         if (object_locs[i][j] > 0.5) {
           // Material Constants:
-          ABConst[i][j] /= mediaPermittivity[1]*mediaPermeability[1];
-          ehConst[i][j] /= mediaPermittivity[1];
-          eqConst[i][j] /= mediaPermittivity[1];
-          heConst[i][j] /= mediaPermeability[1];
+          ABConst[i][j] = dt*dt/(4.0*magneticPermeability0*electricalPermittivity0*dx*dx*mediaPermeability[1]*mediaPermittivity[1]);
+          ehConst[i][j] = dt/(dx*electricalPermittivity0*mediaPermittivity[1]);
+          eqConst[i][j] = 4.0*dt/(electricalPermittivity0*mediaPermittivity[1]);
+          heConst[i][j] = dt/(dx*magneticPermeability0*mediaPermeability[1]);
 
           iConst1[i][j] = iC1[1];
           iConst2[i][j] = iC2[1];
