@@ -70,6 +70,8 @@ int main() {
 
     InitializeFdtd(g, 0, -1, 100.0, 100.0, backInd, 0.0); // First int for metal, second for object shape
 
+    printf( "Starting index loop: %i of %i\n", i+1, numInd );
+
     // Run simulation loop for this background index:
     for (n = 0; n < maximumIter; n++) {
 
@@ -102,7 +104,7 @@ int main() {
       Fields->nImHz[i][j] = imHzReflDFT[j][ySize/2];
     } /* jForLoop */
 
-    printf( "Finished index loop: %i of %i\n", i, numInd - 1 );
+
 
     freeGrid(g);
   } /* iForLoop */
