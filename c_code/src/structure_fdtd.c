@@ -37,7 +37,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 1, 1, 20.0, 10000.0, environmentIndex, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 1, -1, 20.0, 10000.0, environmentIndex, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -56,12 +56,12 @@ int main() {
 
     DFTUpdate(g, n);
 
-    /*if( n % 50 == 0 ){
+    if( n % 100 == 0 ){
       printf("n: %i\n",n);
 
-      //printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
+      printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
       printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
-      //printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
+      printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
       //printf("ey[7]: %.17g\n", ey[7][133]);
       //printf("ey[PML+2]: %.17g\n", ey[ABCSIZECONSTANT+2][133]);
       //printf("hz[7]: %.17g\n", hz[7][133]);
@@ -70,7 +70,7 @@ int main() {
       //printf("ey[source]: %.17g\n", ey[xSource][133]);
 
       printf("---------------------\n");
-    }*/
+    }
 
 /*
     char tranEyFilename[100] = "test_output/structure_tran_raw_ey.h";
@@ -108,15 +108,15 @@ int main() {
     //printf("max ey: %f\n", ArrayMax(ey,xSize,ySize));
     interval++;
   } /* nForLoop */
-
+  printf("max ey: %f\n", AbsArrayMax(ey,xSize,ySize));
   // Scale our DFT's by the empty run:
   finishFullDFT(g);
-/*
+
   for (n = 0; n < NUMBERDFTFREQS; n++) {
     printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
     printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
   }
-*/
+
   printf( "Finished loop\n" );
 
   freeGrid(g);

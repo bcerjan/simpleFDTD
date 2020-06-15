@@ -37,8 +37,10 @@ int main()
   findMatEdge(g);
 */
 
-  printf("First pole bigA: %f\n", materialData[0].params[0].bigA);
-  printf("Second pole bigA: %f\n", materialData[0].params[1].bigA);
+  printf("params[0] ap: %f + i%f\n", creal(materialData[0].params[0].ap), cimag(materialData[0].params[0].ap));
+  printf("params[1] ap: %f + i%f\n", creal(materialData[0].params[1].ap), cimag(materialData[1].params[0].ap));
+  printf("conductivity: %f\n", materialData[0].conductivity);
+  printf("conversion: %f\n", materialData[0].permeability);
   //freeGrid(g);
 
   return(0);
