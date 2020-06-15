@@ -98,6 +98,20 @@ void hzTriDiagonalSolve(struct Grid *g, int j, double *d /* d[xSize] */) {
   }
 }
 
+// Function to store E and H at previous time step.
+// This is E at n-1/2 and H at n.
+void StoreFields (struct Grid *g) {
+  int i,j;
+  for (i = 0; i < xSize; i ++) {
+    for (j = 0; j < ySize; j++) {
+      exOld[i][j] = ex[i][j];
+      eyOld[i][j] = ey[i][j];
+      hzOld[i][j] = hz[i][j];
+    } /* jForLoop */
+  } /* iForLoop */
+  return;
+}
+
 void EFieldUpdate (struct Grid *g) {
   int i,j;
   double *d = AllocateMemory1D(ySize, 0.0);
@@ -107,15 +121,13 @@ void EFieldUpdate (struct Grid *g) {
   for (i = 0; i < xSize; i++) {
     for (j = 0; j < ySize; j++) {
 
-      exOld[i][j] = ex[i][j]; // Store previous field
-
       if ( j == 0 ) {
-        d[j] = ex[i][j+1] - absConst*ex[i][j];
+        d[j] = exOld[i][j+1] - absConst*exOld[i][j];
       } else if ( j == ySize - 1 ){
-        d[j] = ex[i][j-1] - absConst*ex[i][j];
+        d[j] = exOld[i][j-1] - absConst*exOld[i][j];
       } else {
-        d[j] = iConst2[i][j]*ex[i][j] - \
-               ABConst[i][j]*(ex[i][j+1] - 2.0*ex[i][j] + ex[i][j-1]) + \
+        d[j] = iConst2[i][j]*exOld[i][j] - \
+               ABConst[i][j]*(exOld[i][j+1] - 2.0*exOld[i][j] + exOld[i][j-1]) + \
                ehConst[i][j]*(hz[i][j]-hz[i][j-1]) - eqConst[i][j]*qxSum[i][j];
       } /* if-else */
     } /* jForLoop */
@@ -124,7 +136,6 @@ void EFieldUpdate (struct Grid *g) {
 
   for (i = 1; i < xSize; i++) {
     for (j = 0; j < ySize; j++) {
-      eyOld[i][j] = ey[i][j]; // Store previous field
 
       // As Ey update depends on d/dz (which is 0 in 2D), we don't need to tri-Diagonal Solve
       // The AB term has z-derivatives which are 0 in our 2D scheme
@@ -142,23 +153,22 @@ void EFieldUpdate (struct Grid *g) {
   // Left
   i = 0;
   for (j = 0; j < ySize; j++) {
-    eyOld[i][j] = ey[i][j]; // This row is skipped above and so eyOld is always 0 otherwise for i = 0
-    ey[i][j] = eyOld[i+1][j] + absConst*(ey[i+1][j] - eyOld[i][j]); // eq. 4
+    ey[i][j] = eyOld[i+1][j] + absConst*(eyOld[i+1][j] - eyOld[i][j]); // eq. 4
   }
   // Right:
   i = xSize-1;
   for (j = 0; j < ySize; j++) {
-    ey[i][j] = eyOld[i-1][j] + absConst*(ey[i-1][j] - eyOld[i][j]);
+    ey[i][j] = eyOld[i-1][j] + absConst*(eyOld[i-1][j] - eyOld[i][j]);
   }
   // Bottom:
   j = 0;
   for (i = 0; i < xSize; i++) {
-    ey[i][j] = eyOld[i][j+1] + absConst*(ey[i][j+1] - eyOld[i][j]); // eq. 4
+    ey[i][j] = eyOld[i][j+1] + absConst*(eyOld[i][j+1] - eyOld[i][j]); // eq. 4
   }
   // Top:
   j = ySize-1;
   for (i = 0; i < xSize; i++) {
-    ey[i][j] = eyOld[i][j-1] + absConst*(ey[i][j-1] - eyOld[i][j]); // eq. 4
+    ey[i][j] = eyOld[i][j-1] + absConst*(eyOld[i][j-1] - eyOld[i][j]); // eq. 4
   }
 
   free(d);
@@ -199,14 +209,13 @@ void HFieldUpdate (struct Grid *g) {
   for (j = 0; j < ySize; j++) { // THE ORDER HERE IS BACKWARDS. There might be a better way as this is an inefficient way to access these elements
     for (i = 0; i < xSize; i++) {
 
-      hzOld[i][j] = hz[i][j];
       if ( i == 0 ) {
-        d[i] = hz[i+1][j] - absConst*hz[i][j];
+        d[i] = hzOld[i+1][j] - absConst*hzOld[i][j];
       } else if ( i == xSize - 1 ){
-        d[i] = hz[i-1][j] - absConst*hz[i][j];
+        d[i] = hzOld[i-1][j] - absConst*hzOld[i][j];
       } else {
-        d[i] = hz[i][j] - ABConst[i][j]*(hz[i+1][j] - 2*hz[i][j] + hz[i-1][j]) + \
-               heConst[i][j]*((ex[i][j+1] - ex[i][j]) - (ey[i+1][j] - ey[i][j])); // INCORRECT YEE LATTICE HERE MAYBE (maybe not...?)
+        d[i] = hzOld[i][j] - ABConst[i][j]*(hzOld[i+1][j] - 2*hzOld[i][j] + hzOld[i-1][j]) + \
+               heConst[i][j]*((ex[i][j+1] - ex[i][j]) - (ey[i+1][j] - ey[i][j])); // We use the new E-fields as we want E at n+1/2
              // This also assume magnetic permeability = 1
       } /* if-else */
     } /* iForLoop */
