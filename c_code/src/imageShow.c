@@ -145,7 +145,7 @@ float fnFunc(float v, float s, float k){
 
 void colorMap(float *buffer, float z) {
   //const float s = 1.0; // saturation
-  const float s = fabs(z/1.55);
+  const float s = fabs(z/1.75);
   const float v = 1.0; // value
   const float h_neg = 240.0;
   const float h_pos = 0.0;
