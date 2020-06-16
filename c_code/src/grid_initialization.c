@@ -425,10 +425,17 @@ printf("object_locs[xCent][yCent]: %f\n", object_locs[xCenter][yCenter]);
     // Leapgfrog ADI-FDTD Method", Gan and Tan, IEEE Asia-Pacific Conf. 2012
 
     // As Ex depends on j-terms:
+    /* Here the Ex ABC is implemented at j = 1 instead of j = 0. This is because
+       (emprically) it produces instabilities of it's at 0. I believe the issue
+       stems from the staggering of the nodes (i.e. the Yee cell) and so if you
+       put the ABC at j = 0, Ex grows non-physically at j = 1 (as Hz -> 0 at
+       j = 0, but not at j = 1). The Update equation for Ex also ignores the
+       j = 0 row. */
+       
     for (i = 0; i < xSize; i++) {
-      aex[i][0] = 0.0;
-      bex[i][0] = 1.0;
-      cex[i][0] = -1.0*absConst;
+      aex[i][1] = 0.0;
+      bex[i][1] = 1.0;
+      cex[i][1] = -1.0*absConst;
 
       aex[i][ySize-1] = -1.0*absConst;
       bex[i][ySize-1] = 1.0;
