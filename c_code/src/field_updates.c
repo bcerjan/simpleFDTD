@@ -153,22 +153,22 @@ void EFieldUpdate (struct Grid *g) {
   // Left
   i = 0;
   for (j = 0; j < ySize; j++) {
-    ey[i][j] = eyOld[i+1][j] + absConst*(eyOld[i+1][j] - eyOld[i][j]); // eq. 4
+    ey[i][j] = ey[i+1][j] + absConst*(ey[i+1][j] - eyOld[i][j]); // eq. 4
   }
   // Right:
   i = xSize-1;
   for (j = 0; j < ySize; j++) {
-    ey[i][j] = eyOld[i-1][j] + absConst*(eyOld[i-1][j] - eyOld[i][j]);
+    ey[i][j] = eyOld[i-1][j] + absConst*(ey[i-1][j] - eyOld[i][j]);
   }
   // Bottom:
   j = 0;
   for (i = 0; i < xSize; i++) {
-    ey[i][j] = eyOld[i][j+1] + absConst*(eyOld[i][j+1] - eyOld[i][j]); // eq. 4
+    ey[i][j] = eyOld[i][j+1] + absConst*(ey[i][j+1] - eyOld[i][j]); // eq. 4
   }
   // Top:
   j = ySize-1;
   for (i = 0; i < xSize; i++) {
-    ey[i][j] = eyOld[i][j-1] + absConst*(eyOld[i][j-1] - eyOld[i][j]); // eq. 4
+    ey[i][j] = eyOld[i][j-1] + absConst*(ey[i][j-1] - eyOld[i][j]); // eq. 4
   }
 
   free(d);
