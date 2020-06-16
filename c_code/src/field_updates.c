@@ -119,9 +119,10 @@ void EFieldUpdate (struct Grid *g) {
 
   /* Main Grid Updates: */
   for (i = 0; i < xSize; i++) {
-    for (j = 0; j < ySize; j++) {
-
-      if ( j == 0 ) {
+    for (j = 1; j < ySize; j++) {
+      /* As noted in grid_initialization.c, the Ex ABC needs to be applied at
+         j = 1 instead of j = 0, or bad things start to happen. */
+      if ( j == 1) {
         d[j] = exOld[i][j+1] - absConst*exOld[i][j];
       } else if ( j == ySize - 1 ){
         d[j] = exOld[i][j-1] - absConst*exOld[i][j];
@@ -225,7 +226,6 @@ void HFieldUpdate (struct Grid *g) {
   free(d);
   return;
 }
-
 
 void DFTUpdate (struct Grid *g, int n) {
   int regionIndex,yStart,yStop;
