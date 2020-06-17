@@ -53,6 +53,7 @@ void iterateSimulation(struct Grid *g) {
     } /* timeStep if Block */
     //printf("Loop step: %i\timeStep",timeStep);
 
+    StoreFields(g);
     EFieldUpdate(g);
     lineSource(g, xSource, timeStep);
     QFieldUpdate(g);
