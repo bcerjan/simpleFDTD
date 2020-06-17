@@ -41,7 +41,7 @@ OBJ = $(patsubst %, $(OBJ_DIR)/%,$(_OBJ))
 
 HTML_TEMPLATE = ../html_templates/simulation_template.html
 
-EXPORTS = -s "EXPORTED_FUNCTIONS=['_fdtdSim']"
+EXPORTS = -s "EXPORTED_FUNCTIONS=['_fdtdSim','_materialInit']"
 
 CXXFLAGS += -s USE_SDL=2 -s WASM=1 -s NO_EXIT_RUNTIME=1\
            -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s SAFE_HEAP=1 \
