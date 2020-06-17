@@ -43,9 +43,8 @@ int main() {
   double backInd, temp;
   // Divide by 10 to get actual background refractive index
   int minInd = 10;
-  int maxInd = 12 + 1; // +1 is so you can write the max index you actually want
-  //int minInd = 10;
-  //int maxInd = 12;
+  int maxInd = 40 + 1; // +1 is so you can write the max index you actually want
+
   int numInd = maxInd - minInd;
   struct AuxIndexFields *Fields = malloc(sizeof(struct AuxIndexFields));
 
@@ -76,7 +75,7 @@ int main() {
     for (n = 0; n < maximumIter; n++) {
 
 
-
+      StoreFields(g);
       EFieldUpdate(g);
       lineSource(g, xSource, n);
       QFieldUpdate(g);
