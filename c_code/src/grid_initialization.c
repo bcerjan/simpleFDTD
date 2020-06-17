@@ -114,7 +114,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     courantS = 2.5/2.0;
     dt = courantS * dx / speedOfLight;
 
-    absConst = (speedOfLight*dt - dx) / (speedOfLight*dt + dx);
+    // Divide by environment index. This means that if the object goes through the boundary, weird stuff might happen
+    absConst = ( (speedOfLight/environmentIndex)*dt - dx) / ((speedOfLight/environmentIndex)*dt + dx);
 //printf( "dx: %f\n", dx );
 //printf( "dt: %f\n", dt );
 //printf( "courantS: %f\n", courantS );
@@ -431,7 +432,7 @@ printf("object_locs[xCent][yCent]: %f\n", object_locs[xCenter][yCenter]);
        put the ABC at j = 0, Ex grows non-physically at j = 1 (as Hz -> 0 at
        j = 0, but not at j = 1). The Update equation for Ex also ignores the
        j = 0 row. */
-       
+
     for (i = 0; i < xSize; i++) {
       aex[i][1] = 0.0;
       bex[i][1] = 1.0;
