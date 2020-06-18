@@ -115,7 +115,7 @@ void iterateSimulation(struct Grid *g) {
     } /* ifCondition */
 }
 
-int fdtdSim(int metalChoice, int objectChoice, double objectXSize, double objectYSize,
+int fdtdSim(int objectChoice, double objectXSize, double objectYSize,
   double environmentIndex, double objectIndex, bool adaptiveTime) {
   printf( "Started main...\n" );
 
@@ -125,7 +125,7 @@ int fdtdSim(int metalChoice, int objectChoice, double objectXSize, double object
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, metalChoice, objectChoice, objectXSize, objectYSize,
+  InitializeFdtd(g, objectChoice, objectXSize, objectYSize,
     environmentIndex, objectIndex); // First int for metal, second for object shape
 
   printf( "Initialized Grid\n" );
