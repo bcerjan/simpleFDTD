@@ -23,9 +23,11 @@
 #include <complex.h>
 #include "fdtd_grid.h"
 
-void InitializeFdtd(struct Grid *g, int metalChoice, int objectChoice,
+void InitializeFdtd(struct Grid *g, int objectChoice,
    double objectXSize, double objectYSize,
    double environmentIndex, double objectIndex);
+void materialInit(int metalChoice, int num_poles, double epsInf,
+   double permeability, double conductivity, float *pole_arr);
 void freeGrid(struct Grid *g);
 void freeDoublePtr(double **ptr, int imax);
 void freeComplexDoublePtr(complex double **ptr, int imax);
