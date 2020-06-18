@@ -41,6 +41,11 @@ int main() {
   int n,i,j;
   int outInterval = 0;
   double backInd, temp;
+
+  int metalChoice = 0;
+  float *ptr;
+  materialInit(metalChoice, 0, 1.0, 1.0, 1.0, ptr);
+  
   // Divide by 10 to get actual background refractive index
   int minInd = 10;
   int maxInd = 40 + 1; // +1 is so you can write the max index you actually want
@@ -67,7 +72,7 @@ int main() {
     temp = (double  )(i + minInd);
     backInd = temp / 10.0;
 
-    InitializeFdtd(g, 0, -1, 100.0, 100.0, backInd, 0.0); // First int for metal, second for object shape
+    InitializeFdtd(g, -1, 100.0, 100.0, backInd, 0.0); // First int for metal, second for object shape
 
     printf( "Starting index loop: %i of %i\n", i+1, numInd );
 
