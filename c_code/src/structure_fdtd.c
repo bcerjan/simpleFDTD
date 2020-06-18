@@ -35,9 +35,17 @@ int main() {
   struct Grid *g;
   g = AllocateGridMemory();
 
+  int metalChoice = -1;
+  float ptr[4] = {0.0};
+  ptr[0] = 1.0;
+  ptr[1] = 2.0;
+  ptr[3] = 3.0;
+  ptr[4] = 4.0;
+  materialInit(metalChoice, 1, 1.0, 1.0, 1.0, ptr);
+
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 1, -1, 20.0, 10000.0, environmentIndex, 1.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 0, 100.0, 100.0, environmentIndex, 1.0); // object shape, xSize (nm), ySize (nm), and dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -46,7 +54,7 @@ int main() {
   int outInterval = 0;
 
   for (n = 0; n < maximumIteration; n++) {
-  //for (n = 0; n < 50; n++) {
+  //for (n = 0; n < 5; n++) {
 
     StoreFields(g);
     EFieldUpdate(g);
@@ -58,9 +66,9 @@ int main() {
 
 
 
-    //if( n % 100 == 0 ){
-      //printf("n: %i\n",n);
-      //printf("max ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
+    if( n % 100 == 0 ){
+      printf("n: %i\n",n);
+      printf("max ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
     //for (k = 0; k < 2; k++) {
       //printf("ey[%i]: %.17g\n",k, ey[xSource][k]);
       //printf("ex[%i]: %.17g\n",k, ex[xSource][k]);
@@ -80,10 +88,10 @@ int main() {
       printf("ex[ySize - %i]: %.17g\n",k, ex[xSource][ySize - 1 - k]);
     }*/
 
-      //printf("---------------------\n");
-    //}
+      printf("---------------------\n");
+    }
 
-
+/*
     char tranEyFilename[100] = "test_output/structure_tran_raw_ey.h";
     FILE *tranEyDataPtr;
 
@@ -99,7 +107,7 @@ int main() {
     reflEyDataPtr = fopen(reflEyFilename, "a");
     fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][100]);
     fclose(reflEyDataPtr);
-/*
+
     char tranHzFilename[100] = "test_output/structure_tran_raw_hz.h";
     FILE *tranHzDataPtr;
 
@@ -115,7 +123,7 @@ int main() {
     reflHzDataPtr = fopen(reflHzFilename, "a");
     fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
     fclose(reflHzDataPtr);
-*/    
+*/
     //printf("max ey: %f\n", ArrayMax(ey,xSize,ySize));
     interval++;
   } /* nForLoop */
