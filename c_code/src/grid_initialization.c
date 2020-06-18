@@ -29,36 +29,43 @@
 #include "array_proto.h"
 
 
+/* Material Parameters set by materialInit(...) */
+static struct Material material;
 
-/* Functions to get material data (or create it) from our stored file */
-double getMatPermittivity(int metalChoice, double objectIndex) {
-  if( metalChoice > -1 ) {
-    return materialData[metalChoice].epsInf;
+/* Function to initialize our static material for use later on.
+   If materialChoice > -1, the other arguments are ignored.
+ */
+void materialInit(int materialChoice, int num_poles, double epsInf, double permeability,
+                  double conductivity, float *pole_arr) {
+
+  int p,index;
+
+  if (materialChoice > -1 ) {
+    material.num_poles = materialData[materialChoice].num_poles;
+    material.epsInf = materialData[materialChoice].epsInf;
+    material.conductivity = materialData[materialChoice].conductivity;
+    material.permeability = materialData[materialChoice].permeability;
+    for (p = 0; p < material.num_poles; p++) {
+      material.params[p].ap = materialData[materialChoice].params[p].ap;
+      material.params[p].cp = materialData[materialChoice].params[p].cp;
+    } /* pForLoop */
   } else {
-    return objectIndex*objectIndex;
-  }
+    material.num_poles = num_poles;
+    material.epsInf = epsInf;
+    material.conductivity = conductivity * EPS0 * CONVERSION; // Converts from eV, defined in material_data.h
+    material.permeability = permeability;
+    for (p = 0; p < num_poles; p++) {
+      index = p*4; // As we just get a raw array of floats in groups of 4
+      material.params[p].ap = (complex double )(pole_arr[index]*CONVERSION + \
+                               I*CONVERSION*pole_arr[index+1]); // As we get real and imaginary parts as two separate array values
+      material.params[p].cp = (complex double )(pole_arr[index+2]*CONVERSION + \
+                               I*CONVERSION*pole_arr[index+3]);
+    } /* pForLoop */
+  } /* ifBlock */
+
+  return;
 }
-double getMatConductivity(int metalChoice) {
-  if( metalChoice > -1 ) {
-    return materialData[metalChoice].conductivity;
-  } else {
-    return 0.0;
-  }
-}
-double getMatPermeability(int metalChoice) {
-  if( metalChoice > -1 ) {
-    return materialData[metalChoice].permeability;
-  } else {
-    return 1.0;
-  }
-}
-double getMatResistivity(int metalChoice) {
-  if( metalChoice > -1 ) {
-    return 1.0/materialData[metalChoice].conductivity;
-  } else {
-    return 0.0;
-  }
-}
+
 
 // Function to get the index we're using to reference our "empty" runs by
 // this is, unfortunately, the index of the (refractive) index.
@@ -70,20 +77,19 @@ int getIndexIndex(double environmentIndex) {
 
 /* Inputs:
 struct Grid *g : The grid struct we are working with currently
-int metalChoice : 0 = Al, 1 = Au, 2 = Ag, 3 = Cu, other = SiO2
+int metalChoice : 0 = Al, 1 = Au, 2 = Ag, 3 = Cu, 4 = SiO2
 int objectChoice : 0 = Disk, 1 = Rectangle, 2 = triangle, other = no structure
 double objectSize : Object size (in nm)
 double environmentIndex : Refractive Index of the environment
 */
 
-void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
+void  InitializeFdtd (struct Grid *g, int objectChoice,
   double objectXSize, double objectYSize, double environmentIndex, double objectIndex )
 {
 
-    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, getMatPermittivity(metalChoice, objectIndex)};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
-    double  mediaConductivity[MEDIACONSTANT] = {0.0, getMatConductivity(metalChoice)}; // sig,
-    double  mediaPermeability[MEDIACONSTANT] = {1.0, getMatPermeability(metalChoice)};    // mur
-    double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity(metalChoice)};     // sim
+    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, material.epsInf};    // eps, index=0 is for vacuum, index=1 is for the object
+    double  mediaConductivity[MEDIACONSTANT] = {0.0, material.conductivity}; // sig,
+    double  mediaPermeability[MEDIACONSTANT] = {1.0, material.permeability}; // mur
     complex double  mediaA[MEDIACONSTANT][MAX_POLES] = {{0.0}};
     complex double  mediaC[MEDIACONSTANT][MAX_POLES] = {{0.0}};
     double  magneticPermeability0,electricalPermittivity0,frequency,wavelength,angularFrequency;
@@ -141,19 +147,15 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Material parameters
     /***********************************************************************/
 
-    media = MEDIACONSTANT;        // number of different medias, ie 2: vacuum, metallicCylinder
+    media = MEDIACONSTANT;        // number of different medias, ie 2: vacuum, our object
 
     refractiveIndexIndex = getIndexIndex(environmentIndex);
     //printf("refractiveIndexIndex %i\n", refractiveIndexIndex);
     // Number of poles in our dielectric function
-    if (metalChoice > -1 && objectChoice > -1) {
-      number_poles = materialData[metalChoice].num_poles;
-      for (p = 0; p < number_poles; p++) {
-        mediaA[1][p] = materialData[metalChoice].params[p].ap;
-        mediaC[1][p] = materialData[metalChoice].params[p].cp;
-      }
-    } else {
-      number_poles = 0;
+    number_poles = material.num_poles;
+    for (p = 0; p < number_poles; p++) {
+      mediaA[1][p] = material.params[p].ap;
+      mediaC[1][p] = material.params[p].cp;
     }
 
 
@@ -184,10 +186,12 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     hzOld = AllocateMemory(xSize + 1, ySize + 1, 0.0);
 
 
-    /*printf("cjjTemp[0]: %.5e\n", cjjTemp[0]);
-    printf("cjjTemp[1]: %.5e\n", cjjTemp[1]);
-    printf("cjeTemp[0]: %.5e\n", cjeTemp[0]);
-    printf("cjeTemp[1]: %.5e\n", cjeTemp[1]);*/
+    /*printf("mediaPermittivity[0]: %.5e\n", mediaPermittivity[0]);
+    printf("mediaPermittivity[1]: %.5e\n", mediaPermittivity[1]);
+    printf("mediaConductivity[0]: %.5e\n", mediaConductivity[0]);
+    printf("mediaConductivity[1]: %.5e\n", mediaConductivity[1]);
+    printf("mediaPermeability[0]: %.5e\n", mediaPermeability[0]);
+    printf("mediaPermeability[1]: %.5e\n", mediaPermeability[1]);*/
 
     /***********************************************************************/
     //     DFT Array Initialization
@@ -384,9 +388,6 @@ printf("Strucutre Init...\n" );
     freeComplexDoublePtr(qC2, media);
 
 printf("Structure Added...\n" );
-printf("Structure Choice: %i\n", objectChoice);
-printf("objectXSize: %f\n", objectXSize);
-printf("object_locs[xCent][yCent]: %f\n", object_locs[xCenter][yCenter]);
 
     /***********************************************************************/
     //     Tridiagonal Solver Coefficients
@@ -427,11 +428,14 @@ printf("object_locs[xCent][yCent]: %f\n", object_locs[xCenter][yCenter]);
 
     // As Ex depends on j-terms:
     /* Here the Ex ABC is implemented at j = 1 instead of j = 0. This is because
-       (emprically) it produces instabilities of it's at 0. I believe the issue
-       stems from the staggering of the nodes (i.e. the Yee cell) and so if you
-       put the ABC at j = 0, Ex grows non-physically at j = 1 (as Hz -> 0 at
-       j = 0, but not at j = 1). The Update equation for Ex also ignores the
-       j = 0 row. */
+       (empirically) it produces instabilities of it's at 0. Specifically, it
+       causes the Ex field to grow as Hz -> 0 at j = 0 but not at j = 1 which is
+       what is used in the Ex field update equation.
+
+       I believe the issue stems from the staggering of the nodes (i.e. the Yee
+       cell) and so if you put the ABC at j = 0, Ex grows non-physically at
+       j = 1 (as Hz -> 0 at j = 0, but not at j = 1). The Update equation for Ex
+       also ignores the j = 0 row. */
 
     for (i = 0; i < xSize; i++) {
       aex[i][1] = 0.0;
