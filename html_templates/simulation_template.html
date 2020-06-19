@@ -35,6 +35,12 @@
         padding-bottom: 20px;
       }
     </style>
+
+    <meta name="description" content="Finite-difference time-domain (FDTD) widget
+    for performing simulations right in your browser. Uses the Leapfrog Alternating
+    Direction Implicit (LADI) FDTD method. Allows you to set material
+    properties and export simulation results."/>
+
   </head>
   <body>
   <br>
@@ -154,14 +160,19 @@
                 <input type="radio" name="materialOptions" id="materialSilica" value="4">Silica
               </label>
               <label class="btn btn-secondary">
+                <input type="radio" name="materialOptions" id="materialSilicon" value="5">Silicon
+              </label>
+              <label class="btn btn-secondary">
                 <input type="radio" name="materialOptions" id="materialCustom" value="-1">Custom
               </label>
             </div>
             <br>
-            <div id="customMatDiv" display: none>
+            <div id="customMatDiv" style="display: none;">
               <p>$$
                  \epsilon(\omega) = \epsilon_{\infty} - \frac{\sigma}{i \omega}
-                  + \sum_{p=1}^{N_{p}} \left[ \frac{c_{p}}{-i \omega - a_{p}} \right]
+                  + \sum_{p=1}^{N_{p}} \left[ \frac{c_{p}}{-i \omega - a_{p}} +
+                   \frac{c_{p}^{*}}{-i \omega - a_{p}^{*}} \right]
+                  \href{./about.html#dielectricFunction}{(1)}
                  $$</p>
               <div class="input-group mb-3" id="customMatMain">
 
@@ -190,7 +201,7 @@
             </div>
             <div id="customMatPoles">
 
-              <div class="input-group" name="poles" id="pole1">
+              <div class="input-group mb-3" name="poles" id="pole1">
 
                 <div class="input-group-prepend">
                   <span class="input-group-text" id="a1Label">\( a_{1} \)&nbsp;(eV):</span>
@@ -281,7 +292,7 @@
       <br>
     <div class="row justify-content-center align-items-center">
       <div class="col">
-        <canvas class="emscripten" id="canvas" tabindex=-1 width="316" height="266" aria-label="FDTD Simulation Window"></canvas>
+        <canvas class="emscripten" id="canvas" tabindex=-1 width="300" height="250" aria-label="FDTD Simulation Window"></canvas>
       </div>
 
      <div class="col">
@@ -394,6 +405,16 @@
         }
       })
 
+      // Showing / Hiding the custom material interface
+      $('input[type=radio][name=materialOptions]').change(function() {
+        var val = $(this).val();
+        if (val < 0) {
+          $('#customMatDiv').show();
+        } else {
+          $('#customMatDiv').hide();
+        }
+      });
+
       // Adding/Removing Critical Point value divs:
       var num_p = 1; // Global to track how many poles we have now:
       var max_entered = 1; // Global to track how many poles we've ever had so we can just hide them instead of deleting.
@@ -416,7 +437,7 @@
               //var newHTML = 'test';
               var newHTML =
               //'<br>' +
-              '<div class="input-group" name="poles" id="pole'+i+'"> ' +
+              '<div class="input-group mb-3" name="poles" id="pole'+i+'"> ' +
                 '<div class="input-group-prepend">' +
                   '<span class="input-group-text" id="a'+i+'Label">\\( a_{'+i+'} \\)&nbsp;(eV):</span>' +
                   '<span class="input-group-text">Re</span>' +
@@ -476,7 +497,8 @@
           var num_poles = parseInt($('#num_poles').val());
           var epsInf = $('#epsInf').val();
           var permeability = $('#permeability').val();
-          var conductivity = $('conductivity').val();
+          var conductivity = $('#conductivity').val();
+
           var vals = [];
           if (material < 0) { // This means we are setting a custom material
             for (i = 1; i < num_poles + 1; i++){
@@ -487,7 +509,7 @@
             }
           }
 
-          pole_arr = new Float32Array(vals);
+          pole_arr = new Float32Array(vals); // Need to improve accuracy here if possible....
 
           var len = pole_arr.length;
           var bytes_per_element = pole_arr.BYTES_PER_ELEMENT;
