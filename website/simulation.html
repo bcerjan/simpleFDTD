@@ -15,6 +15,9 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
+    <!-- MathJax for Equations -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+
     <title>simpleFDTD</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <style>
@@ -32,6 +35,12 @@
         padding-bottom: 20px;
       }
     </style>
+
+    <meta name="description" content="Finite-difference time-domain (FDTD) widget
+    for performing simulations right in your browser. Uses the Leapfrog Alternating
+    Direction Implicit (LADI) FDTD method. Allows you to set material
+    properties and export simulation results."/>
+
   </head>
   <body>
   <br>
@@ -97,16 +106,16 @@
                   <div class="input-group-prepend">
                     <span class="input-group-text" id="">X:</span>
                   </div>
-                  <input type="number" class="form-control" id="objectXLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
+                  <input type="number" class="form-control" id="objectXLength" value="100" step="5" arai-label="Object Size" aria-describedby="unitsx">
                   <div class="input-group-append">
-                    <span class="input-group-text" id="units">nm</span>
+                    <span class="input-group-text" id="unitsx">nm</span>
                   </div>
                   <div class="input-group-prepend">
                     <span class="input-group-text" id="">Y:</span>
                   </div>
-                  <input type="number" class="form-control" id="objectYLength" value="100" step="5" arai-label="Object Size" aria-describedby="units">
+                  <input type="number" class="form-control" id="objectYLength" value="100" step="5" aria-label="Object Size" aria-describedby="unitsy">
                   <div class="input-group-append">
-                    <span class="input-group-text" id="units">nm</span>
+                    <span class="input-group-text" id="unitsy">nm</span>
                   </div>
                 </div>
               </div>
@@ -150,8 +159,74 @@
               <label class="btn btn-secondary">
                 <input type="radio" name="materialOptions" id="materialSilica" value="4">Silica
               </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="materialOptions" id="materialSilicon" value="5">Silicon
+              </label>
+              <label class="btn btn-secondary">
+                <input type="radio" name="materialOptions" id="materialCustom" value="-1">Custom
+              </label>
             </div>
-          </div>
+            <br>
+            <div id="customMatDiv" style="display: none;">
+              <p>$$
+                 \epsilon(\omega) = \epsilon_{\infty} - \frac{\sigma}{i \omega}
+                  + \sum_{p=1}^{N_{p}} \left[ \frac{c_{p}}{-i \omega - a_{p}} +
+                   \frac{c_{p}^{*}}{-i \omega - a_{p}^{*}} \right]
+                  \href{./about.html#dielectricFunction}{(1)}
+                 $$</p>
+              <div class="input-group mb-3" id="customMatMain">
+
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="epsInfLabel">\( \epsilon_{\infty} \):</span>
+                </div>
+                <input type="number" class="form-control" id="epsInf" value="1.0" step="0.1" min="1.0" aria-label="Object permittivity" aria-describedby="epsInfLabel">
+
+
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="conductivityLabel">\( \sigma \)&nbsp;(eV):</span>
+                </div>
+                <input type="number" class="form-control" id="conductivity" value="1.0" step="0.1" aria-label="Object conductivity" aria-describedby="conductivityLabel">
+
+
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="permeabilityLabel"> \( \mu_{r} \):</span>
+              </div>
+              <input type="number" class="form-control" id="permeability" value="1.0" step="0.1" aria-label="Object permeability" aria-describedby="permeabilityLabel">
+
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="polesLabel">\( N_{p} \):</span>
+              </div>
+              <input type="number" class="form-control" id="num_poles" value="1" step="1" min="0" max="8" aria-label="Number of poles" aria-describedby="polesLabel">
+
+            </div>
+            <div id="customMatPoles">
+
+              <div class="input-group mb-3" name="poles" id="pole1">
+
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="a1Label">\( a_{1} \)&nbsp;(eV):</span>
+                  <span class="input-group-text">Re</span>
+                </div>
+                <input type="number" class="form-control" id="a1Re" value="1.0" step="0.1" aria-describedby="a1Label">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">Im</span>
+                </div>
+                <input type="number" class="form-control" id="a1Im" value="1.0" step="0.1" aria-describedby="a1Label">
+
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="c1Label">\( c_{1} \)&nbsp;(eV):</span>
+                  <span class="input-group-text">Re</span>
+                </div>
+                <input type="number" class="form-control" id="c1Re" value="1.0" step="0.1" aria-describedby="c1Label">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">Im</span>
+                </div>
+                <input type="number" class="form-control" id="c1Im" value="1.0" step="0.1" aria-describedby="c1Label">
+
+              </div>
+
+            </div>
+          </div> <!-- customMatMain -->
         </div>
       </div>
 
@@ -217,7 +292,7 @@
       <br>
     <div class="row justify-content-center align-items-center">
       <div class="col">
-        <canvas class="emscripten" id="canvas" tabindex=-1 width="316" height="266" aria-label="FDTD Simulation Window"></canvas>
+        <canvas class="emscripten" id="canvas" tabindex=-1 width="300" height="250" aria-label="FDTD Simulation Window"></canvas>
       </div>
 
      <div class="col">
@@ -290,13 +365,15 @@
         onRuntimeInitialized: function() {
           // API for preparing image transfers:
           api = {
-            fdtd: Module.cwrap('fdtdSim','number', ['number','number','number','number','number','number','number']),
+            fdtd: Module.cwrap('fdtdSim','number', ['number','number','number','number','number','number']),
+            materialInit: Module.cwrap('materialInit', null, ['number', 'number', 'number', 'number', 'number', 'number']),
           };
           console.log('api defined...');
         },
 
       };
 
+      // Image selection for showing what the dimensions mean for each shape:
       $('input[name=shapeOptions]').change(function(){
         const shapeNum = $(this).val();
         const shapeSwitch = parseInt(shapeNum);
@@ -328,6 +405,71 @@
         }
       })
 
+      // Showing / Hiding the custom material interface
+      $('input[type=radio][name=materialOptions]').change(function() {
+        var val = $(this).val();
+        if (val < 0) {
+          $('#customMatDiv').show();
+        } else {
+          $('#customMatDiv').hide();
+        }
+      });
+
+      // Adding/Removing Critical Point value divs:
+      var num_p = 1; // Global to track how many poles we have now:
+      var max_entered = 1; // Global to track how many poles we've ever had so we can just hide them instead of deleting.
+      $('#num_poles').change(function() {
+        new_p = parseInt($(this).val());
+        if (new_p < num_p) { // Removing poles (really just hiding)
+          for (i = max_entered; i > new_p; i--) {
+            $('#pole'+i).hide();
+          }
+        } else {
+          var diff = new_p - num_p;
+          // First, see if we're above our previous maximum:
+          if (new_p <= max_entered) { // If not, just unhide previous content:
+            for (i = num_p; i < new_p + 1; i++) {
+              $('#pole'+i).show();
+            }
+          } else { // We've hit a new record!
+            max_entered = new_p;
+            for (i = num_p + 1; i < new_p + 1; i++) {
+              //var newHTML = 'test';
+              var newHTML =
+              //'<br>' +
+              '<div class="input-group mb-3" name="poles" id="pole'+i+'"> ' +
+                '<div class="input-group-prepend">' +
+                  '<span class="input-group-text" id="a'+i+'Label">\\( a_{'+i+'} \\)&nbsp;(eV):</span>' +
+                  '<span class="input-group-text">Re</span>' +
+                '</div>' +
+                '<input type="number" class="form-control" id="a'+i+'Re" value="1.0" step="0.1" aria-describedby="a'+i+'Label">' +
+                '<div class="input-group-prepend">' +
+                  '<span class="input-group-text">Im</span>' +
+                '</div>' +
+                '<input type="number" class="form-control" id="a'+i+'Im" value="1.0" step="0.1" aria-describedby="a'+i+'Label">' +
+                '<div class="input-group-prepend">' +
+                  '<span class="input-group-text" id="c'+i+'Label">\\( c_{'+i+'} \\)&nbsp;(eV):</span>' +
+                  '<span class="input-group-text">Re</span>' +
+                '</div>' +
+                '<input type="number" class="form-control" id="c'+i+'Re" value="1.0" step="0.1" aria-describedby="c'+i+'Label">' +
+                '<div class="input-group-prepend">' +
+                  '<span class="input-group-text">Im</span>' +
+                '</div>' +
+                '<input type="number" class="form-control" id="c'+i+'Im" value="1.0" step="0.1" aria-describedby="c'+i+'Label">' +
+              '</div>';
+
+              $('#customMatPoles').append(newHTML);
+              var idStr = "pole" + i;
+
+              // Now ask MathJax to render it nicely:
+              MathJax.Hub.Queue(["Typeset",MathJax.Hub,idStr]);
+            }
+          }
+        }
+
+        num_p = new_p; // Finally, update our stored value to the current value
+      });
+
       // Global variables for simulation parameters so data download
       // can access them later even if the user changes parameters (but doesn't
       // re-run the simulation)
@@ -337,8 +479,8 @@
       document.querySelector('#runSim')
         .addEventListener('click', function() {
           console.log('Simulation Started');
+          // Set parameters:
           shape = $('input[name=shapeOptions]:checked').val();
-          material = $('input[name=materialOptions]:checked').val();
           sizeX = $('#objectXLength').val();
           sizeY = $('#objectYLength').val();
           indexN = $('#dielectricEnvironment').val();
@@ -348,6 +490,32 @@
             adaptive = 1;
           }
 
+          /* Section for handling material data, as custom input makes this more
+             complicated. */
+          material = $('input[name=materialOptions]:checked').val();
+          // Defaults:
+          var num_poles = parseInt($('#num_poles').val());
+          var epsInf = $('#epsInf').val();
+          var permeability = $('#permeability').val();
+          var conductivity = $('#conductivity').val();
+
+          var vals = [];
+          if (material < 0) { // This means we are setting a custom material
+            for (i = 1; i < num_poles + 1; i++){
+              vals.push( parseFloat( $('#a'+i+'Re').val() ) );
+              vals.push( parseFloat( $('#a'+i+'Im').val() ) );
+              vals.push( parseFloat( $('#c'+i+'Re').val() ) );
+              vals.push( parseFloat( $('#c'+i+'Im').val() ) );
+            }
+          }
+
+          pole_arr = new Float32Array(vals); // Need to improve accuracy here if possible....
+
+          var len = pole_arr.length;
+          var bytes_per_element = pole_arr.BYTES_PER_ELEMENT;
+          var pole_arr_ptr = Module._malloc(len * bytes_per_element); // Determine where our pointer starts
+          Module.HEAPF32.set(pole_arr, pole_arr_ptr / bytes_per_element); // Put the data on the heap
+
           clearChart(outputChart);
           updateProgressBar(0);
           document.querySelector('#runSim').disabled = true;
@@ -355,7 +523,11 @@
           document.querySelector('#normData').value = 'norm';
           document.querySelector('#normData').innerHTML = 'Normalize Data';
           document.querySelector('#runSim').innerHTML = "Running...";
-          api.fdtd(material,shape,sizeX,sizeY,indexN,objectN,adaptive);
+          // Note that all properties (except material) are ignored if material > -1
+          api.materialInit(material,num_poles,epsInf,permeability,conductivity,pole_arr_ptr)
+          Module._free(pole_arr_ptr); // Free our pointer/data
+
+          api.fdtd(shape,sizeX,sizeY,indexN,objectN,adaptive);
         });
         // Normalize Data
         document.querySelector('#normData')
