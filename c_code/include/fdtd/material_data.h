@@ -91,18 +91,22 @@ static const struct Material materialData[6] = {
       .cp = (-0.67478 - I*155.767)*CONVERSION,
     },
   },
-  { //2, Ag, Wu, 2014
+  { //2, Ag, Johnson and Christy
     .num_poles = 2,
-    .epsInf = 3.35141,
+    .epsInf = 2.53778,
     .permeability = 1.0,
-    .conductivity = 105.955 * EPS0 * CONVERSION,
+    .conductivity = 7.34706 * EPS0 * CONVERSION,
     .params[0] = {
-      .ap = (-0.063629 + I*0.154755)*CONVERSION,
-      .cp = (-55.7092 - I*260.36)*CONVERSION,
+      .ap = (-0.00238268 - I*0.166134)*CONVERSION,
+      .cp = (-3.17139 + I*246.321)*CONVERSION,
     },
     .params[1] = {
-      .ap = (5.26744 - I*3.11234)*CONVERSION,
-      .cp = (-17.5676 - I*34.0369)*CONVERSION,
+      .ap = (-0.393139 + I*4.27188)*CONVERSION,
+      .cp = (0.945098 - I*1.37423)*CONVERSION,
+    },
+    .params[2] = {
+      .ap = (0.301984 - I*0.000248021)*CONVERSION,
+      .cp = (63.264 + I*13.8324)*CONVERSION,
     },
   },
   { //3, Cu, J&C
