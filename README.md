@@ -1,5 +1,6 @@
 # simpleFDTD
-An embeddable 2D FDTD simulation for approximate results in the visible region.
+An embeddable 2D electromagnetic FDTD simulation for approximate results in the visible region.
+Uses the leapfrog alternating-direction implicit FDTD (LADI-FDTD) method. 
 
 The goal of this project is to make a simple, user-friendly, and embeddable 2D FDTD simulation using emscripten to compile to [WebAssembly](https://webassembly.org/). This allows the computation to be run in the user's browser, rather than on the server hosting the page allowing the server to run smoothly and serve simulations even under high load.
 
