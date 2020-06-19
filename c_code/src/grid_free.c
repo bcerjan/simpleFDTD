@@ -19,6 +19,7 @@
 
 #include "fdtd_macro.h"
 #include <stdlib.h>
+#include <complex.h>
 
 
 void freeDoublePtr(double **ptr, int imax) {
@@ -32,24 +33,67 @@ void freeDoublePtr(double **ptr, int imax) {
   return;
 }
 
+void freeTriplePtr(double ***ptr, int imax, int jmax) {
+  int i;
+  for (i = 0; i < imax; i++) {
+    freeDoublePtr(ptr[i],jmax);
+  }
+  free(ptr);
+  return;
+}
+
+void freeComplexDoublePtr(complex double **ptr, int imax) {
+  int i;
+  for (i = 0; i < imax; i++) {
+    free(ptr[i]);
+  } /* iForLoop */
+
+  free(ptr);
+
+  return;
+}
+
+void freeComplexTriplePtr(complex double ***ptr, int imax, int jmax) {
+  int i;
+  for (i = 0; i < imax; i++) {
+    freeComplexDoublePtr(ptr[i],jmax);
+  }
+  free(ptr);
+  return;
+}
+
 void freeGrid(struct Grid *g) {
   // First, free all arrays:
   freeDoublePtr(ex, xSize);
   freeDoublePtr(ey, xSize + 1);
-  freeDoublePtr(hz, xSize);
-  freeDoublePtr(caex, xSize);
-  freeDoublePtr(cbex, xSize);
-  freeDoublePtr(caey, xSize);
-  freeDoublePtr(cbey, xSize);
-  freeDoublePtr(dahz, xSize);
-  freeDoublePtr(dbhz, xSize);
+  freeDoublePtr(hz, xSize + 1);
 
-  freeDoublePtr(jx, xSize);
-  freeDoublePtr(jy, xSize);
-  freeDoublePtr(cjj, xSize);
-  freeDoublePtr(cje, xSize);
+  freeDoublePtr(heConst, xSize);
+  freeDoublePtr(ehConst, xSize);
+  freeDoublePtr(eqConst, xSize);
+  freeDoublePtr(ABConst, xSize);
+  freeComplexTriplePtr(qConst1, number_poles, xSize);
+  freeComplexTriplePtr(qConst2, number_poles, xSize);
+  freeComplexTriplePtr(qSumC, number_poles, xSize);
+  freeComplexTriplePtr(qx, number_poles, xSize);
+  freeComplexTriplePtr(qy, number_poles, xSize);
+  freeDoublePtr(qxSum, xSize);
+  freeDoublePtr(qySum, xSize);
+  freeDoublePtr(iConst1, xSize);
+  freeDoublePtr(iConst2, xSize);
+
+  // Tridiagonal values:
+  freeDoublePtr(aex, xSize);
+  freeDoublePtr(bex, xSize);
+  freeDoublePtr(cex, xSize);
+  freeDoublePtr(ahz, xSize);
+  freeDoublePtr(bhz, xSize);
+  freeDoublePtr(chz, xSize);
+
   freeDoublePtr(exOld, xSize);
   freeDoublePtr(eyOld, xSize + 1);
+  freeDoublePtr(hzOld, xSize + 1);
+
   freeDoublePtr(e2Field, xSize);
   freeDoublePtr(edgeMat, xSize);
   freeDoublePtr(object_locs, xSize);
@@ -64,9 +108,6 @@ void freeGrid(struct Grid *g) {
   freeDoublePtr(imHzTranDFT, NUMBERDFTFREQS);
 
   // Now, all individual pointers:
-  free(hzy);
-  free(dahzy);
-  free(dbhzy);
   free(reflDFT);
   free(tranDFT);
 

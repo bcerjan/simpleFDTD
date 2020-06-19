@@ -20,9 +20,11 @@
 #ifndef FDTD_GRID
 #define FDTD_GRID
 
-#define  ABCSIZECONSTANT    (8)                      // thickness of PML region
+#include <complex.h>
+
+#define  ABCSIZECONSTANT    (25)                      // thickness of PML region
 #define  MEDIACONSTANT    (2)                        // number of different media, ie 2: vacuum, metal object
-#define  NUMBEROFITERATIONCONSTANT    (3000)          // Number of timesteps
+#define  NUMBEROFITERATIONCONSTANT    (1300)          // Number of timesteps
 #define  NUMBEROFREGIONS    (5)                      // center(main), front, back, left, right
 
 #define  NUMBERDFTFREQS    (50)                      // Number of frequencies to compute DFTs at
@@ -48,24 +50,36 @@ struct Grid {
   double  **ex;      // the fields
   double  **ey;      //  ""
   double  **hz;      //  ""
-  double  **caex;    // fdtd coefficents
-  double  **cbex;    //  ""
-  double  **caey;    //  ""
-  double  **cbey;    //  ""
-  double  **dahz;    // in pml regions this holds dahzx
-  double  **dbhz;    //          " "              dbhzx
 
-  double  *hzy;      // for pml split-field abc, note: hzx is derived "on the fly" from hz - hzy
-  double  *dahzy;    // pml coefficient
-  double  *dbhzy;    //    ""
+  complex double  ***qx;
+  complex double  ***qy;
+  complex double  ***qSumC;
+  int number_poles;
+  double **heConst;
+  double **ehConst;
+  double **eqConst;
+  double **ABConst;
+  complex double ***qConst1;
+  complex double ***qConst2;
+  double **qxSum;
+  double **qySum;
+  double **iConst1;
+  double **iConst2;
 
-  // Values for Drude Metals
-  double  **jx;       // x-direction polarization current (actually delta*Jx)
-  double  **jy;       // "" for Jy
-  double  **cjj;      // Matrix containing damping values (10.57 in Schneider)
-  double  **cje;      // Matrix containing plasma frequency values (10.58 in Schneider)
+  // Tridiagonal values:
+  double  **aex;
+  double  **bex;
+  double  **cex;
+  double  **ahz;
+  double  **bhz;
+  double  **chz;
+
   double  **exOld;    // Matrix to store old Ex values for Drude metals
   double  **eyOld;    // "" Ey values
+  double  **hzOld;
+
+  // ABC update value:
+  double  absConst;
 
   // Values for tracking DFT
   int reflXPos,tranXPos;          // Positions of the line monitors used to find reflected / transmitted fields
@@ -95,6 +109,10 @@ struct Grid {
 
   // Array to track where our object is/is not:
   double **object_locs;
+  int  objectXMax; // Variables to store greatest extent of the object so we don't have to update Q over the entire simulation space
+  int  objectYMax;
+  int  objectXMin;
+  int  objectYMin;
 
   // Index for our "empty" runs to track what index we're using now:
   int refractiveIndexIndex; // unfortunately named...

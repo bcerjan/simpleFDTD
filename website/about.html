@@ -12,6 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
+    <!-- MathJax for Equations -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+
     <title>About simpleFDTD</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
@@ -48,14 +51,30 @@
     <h1 class="display-2">Technical Notes</h1>
     <p>The simulation here is transverse-electric and polarized along the
       vertical direction (perpendicular to the direction the initial pulse
-      travels). The initial pulse is a Ricker wavelet centered at 600 nm, and
-      the grid step is 10 nm (uniform in X and Y). The grid is terminated by a
-      Berenger split-field PML (coded by Doug Neubauer). The simulation runs
-      for 3000 time steps (by default, see <a href="#adaptiveTiming">Adaptive Timing</a>)
+      travels). That means that the non-zero field components are:
+      \( E_{x}, E_{y}, \) and \( H_{z} \). The timestepping method is a
+      leapfrog alternating-direction implicit (LADI) FDTD, as described in
+      <a href="https://doi.org/10.1109/LMWC.2018.2878974">this paper by
+      Prokopidis and Zografopoulos</a>. The grid is terminated using a Mur
+      absorbing boundary condition (ABC) implemented in the LADI FDTD using the
+      formulation of <a href="https://doi.org/10.1109/APCAP.2012.6333119"> Gan
+      and Tan</a>. Note that while an ABC is not normally sufficient above 1D,
+      it has been demonstrated that in 2D using the LADI methodology, the ABC
+      has little to no additional reflection as compared with a traditional PML.
+      The major advantage of the (L)ADI method is that we can increase the effective
+      speed of light without introducing numberical instabilities and so this simulation uses a
+      <a href="https://en.wikipedia.org/wiki/Courant%E2%80%93Friedrichs%E2%80%93Lewy_condition">
+      Courant Number</a> of 1.5.
+    </p>
+    <p>
+
+      The initial pulse is a hard-source Ricker wavelet of the \(E_{y}\) field
+      centered at 600 nm. The grid step is 10 nm (uniform in X and Y). The simulation runs
+      for 1300 time steps (by default, see <a href="#adaptiveTiming">Adaptive Timing</a>)
       and "running" discrete Fourier-Transforms (DFTs)
       are kept to track the reflected and transmitted electric field strengths.
       Note that while we only run for a
-      few thousand timesteps, we assume that this is sufficient time for the
+      thousand timesteps, we assume that this is sufficient time for the
       high-frequency response (that we care about) to decay completely. Under
       this assumption, we then 0-pad our total "running time" to be much longer
       (16,384 steps). That length was picked to be a power of 2 in
@@ -97,21 +116,59 @@
        maximum input value was. This has the potential to make some simulations
        (e.g. mirrors) complete faster and enables the simulation to keep running
        so that long-lived resonances have a chance to radiate away all of their
-       energy. Note that this breaks the progres bar at the bottom, as there is
-       no longer any way to know ahead of time how many steps will be required.
+       energy. Note that this breaks the progress bar at the bottom, as there is
+       no longer any way to know ahead of time how many steps will be required
+       (though it does its best to estimate).
      </p>
 
     <br>
 
-    <h1 class="display-4" id="drudeMetals">Metal Dielectric Functions</h1>
-    <p>This code uses a <a href="https://en.wikipedia.org/wiki/Drude_model">Drude
-      model</a> to model the dielectric properties of metals. While it does account
-      for loss in the metal, it <i>does not</i> account for interband transitions.
-      This means that results for gold and copper below about ~550 nm are not
-      to be trusted as the light starts getting absorbed. Similarly, right around
-      800 nm aluminum has a transition and so it is not accurate at the very end
-      of the reported spectrum.   
-     </p>
+    <h1 class="display-4" id="dielectricFunction">Metal Dielectric Functions</h1>
+    <p>This code uses a critical points model for the dielectric function of
+      materials. The general form of the dielectric function is:
+      $$
+         \epsilon(\omega) = \epsilon_{\infty} - \frac{\sigma}{i \omega}
+          + \sum_{p=1}^{N_{p}} \left[ \frac{c_{p}}{-i \omega - a_{p}} +
+           \frac{c_{p}^{*}}{-i \omega - a_{p}^{*}} \right]
+          ,
+      $$
+      where \(\epsilon_{\infty}\) is the infinite-frequency permittivity of the
+      material (for metals <i>should</i> be \( 1 \)); \(\sigma\) is the generalized
+      static conductivity (in reality it gets divided by \( \epsilon_{0} \), but the
+      fitting works better with reasonable-sized numbers);
+      and \( c_{p} \) and \( a_{p} \) are the residues and poles, respectively,
+      for each critical point in the approximation (with \(N_{p}\) terms). Note
+      that for lossless materials or materials described only by a static conductivity,
+      \( N_{p} = 0 \) and we ignore the critical points entirely.
+
+    </p>
+
+    <p>
+      Physically, each critical point term corresponds to things like interband
+      transitions and allows highly complex dielectric functions to be represented.
+      Each additional critical point term noticeably slows down the simulation
+      (as is evidenced by the difference in speed between Silica and any of the metals).
+
+   </p>
+   <p>
+     This formulation is among the most general that exist and can accurately
+     represent materials that are well-defined by the Drude, Lorentz, or Debye models
+     (as well as any other model I've come across).
+   </p>
+
+   <p>
+     For an example of how to fit your own material data, there is Mathematica
+     code for generating the fits
+     <a href="https://github.com/bcerjan/simpleFDTD/material_fits/fitting.mb">
+     here</a>. It is important that you fit the real and imaginary parts of
+     the data simultaneously as well as employ the heuristic constraints
+     \( \epsilon_{\infty} \ge 1 \) and \( \sigma \ge 0 \). Finally, note
+     that poor material fits can make the simulation unstable (it makes for
+     very nice images, but very poor science). Generally I've found the above
+     restrictions to produce stable fits, but there is not a mathematical proof
+     of that fact.
+
+   </p>
 
     <br>
 

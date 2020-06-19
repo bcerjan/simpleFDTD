@@ -66,8 +66,8 @@ void findMatEdge(struct Grid *g) {
   //double **out = AllocateMemory(sizeX, sizeY, 0.0);
   double Gx;
   double Gy;
-  double gx[3][3] = {0};
-  double gy[3][3] = {0};
+  double gx[3][3] = {0.0};
+  double gy[3][3] = {0.0};
 
   // Specify Sobel Operators:
   gx[0][0] = -1.0;
@@ -145,7 +145,7 @@ float fnFunc(float v, float s, float k){
 
 void colorMap(float *buffer, float z) {
   //const float s = 1.0; // saturation
-  const float s = fabs(z/1.35);
+  const float s = fabs(z/1.75);
   const float v = 1.0; // value
   const float h_neg = 240.0;
   const float h_pos = 0.0;

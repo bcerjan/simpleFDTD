@@ -52,11 +52,14 @@ void iterateSimulation(struct Grid *g) {
       imageInit(g);
     } /* timeStep if Block */
     //printf("Loop step: %i\timeStep",timeStep);
-    HFieldUpdate(g, timeStep);
+
+    StoreFields(g);
     EFieldUpdate(g);
-    JFieldUpdate(g);
-    lineSource(g, ABCSIZECONSTANT + 20, timeStep);
-    //printf("ey at src: %f\n", ey[20][25]);
+    lineSource(g, xSource, timeStep);
+    QFieldUpdate(g);
+    HFieldUpdate(g);
+
+
     DFTUpdate(g, timeStep);
 
     if (timeStep < 1500) {
@@ -112,7 +115,7 @@ void iterateSimulation(struct Grid *g) {
     } /* ifCondition */
 }
 
-int fdtdSim(int metalChoice, int objectChoice, double objectXSize, double objectYSize,
+int fdtdSim(int objectChoice, double objectXSize, double objectYSize,
   double environmentIndex, double objectIndex, bool adaptiveTime) {
   printf( "Started main...\n" );
 
@@ -122,8 +125,9 @@ int fdtdSim(int metalChoice, int objectChoice, double objectXSize, double object
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, metalChoice, objectChoice, objectXSize, objectYSize,
+  InitializeFdtd(g, objectChoice, objectXSize, objectYSize,
     environmentIndex, objectIndex); // First int for metal, second for object shape
+
   printf( "Initialized Grid\n" );
   // prepare matrix of object edges:
   findMatEdge(g);

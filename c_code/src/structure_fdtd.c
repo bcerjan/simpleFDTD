@@ -30,39 +30,74 @@ int main() {
   printf( "Started main...\n" );
 
   double exmax, exmin, eymax, eymin, jymax;
-  double environmentIndex = 1.5;
+  double environmentIndex = 1.0;
   //struct Grid *g = malloc(sizeof(struct Grid));
   struct Grid *g;
   g = AllocateGridMemory();
 
+  int metalChoice = -1;
+  float ptr[4] = {0.0};
+  ptr[0] = 1.0;
+  ptr[1] = 2.0;
+  ptr[3] = 3.0;
+  ptr[4] = 4.0;
+  materialInit(metalChoice, 1, 1.0, 1.0, 1.0, ptr);
+
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, 1, 200.0, 20000.0, environmentIndex, 2.0); // First int for material, second for object shape, third for size, and fourth for dielectric environment
+  InitializeFdtd(g, 0, 100.0, 100.0, environmentIndex, 1.0); // object shape, xSize (nm), ySize (nm), and dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
 
-  int n;
+  int n,k;
   int outInterval = 0;
 
   for (n = 0; n < maximumIteration; n++) {
-  //for (n = 0; n < 25; n++) {
-    HFieldUpdate(g, n);
+  //for (n = 0; n < 5; n++) {
+
+    StoreFields(g);
     EFieldUpdate(g);
-    JFieldUpdate(g);
-    lineSource(g, ABCSIZECONSTANT + 20, n);
-    //lineSource(g, xSize/2, n);
-    //printf("ey at right edge: %f\n", ey[xSize - 10][ySize/2]);
-    //printf("hz at right edge: %f\n----\n", hz[xSize - 10][ySize/2]);
+    lineSource(g, xSource, n);
+    QFieldUpdate(g);
+    HFieldUpdate(g);
+
     DFTUpdate(g, n);
 
-    /*
+
+
+    if( n % 100 == 0 ){
+      printf("n: %i\n",n);
+      printf("max ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+    //for (k = 0; k < 2; k++) {
+      //printf("ey[%i]: %.17g\n",k, ey[xSource][k]);
+      //printf("ex[%i]: %.17g\n",k, ex[xSource][k]);
+      //printf("hz[%i]: %.17g\n",k, hz[xSource][k]);
+      //printf("AbsMax ex: %.17g\n", AbsArrayMax(ex,xSize,ySize));
+      //printf("AbsMax ey: %.17g\n", AbsArrayMax(ey,xSize,ySize));
+      //printf("AbsMax hz: %.17g\n", AbsArrayMax(hz,xSize,ySize));
+      //printf("ey[7]: %.17g\n", ey[7][133]);
+      //printf("ey[PML+2]: %.17g\n", ey[ABCSIZECONSTANT+2][133]);
+      //printf("hz[7]: %.17g\n", hz[7][133]);
+      //printf("hz[PML+2]: %.17g\n", hz[ABCSIZECONSTANT+2][133]);
+      //printf("ey[xSource + 60]: %.17g\n", ey[xSource+60][133]);
+      //printf("ey[source]: %.17g\n", ey[xSource][133]);
+    //}
+    /*for (k = 1; k > -1; k--) {
+      printf("ex[%i]: %.17g\n",k, ex[xSource][k]);
+      printf("ex[ySize - %i]: %.17g\n",k, ex[xSource][ySize - 1 - k]);
+    }*/
+
+      printf("---------------------\n");
+    }
+
+/*
     char tranEyFilename[100] = "test_output/structure_tran_raw_ey.h";
     FILE *tranEyDataPtr;
 
     // Write to header file for use later
     tranEyDataPtr = fopen(tranEyFilename, "a");
-    fprintf(tranEyDataPtr, "%.17g,\n", ey[tranXPos][75]);
+    fprintf(tranEyDataPtr, "%.17g,\n", ey[tranXPos][100]);
     fclose(tranEyDataPtr);
 
     char reflEyFilename[100] = "test_output/structure_refl_raw_ey.h";
@@ -70,7 +105,7 @@ int main() {
 
     // Write to header file for use later
     reflEyDataPtr = fopen(reflEyFilename, "a");
-    fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][75]);
+    fprintf(reflEyDataPtr, "%.17g,\n", ey[reflXPos][100]);
     fclose(reflEyDataPtr);
 
     char tranHzFilename[100] = "test_output/structure_tran_raw_hz.h";
@@ -88,11 +123,11 @@ int main() {
     reflHzDataPtr = fopen(reflHzFilename, "a");
     fprintf(reflHzDataPtr, "%.17g,\n", hz[reflXPos][75]);
     fclose(reflHzDataPtr);
-    */
+*/
     //printf("max ey: %f\n", ArrayMax(ey,xSize,ySize));
     interval++;
   } /* nForLoop */
-
+  printf("max ey: %f\n", AbsArrayMax(ey,xSize,ySize));
   // Scale our DFT's by the empty run:
   finishFullDFT(g);
 
@@ -100,6 +135,7 @@ int main() {
     printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
     printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
   }
+
   printf( "Finished loop\n" );
 
   freeGrid(g);

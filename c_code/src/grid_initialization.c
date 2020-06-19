@@ -20,66 +20,56 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <complex.h>
 #include "fdtd_macro.h"
 #include "fdtd_proto.h"
 #include "structure_funcs.h"
 #include "ezinc.h"
 #include "material_data.h"
+#include "array_proto.h"
 
 
+/* Material Parameters set by materialInit(...) */
+static struct Material material;
 
-/* Functions to get material data (or create it) from our stored file */
-double getMatPlasma(int metalChoice) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].plasmaFreq;
+/* Function to initialize our static material for use later on.
+   If materialChoice > -1, the other arguments are ignored.
+ */
+void materialInit(int materialChoice, int num_poles, double epsInf, double permeability,
+                  double conductivity, float *pole_arr) {
+
+  int p,index;
+
+  if (materialChoice > -1 ) {
+    material.num_poles = materialData[materialChoice].num_poles;
+    material.epsInf = materialData[materialChoice].epsInf;
+    material.conductivity = materialData[materialChoice].conductivity;
+    material.permeability = materialData[materialChoice].permeability;
+    for (p = 0; p < material.num_poles; p++) {
+      material.params[p].ap = materialData[materialChoice].params[p].ap;
+      material.params[p].cp = materialData[materialChoice].params[p].cp;
+    } /* pForLoop */
   } else {
-    return HUGE_VAL;
-  } /* if Block */
+    material.num_poles = num_poles;
+    material.epsInf = epsInf;
+    material.conductivity = conductivity * EPS0 * CONVERSION; // Converts from eV, defined in material_data.h
+    material.permeability = permeability;
+    for (p = 0; p < num_poles; p++) {
+      index = p*4; // As we just get a raw array of floats in groups of 4
+      material.params[p].ap = (complex double )(pole_arr[index]*CONVERSION + \
+                               I*CONVERSION*pole_arr[index+1]); // As we get real and imaginary parts as two separate array values
+      material.params[p].cp = (complex double )(pole_arr[index+2]*CONVERSION + \
+                               I*CONVERSION*pole_arr[index+3]);
+    } /* pForLoop */
+  } /* ifBlock */
+
+  return;
 }
-double getMatDamping(int metalChoice) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].dampingRate;
-  } else {
-    return 0.0;
-  } /* if Block */
-}
-double getMatPermittivity(int metalChoice, double objectIndex) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].permittivity;
-  } else {
-    return objectIndex*objectIndex;
-  } /* if Block */
-}
-double getMatConductivity(int metalChoice) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].conductivity;
-  } else {
-    return 0.0;
-  } /* if Block */
-}
-double getMatPermeability(int metalChoice) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].permeability;
-  } else {
-    return 1.0;
-  } /* if Block */
-}
-double getMatResistivity(int metalChoice) {
-  if ( metalChoice >= 0 ) {
-    return materialData[metalChoice].resistivity;
-  } else {
-    return 0.0;
-  } /* if Block */
-}
+
 
 // Function to get the index we're using to reference our "empty" runs by
 // this is, unfortunately, the index of the (refractive) index.
 int getIndexIndex(double environmentIndex) {
-  if (environmentIndex > 4.0) {
-    environmentIndex = 4.0;
-  } else if (environmentIndex < 1.0) {
-    environmentIndex = 1.0;
-  } /* if Block */
 
   return lround(environmentIndex*10.0) - 10;
 }
@@ -87,45 +77,25 @@ int getIndexIndex(double environmentIndex) {
 
 /* Inputs:
 struct Grid *g : The grid struct we are working with currently
-int metalChoice : 0 = Al, 1 = Au, 2 = Ag, 3 = Cu, other = SiO2
+int metalChoice : 0 = Al, 1 = Au, 2 = Ag, 3 = Cu, 4 = SiO2
 int objectChoice : 0 = Disk, 1 = Rectangle, 2 = triangle, other = no structure
 double objectSize : Object size (in nm)
 double environmentIndex : Refractive Index of the environment
 */
 
-void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
+void  InitializeFdtd (struct Grid *g, int objectChoice,
   double objectXSize, double objectYSize, double environmentIndex, double objectIndex )
 {
 
-
-    /* Added for Drude metals so we can treat both the vacuum and object as "Drude"
-       materials */
-    double  mediaPlasma[MEDIACONSTANT] = {HUGE_VAL, getMatPlasma(metalChoice)}; // Plasma frequency
-    double  mediaDamping[MEDIACONSTANT] = {0.0, getMatDamping(metalChoice)}; // Damping constant
-    /* End of Drude Metal Addition */
-
-    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, getMatPermittivity(metalChoice, objectIndex)};    // eps, index=0 is for vacuum, index=1 is for the metallic cylinder
-    double  mediaConductivity[MEDIACONSTANT] = {0.0, getMatConductivity(metalChoice)}; // sig,
-    double  mediaPermeability[MEDIACONSTANT] = {1.0, getMatPermeability(metalChoice)};    // mur
-    double  mediaResistivity[MEDIACONSTANT] = {0.0, getMatResistivity(metalChoice)};     // sim
-    double  mediaCa[MEDIACONSTANT];
-    double  mediaCb[MEDIACONSTANT];
-    double  mediaDa[MEDIACONSTANT];
-    double  mediaDb[MEDIACONSTANT];
+    double  mediaPermittivity[MEDIACONSTANT] = {environmentIndex*environmentIndex, material.epsInf};    // eps, index=0 is for vacuum, index=1 is for the object
+    double  mediaConductivity[MEDIACONSTANT] = {0.0, material.conductivity}; // sig,
+    double  mediaPermeability[MEDIACONSTANT] = {1.0, material.permeability}; // mur
+    complex double  mediaA[MEDIACONSTANT][MAX_POLES] = {{0.0}};
+    complex double  mediaC[MEDIACONSTANT][MAX_POLES] = {{0.0}};
     double  magneticPermeability0,electricalPermittivity0,frequency,wavelength,angularFrequency;
-    double  reflectionCoefficient0,gradingOrder,temporary,electricalImpedance0,temp1,temp2,temp3;
-    int  i,j,k, boundaryDataSize, media, boundaryIndex,xSizeMain,ySizeMain,numFreqs;
-    int  abcSize ;
-    double  cylinderDiameter, cylinderRadius, temporaryi,temporaryj,distance2 ;
+    double  temporary,electricalImpedance0;
+    int  i,j,p,media,xSizeMain,ySizeMain,numFreqs;
     int  xCenter,yCenter;
-    double  x,x1,x2;
-    double  electricalConductivityMaximum, boundaryWidth, gradientConductivity, gradientResistivity, boundaryFactor;
-    double  gradientCa1[ABCSIZECONSTANT];
-    double  gradientCb1[ABCSIZECONSTANT];
-    double  gradientDa1[ABCSIZECONSTANT];
-    double  gradientDb1[ABCSIZECONSTANT];
-    double  rtau, tau, delay;
-    // char  ch;
 
     /***********************************************************************/
     //     Fundamental constants
@@ -145,8 +115,13 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     // Set grid spacing:
     dx = 10.0e-9; // 10 nm
     double dxnm = dx*1e9; // Grid step size in nm
-    dt = dx / (2.0 * speedOfLight);
-    courantS = (dt * speedOfLight) / (dx); // Changed from original -- might break things?
+
+    //courantS = 1.0/2.0;
+    courantS = 2.5/2.0;
+    dt = courantS * dx / speedOfLight;
+
+    // Divide by environment index. This means that if the object goes through the boundary, weird stuff might happen
+    absConst = ( (speedOfLight/environmentIndex)*dt - dx) / ((speedOfLight/environmentIndex)*dt + dx);
 //printf( "dx: %f\n", dx );
 //printf( "dt: %f\n", dt );
 //printf( "courantS: %f\n", courantS );
@@ -154,34 +129,35 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Grid parameters
     /***********************************************************************/
 
-    xSizeMain = 300;                              // number of main grid cells in x-direction
-    ySizeMain = 250;                               // number of main grid cells in y-direction
-    abcSize = ABCSIZECONSTANT;                    // thickness of PML region
-    xSize = xSizeMain + 2 * abcSize;              // number of total grid cells in x-direction
-    ySize = ySizeMain + 2 * abcSize;              // number of total grid cells in y-direction
+    xSizeMain = 300; //300                             // number of main grid cells in x-direction
+    ySizeMain = 250; //250                              // number of main grid cells in y-direction
+    //abcSize = ABCSIZECONSTANT;                    // thickness of PML region
+    xSize = xSizeMain; //+ 2 * abcSize;              // number of total grid cells in x-direction
+    ySize = ySizeMain; //+ 2 * abcSize;              // number of total grid cells in y-direction
 
-    boundaryDataSize  = 2 * xSize * abcSize;                      // front edge + back edge
-    boundaryDataSize += 2 * (abcSize * (ySize - 2 * abcSize));    // left + right edges
-
-    //xSource = 50 + abcSize;                          //location of z-directed hard source
-    //ySource = 50 + abcSize;                          //location of z-directed hard source
-    xSource = 15 + abcSize;                       //location of z-directed hard source
-    ySource = ySize / 2;                          //location of z-directed hard source
+    xSource = 20;                          //location of z-directed hard source
 
     envIndex = environmentIndex;                  // Background refractive index
 
     maximumIteration = NUMBEROFITERATIONCONSTANT;                 //total number of time steps
 
-    reflectionCoefficient0 = 1.0e-7;              // for PML, Nikolova part4 p.25
-    gradingOrder = 3;                             // for PML, (m) was 2;  optimal values: 2 <= m <= 6,  Nikolova part4 p.29
+
 
     /***********************************************************************/
     //     Material parameters
     /***********************************************************************/
 
-    media = MEDIACONSTANT;        // number of different medias, ie 2: vacuum, metallicCylinder
+    media = MEDIACONSTANT;        // number of different medias, ie 2: vacuum, our object
 
     refractiveIndexIndex = getIndexIndex(environmentIndex);
+    //printf("refractiveIndexIndex %i\n", refractiveIndexIndex);
+    // Number of poles in our dielectric function
+    number_poles = material.num_poles;
+    for (p = 0; p < number_poles; p++) {
+      mediaA[1][p] = material.params[p].ap;
+      mediaC[1][p] = material.params[p].cp;
+    }
+
 
     /***********************************************************************/
     //     Wave excitation
@@ -195,35 +171,27 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
 
     ex = AllocateMemory(xSize,    ySize + 1, 0.0 );        // 1 extra in y direction for pec
     ey = AllocateMemory(xSize + 1,ySize,     0.0 );        // 1 extra in x direction for pec
-    hz = AllocateMemory(xSize,    ySize,     0.0 );
-    hzy = AllocateMemory1D(boundaryDataSize, 0.0 );        // for the split-field data for hz in the pml regions
+    hz = AllocateMemory(xSize + 1,ySize + 1, 0.0 );
 
     e2Field = AllocateMemory(xSize, ySize, 0.0);           // E^2 for plotting
     edgeMat = AllocateMemory(xSize, ySize, 0.0);
 
     /* Polarization Current Fields */
-    jx = AllocateMemory(xSize, ySize, 0.0);
-    jy = AllocateMemory(xSize, ySize, 0.0);
+    complex double initArray[MAX_POLES] = {0.0};
+    qx = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+    qy = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+
     exOld = AllocateMemory(xSize, ySize + 1, 0.0);
     eyOld = AllocateMemory(xSize + 1, ySize, 0.0);
+    hzOld = AllocateMemory(xSize + 1, ySize + 1, 0.0);
 
-    /* Pre-compute values that will be placed in to cjj and cje */
-    double cjjTemp[media], cjeTemp[media];
-    double nDamping;
 
-    for (i = 0; i < media; i++) { // Schneider 10.57, 10.58, and 10.54 for Ng conversion
-        nDamping = 1.0 / (mediaDamping[i] * dt);
-        temporary = 1.0 / (2.0 * nDamping);
-        cjjTemp[i] = (1.0 - temporary) / (1.0 + temporary);
-        // Extra dx on Cje is due to 10.58 having been multiplied through by dx to cancel it out when expressed in it's more traditional form
-        cjeTemp[i] = dx * (1.0 / (1.0 + temporary)) * \
-         (2.0*courantS*M_PI*M_PI) / (electricalImpedance0 * pow(mediaPlasma[i],2.0));
-    } /* iForLoop */
-
-    /*printf("cjjTemp[0]: %.5e\n", cjjTemp[0]);
-    printf("cjjTemp[1]: %.5e\n", cjjTemp[1]);
-    printf("cjeTemp[0]: %.5e\n", cjeTemp[0]);
-    printf("cjeTemp[1]: %.5e\n", cjeTemp[1]);*/
+    /*printf("mediaPermittivity[0]: %.5e\n", mediaPermittivity[0]);
+    printf("mediaPermittivity[1]: %.5e\n", mediaPermittivity[1]);
+    printf("mediaConductivity[0]: %.5e\n", mediaConductivity[0]);
+    printf("mediaConductivity[1]: %.5e\n", mediaConductivity[1]);
+    printf("mediaPermeability[0]: %.5e\n", mediaPermeability[0]);
+    printf("mediaPermeability[1]: %.5e\n", mediaPermeability[1]);*/
 
     /***********************************************************************/
     //     DFT Array Initialization
@@ -242,8 +210,8 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     reHzTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
     imHzTranDFT = AllocateMemory(numFreqs, ySize, 0.0);
 
-    reflXPos = abcSize + 5;
-    tranXPos = xSize - abcSize - 5;
+    reflXPos = 5;
+    tranXPos = xSize - 5;
 
     double waveMin, waveMax; // Min / Max wavelength in PPW
     waveMin = (400.0e-9) / dx; // 400 nm
@@ -266,79 +234,114 @@ void  InitializeFdtd (struct Grid *g, int metalChoice, int objectChoice,
     //     Media coefficients
     /***********************************************************************/
 
+    heConst = AllocateMemory(xSize, ySize, dt/(dx*magneticPermeability0*mediaPermeability[0]));
+    ehConst = AllocateMemory(xSize, ySize, dt/(dx*electricalPermittivity0*mediaPermittivity[0]));
+    eqConst = AllocateMemory(xSize, ySize, 4.0*dt/(electricalPermittivity0*mediaPermittivity[0]));
+    qxSum   = AllocateMemory(xSize, ySize, 0.0);
+    qySum   = AllocateMemory(xSize, ySize, 0.0);
+    qConst1 = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+    qConst2 = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+    qSumC   = AllocateComplexMemory3D(number_poles, xSize, ySize, initArray);
+    ABConst = AllocateMemory(xSize, ySize, dt*dt/(4.0*magneticPermeability0*electricalPermittivity0*dx*dx*mediaPermeability[0]*mediaPermittivity[0]));
+
+
+    /*printf("heConst: %.5e\n", heConst[0][0]);
+    printf("ehConst: %.5e\n", ehConst[0][0]);
+    printf("eqConst: %.5e\n", eqConst[0][0]);
+    printf("ABConst: %.5e\n", ABConst[0][0]);*/
+
+    // Temp storage values:
+    complex double **qC1 = AllocateComplexMemory(media, number_poles, 0.0);
+    complex double **qC2 = AllocateComplexMemory(media, number_poles, 0.0);
+    double iCSum[MEDIACONSTANT] = {0.0};
+    double iC1[MEDIACONSTANT] = {0.0};
+    double iC2[MEDIACONSTANT] = {0.0};
+    /* For terms and formulation, see: A Unified FDTD/PML Scheme Based on Critical
+      Points for Accurate Studies of Plasmonic Structures. Prokopidis and
+      Zografopoulos, JOURNAL OF LIGHTWAVE TECHNOLOGY, VOL. 31, NO. 15, AUGUST 1, 2013 */
+
+    // Electric / Polarization field update constants:
+    // Critical Points terms:
     for (i = 0; i < media; i++) {
+      for (p = 0; p < number_poles; p++){
+        /* C-P Parameters */
+        qC1[i][p] = (2.0 + mediaA[i][p]*dt) / (2.0 - mediaA[i][p]*dt);
+        qC2[i][p] = electricalPermittivity0*mediaC[i][p]*dt / (2.0 - mediaA[i][p]*dt);
 
-        /* Original media coefficients
-        temporary  = dt * mediaConductivity[i] / (2.0 * electricalPermittivity0 * mediaPermittivity[i] );    // Taflove1995 p.67
-        mediaCa[i] = (1.0 - temporary) / (1.0 + temporary);                                                  // ditto
-        mediaCb[i] = dt / (electricalPermittivity0 * mediaPermittivity[i] * dx * (1.0 + temporary));         // ditto
-        */
-
-        /* Drude material coefficients */
-        temp1 = mediaConductivity[i] * dt / (2.0 * electricalPermittivity0 * mediaPermittivity[i]);
-        temp2 = cjeTemp[i] * electricalImpedance0 * courantS / (2.0  * mediaPermittivity[i]);
-        temp3 = electricalImpedance0 * courantS / mediaPermittivity[i];
-        mediaCa[i] = (1.0 - temp1 - temp2) / (1.0 + temp1 + temp2);                                          // See Schneider 10.62
-        mediaCb[i] = temp3 / (1.0 + temp1 + temp2);                                                          // ""
-
-        /* Original H updates
-        temporary  = dt *  mediaResistivity[i] / (2.0 * magneticPermeability0 * mediaPermeability[i]);       // Taflove1995
-        mediaDa[i] = (1.0 - temporary) / (1.0 + temporary);                                                  // ditto
-        mediaDb[i] = dt / (magneticPermeability0 * mediaPermeability[i] * dx * (1.0 + temporary));           // ditto
-        */
-        //temporary = mediaConductivity[i] * dt / (2.0 * electricalPermittivity0 * mediaPermittivity[i]); // Schneider 8.13 - 8.18
-        mediaDa[i] = 1.0; // assuming magnetic conductivity is 0
-        mediaDb[i] = dt / (dx * magneticPermeability0 * mediaPermeability[i]);
+        iCSum[i] += creal( mediaC[i][p]/(2.0 - mediaA[i][p]*dt) );
+      } /* pForLoop */
     } /* iForLoop */
 
+    // Set Q factors to vacuum values everywhere:
+    for (p = 0; p < number_poles; p++) {
+      for (i = 0; i < xSize; i++) {
+        for (j = 0; j < ySize; j++) {
+          qConst1[p][i][j] = qC1[0][p];
+          qConst2[p][i][j] = qC2[0][p];
+
+          qSumC[p][i][j] = mediaA[0][p] / (2.0-mediaA[0][p]*dt);
+        } /* jForLoop */
+      } /* iForLoop */
+    } /* pForLoop */
+
+    // Identity matrix coefficients
+    for (i = 0; i < media; i++) {
+      iC1[i] = 1.0 + \
+               mediaConductivity[i]*dt/(2.0*electricalPermittivity0*mediaPermittivity[i]) + \
+               2.0*dt*iCSum[i]/(mediaPermittivity[i]);
+      iC2[i] = 1.0 - \
+               mediaConductivity[i]*dt/(2.0*electricalPermittivity0*mediaPermittivity[i]) - \
+               2.0*dt*iCSum[i]/(mediaPermittivity[i]);
+    } /* iForLoop */
+
+    iConst1 = AllocateMemory(xSize, ySize, iC1[0]);
+    iConst2 = AllocateMemory(xSize, ySize, iC2[0]);
+
+    /*printf("iC1[0]: %.5e\n", iC1[0]);
+    printf("iC1[1]: %.5e\n", iC1[1]);
+    printf("iC2[0]: %.5e\n", iC2[0]);
+    printf("iC2[1]: %.5e\n", iC2[1]);*/
 
     /***********************************************************************/
     //     Grid Coefficients
     /***********************************************************************/
-    /*printf("mediaCa[0]: %f\n", mediaCa[0]);
-    printf("mediaCa[1]: %f\n", mediaCa[1]);
-    printf("mediaCb[0]: %f\n", mediaCb[0]);
-    printf("mediaCb[1]: %f\n", mediaCb[1]);
-    printf("mediaDa[0]: %f\n", mediaDa[0]);
-    printf("mediaDa[1]: %f\n", mediaDa[1]);
-    printf("mediaDb[0]: %f\n", mediaDb[0]);
-    printf("mediaDb[1]: %f\n", mediaDb[1]);*/
-    //     Initialize entire grid to free space
-
-    caex = AllocateMemory(xSize, ySize, mediaCa[0] );     // note: don't need to allocate for pec region, as it is not evaluated
-    cbex = AllocateMemory(xSize, ySize, mediaCb[0] );     // also: Initialize the entire grid to vacuum.
-    caey = AllocateMemory(xSize, ySize, mediaCa[0] );
-    cbey = AllocateMemory(xSize, ySize, mediaCb[0] );
-    dahz = AllocateMemory(xSize, ySize, mediaDa[0] );
-    dbhz = AllocateMemory(xSize, ySize, mediaDb[0] );
-    dahzy = AllocateMemory1D(boundaryDataSize, mediaDa[0] );        // for the split-field data for hz in the pml regions
-    dbhzy = AllocateMemory1D(boundaryDataSize, mediaDb[0] );        // for the split-field data for hz in the pml regions
-
-    /* Initialize polarization current */
-    cjj = AllocateMemory(xSize, ySize, 1.0);  // Initialize to 1 for free space
-    cje = AllocateMemory(xSize, ySize, 0.0);  // Initialize to 0 for free space
 
     /* Array to track where our object is/is not */
     object_locs = AllocateMemory(xSize, ySize, 0.0); // This really shouldn't be an array of doubles -- we're wasting memory here
 
     // Initialize structure functions:
-    xCenter = xSize - abcSize - 30; // In grid units
+    xCenter = xSize - 30; // In grid units
     yCenter = ySize / 2; // ""
     structInit(xCenter, yCenter);
 printf("Strucutre Init...\n" );
 
-    // Sanity checks on input sizes:
-    double x_size,y_size;
+    // Sanity checks on input sizes, if statements make sure we're never trying
+    // to update outside the grid or beyond the monitor positions:
+    double x_size,y_size,x_steps,y_steps;
     if( objectXSize < 0.0 ) {
       x_size = 0.0;
+      objectXMax = 2; // Should never be used, but just in case
+      objectXMin = 1; // ""
     } else {
       x_size = objectXSize * dx / dxnm;
+      x_steps = objectXSize * 1.0e-9 / dx; // Assumes units are in nm
+      objectXMax = xCenter + (int )ceil(x_steps/2.0);
+      if (objectXMax > 2*xSize-tranXPos+1) { objectXMax = 2*xSize-tranXPos+1; }
+      objectXMin = xCenter - (int )floor(x_steps/2.0);
+      if (objectXMin < reflXPos+1) { objectYMax = reflXPos+1; }
     } /* ifBlock */
 
     if( objectYSize < 0.0 ) {
       y_size = 0.0;
+      objectYMax = 2; // Should never be used, but just in case
+      objectYMin = 1; // ""
     } else {
       y_size = objectYSize * dx / dxnm;
+      y_steps = objectYSize * 1.0e-9 / dx; // Assumes units are in nm
+      objectYMax = yCenter + (int )ceil(y_steps/2.0);
+      if (objectYMax > ySize-1) { objectYMax = ySize-1; }
+      objectYMin = yCenter - (int )floor(y_steps/2.0);
+      if (objectYMin < 1) { objectYMin = 1; }
     } /* ifBlock */
 
     // Switch Block to pick structure geometry (default is no object):
@@ -356,147 +359,111 @@ printf("Strucutre Init...\n" );
         break;
     } /* switch */
 
-    // Add structure:
-    for(i = 0; i < xSize; i++) {
+    // Add structure (assumes only one material besides background):
+    for (i = 0; i < xSize; i++) {
       for (j = 0; j < ySize; j++) {
         if (object_locs[i][j] > 0.5) {
           // Material Constants:
-          caex[i][j] = mediaCa[1];
-          cbex[i][j] = mediaCb[1];
-          caey[i][j] = mediaCa[1];
-          cbey[i][j] = mediaCb[1];
+          ABConst[i][j] = dt*dt/(4.0*magneticPermeability0*electricalPermittivity0*dx*dx*mediaPermeability[1]*mediaPermittivity[1]);
+          ehConst[i][j] = dt/(dx*electricalPermittivity0*mediaPermittivity[1]);
+          eqConst[i][j] = 4.0*dt/(electricalPermittivity0*mediaPermittivity[1]);
+          heConst[i][j] = dt/(dx*magneticPermeability0*mediaPermeability[1]);
 
-          /* Polarization Current Constants: */
-          cjj[i][j] = cjjTemp[1];
-          cje[i][j] = cjeTemp[1];
-        }
+          iConst1[i][j] = iC1[1];
+          iConst2[i][j] = iC2[1];
+
+           /* C-P C coefficients */
+          for(p = 0; p < number_poles; p++) {
+            /* Polarization Constants: */
+            qConst1[p][i][j] = qC1[1][p];
+            qConst2[p][i][j] = qC2[1][p];
+
+            qSumC[p][i][j] = mediaA[1][p] / (2.0-mediaA[1][p]*dt);
+          } /* pForLoop */
+        } /* ifBlock */
       } /* jForLoop */
     } /* iForLoop */
-printf("Strucutre Added...\n" );
-    /***********************************************************************/
-    //     Initialize the RegionDataValues structure
-    /***********************************************************************/
 
-    // regions are arranged in this order: center(main), front, back, left, right
-    // note: the region order is "important" in order to make the split-field data line up right for hzy (see the Fill the PML section below)
-    // this structure is for calculating Hz. (need to break Hz up into pml (split-field) regions and main grid)
-    // how they are used: loopIndex = regionData.start, loopIndex < regionData.stop
-    regionData[0].xStart = abcSize;                    // main grid
-    regionData[0].xStop  = abcSize + xSizeMain;
-    regionData[0].yStart = abcSize;
-    regionData[0].yStop  = abcSize + ySizeMain;
-    regionData[1].xStart = 0;                          // front grid
-    regionData[1].xStop  = xSize;
-    regionData[1].yStart = 0;
-    regionData[1].yStop  = abcSize;
-    regionData[2].xStart = 0;                          // back grid
-    regionData[2].xStop  = xSize;
-    regionData[2].yStart = ySize - abcSize;
-    regionData[2].yStop  = ySize;
-    regionData[3].xStart = 0;                          // left grid
-    regionData[3].xStop  = abcSize;
-    regionData[3].yStart = abcSize;
-    regionData[3].yStop  = abcSize + ySizeMain;
-    regionData[4].xStart = xSize - abcSize;            // right grid
-    regionData[4].xStop  = xSize;
-    regionData[4].yStart = abcSize;
-    regionData[4].yStop  = abcSize + ySizeMain;
+    freeComplexDoublePtr(qC1, media);
+    freeComplexDoublePtr(qC2, media);
+
+printf("Structure Added...\n" );
 
     /***********************************************************************/
-    //     Fill the PML regions    ---  (Caution...Here there be Tygers!)
+    //     Tridiagonal Solver Coefficients
+    /***********************************************************************/
+    // This needs to be done last as they take the values from above
+
+    // For dx^2 terms (used in hzTriDiagonalSolve):
+    ahz = AllocateMemory(xSize, ySize, 0.0);
+    bhz = AllocateMemory(xSize, ySize, 0.0);
+    chz = AllocateMemory(xSize, ySize, 0.0);
+    // for dy^2 terms (used in exTriDiagonalSolve):
+    aex = AllocateMemory(xSize, ySize, 0.0);
+    bex = AllocateMemory(xSize, ySize, 0.0);
+    cex = AllocateMemory(xSize, ySize, 0.0);
+    // No dz^2 terms as this is 2D!
+
+    for (i = 0; i < xSize; i++) {
+      for (j = 0; j < ySize; j++) {
+        ahz[i][j] = -1.0 * ABConst[i][j];
+        //bhz[i][j] = iConst1[i][j] + 2.0*ABConst[i][j];
+        bhz[i][j] = 1.0 + 2.0*ABConst[i][j]; // no e(w) term for Hz update
+        chz[i][j] = ahz[i][j];
+
+        aex[i][j] = -1.0 * ABConst[i][j];
+        bex[i][j] = iConst1[i][j] + 2.0*ABConst[i][j];
+        cex[i][j] = aex[i][j];
+      }
+    }
+
+    /***********************************************************************/
+    //     Mur ABC Setup
     /***********************************************************************/
 
-    // The most important part of the PML fdtd simulation is getting the
-    // PML Coefficients correct. Which requires getting the correct PML gradient and
-    // positioning the coefficients correctly on the x-y grid.
 
-    // ALERT: It is possible to make a mistake here, and yet the simulation may appear to
-    // be working properly. However a detailed analysis of reflections off the PML
-    // will show they may be (much) larger than those for a correctly designed PML.
 
-    boundaryWidth = (double  )abcSize * dx;    // width of PML region (in mm)
+    // Add Mur ABC conditions from "Mur Absorbing Boundary Condition for 2-D
+    // Leapgfrog ADI-FDTD Method", Gan and Tan, IEEE Asia-Pacific Conf. 2012
 
-    // SigmaMaximum, using polynomial grading (Nikolova part 4, p.30)
-    electricalConductivityMaximum = -log(reflectionCoefficient0) * (gradingOrder + 1.0) * electricalPermittivity0 * speedOfLight / (2.0 * boundaryWidth);
+    // As Ex depends on j-terms:
+    /* Here the Ex ABC is implemented at j = 1 instead of j = 0. This is because
+       (empirically) it produces instabilities of it's at 0. Specifically, it
+       causes the Ex field to grow as Hz -> 0 at j = 0 but not at j = 1 which is
+       what is used in the Ex field update equation.
 
-    // boundaryFactor comes from the polynomial grading equation: sigma_x = sigmaxMaximum * (x/d)^m, where d=width of PML, m=gradingOrder, sigmaxMaximum = electricalConductivityMaximum    (Nikolova part4, p.28)
-    //  IMPORTANT: The conductivity (sigma) must use the "average" value at each mesh point as follows:
-    //  sigma_x = sigma_Maximum/dx * Integral_from_x0_to_x1 of (x/d)^m dx,  where x0=currentx-0.5, x1=currentx+0.5   (Nikolova part 4, p.32)
-    //  integrating gives: sigma_x = (sigmaMaximum / (dx * d^m * m+1)) * ( x1^(m+1) - x0^(m+1) )     (Nikolova part 4, p.32)
-    //  the first part is "boundaryFactor", so, sigma_x = boundaryFactor * ( x1^(m+1) - x0^(m+1) )   (Nikolova part 4, p.32)
-    // note: it's not exactly clear what the term eps[0] is for. It's probably to cover the case in which eps[0] is not equal to one (ie the main grid area next to the pml boundary is not vacuum)
-    boundaryFactor = mediaPermittivity[0] * electricalConductivityMaximum / ( dx * (pow(boundaryWidth,gradingOrder)) * (gradingOrder + 1));
+       I believe the issue stems from the staggering of the nodes (i.e. the Yee
+       cell) and so if you put the ABC at j = 0, Ex grows non-physically at
+       j = 1 (as Hz -> 0 at j = 0, but not at j = 1). The Update equation for Ex
+       also ignores the j = 0 row. */
 
-    // build the gradient
-    //  caution: if the gradient is built improperly, the PML will not function correctly
-    for (i = 0, x = 0.0; i < abcSize; i++, x++) {
-        // 0=border between pml and vacuum
-        // even: for ex and ey
-        x1 = (x + 0.5) * dx;       // upper bounds for point i
-        x2 = (x - 0.5) * dx;       // lower bounds for point i
-        if (i == 0) {
-            gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1))  );   //   polynomial grading  (special case: on the edge, 1/2 = pml, 1/2 = vacuum)
-        } /* if */
-        else {
-            gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1)) - pow(x2,(gradingOrder+1)) );   //   polynomial grading
-        } /* else */
-        gradientCa1[i] = exp (-gradientConductivity * dt / (electricalPermittivity0 * mediaPermittivity[0]) );     // exponential time step, Taflove1995 p.77,78
-        gradientCb1[i] = (1.0 - gradientCa1[i]) / (gradientConductivity * dx);                                     // ditto, but note sign change from Taflove1995
+    for (i = 0; i < xSize; i++) {
+      aex[i][1] = 0.0;
+      bex[i][1] = 1.0;
+      cex[i][1] = -1.0*absConst;
 
-        // odd: for hzx and hzy
-        x1 = (x + 1.0) * dx;       // upper bounds for point i
-        x2 = (x + 0.0) * dx;       // lower bounds for point i
-        gradientConductivity = boundaryFactor * (pow(x1,(gradingOrder+1)) - pow(x2,(gradingOrder+1)) );   //   polynomial grading
-        gradientResistivity = gradientConductivity * (magneticPermeability0 / (electricalPermittivity0 * mediaPermittivity[0]) );  // Taflove1995 p.182  (for no reflection: sigmaM = sigmaE * mu0/eps0)
-        gradientDa1[i] = exp(-gradientResistivity * dt / magneticPermeability0);                                   // exponential time step, Taflove1995 p.77,78
-        gradientDb1[i] = (1.0 - gradientDa1[i]) / (gradientResistivity * dx);                                      // ditto, but note sign change from Taflove1995
-    } /* iForLoop */
+      aex[i][ySize-1] = -1.0*absConst;
+      bex[i][ySize-1] = 1.0;
+      cex[i][ySize-1] = 0.0;
+    }
 
-    // ex --- front/back
-    for (j = 0; j < abcSize; j++) {                            // do coefficients for ex
-        for (i = 0; i < xSize; i++) {
-            // do coefficients for ex for front and back regions
-            caex[i][abcSize - j]         = gradientCa1[j];        // front
-            cbex[i][abcSize - j]         = gradientCb1[j];
-            caex[i][ySize - abcSize + j] = gradientCa1[j];        // back
-            cbex[i][ySize - abcSize + j] = gradientCb1[j];
-        } /* iForLoop */
-    } /* jForLoop */
+    // While Hz depends on i-terms:
+    for (j = 0; j < ySize; j++) {
+      ahz[0][j] = 0.0;
+      bhz[0][j] = 1.0;
+      chz[0][j] = -1.0*absConst;
 
-    // ey & hzx --- left/right
-    for (i = 0; i < abcSize; i++) {                            // do coefficients for ey and hzx
-        for (j = 0; j < ySize; j++) {
-            // do coefficients for ey for left and right regions
-            caey[abcSize - i][j]         = gradientCa1[i];     // left
-            cbey[abcSize - i][j]         = gradientCb1[i];
-            caey[xSize - abcSize + i][j] = gradientCa1[i];     // right
-            cbey[xSize - abcSize + i][j] = gradientCb1[i];
-            dahz[abcSize - i - 1][j]     = gradientDa1[i];     // dahz holds dahzx , left, (note that the index is offset by 1 from caey)
-            dbhz[abcSize - i - 1][j]     = gradientDb1[i];     // dbhz holds dbhzx         ( ditto )
-            dahz[xSize - abcSize + i][j] = gradientDa1[i];     // dahz holds dahzx , right
-            dbhz[xSize - abcSize + i][j] = gradientDb1[i];     // dbhz holds dbhzx
-        } /* iForLoop */
-    } /* jForLoop */
+      ahz[xSize-1][j] = -1.0*absConst;
+      bhz[xSize-1][j] = 1.0;
+      chz[xSize-1][j] = 0.0;
+    }
 
-    boundaryIndex = 0;
-    // ALERT: special case for hzy:
-    // dahzy and dbhzy arrays must be initialized in the same order that they will be accessed in the main time-stepping loop.
-    // Therefore it is critical to increment boundaryIndex in the right order for the front/back regions
-    // For the left and right regions dahzy,dbhzy use vacuum values, which they are initialized to by default.
-    for (i = regionData[1].xStart; i < regionData[1].xStop; i++) {       // front
-        for (j = regionData[1].yStart, k=(abcSize - 1); j < regionData[1].yStop; j++, k--) {
-            dahzy[boundaryIndex] = gradientDa1[k];
-            dbhzy[boundaryIndex] = gradientDb1[k];
-            boundaryIndex++;
-        } /* jForLoop */
-    } /* iForLoop */
-    for (i = regionData[2].xStart; i < regionData[2].xStop; i++) {       // back
-        for (j = regionData[2].yStart, k=0; j < regionData[2].yStop; j++, k++) {
-            dahzy[boundaryIndex] = gradientDa1[k];
-            dbhzy[boundaryIndex] = gradientDb1[k];
-            boundaryIndex++;
-        } /* jForLoop */
-    } /* iForLoop */
+/*    printf("ahz: %.17g\n", ahz[4][0]);
+    printf("bhz: %.17g\n", bhz[4][0]);
+
+    printf("aex: %.17g\n", aex[4][0]);
+    printf("bex: %.17g\n", bex[4][0]);
+*/
 
     // all done with Initialization!
 

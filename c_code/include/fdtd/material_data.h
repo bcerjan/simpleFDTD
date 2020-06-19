@@ -17,75 +17,136 @@
      along with simpleFDTD.  If not, see <https://www.gnu.org/licenses/>.
  **/
 
+
 /** Static definition of our material data to clean up grid initialization and
     make it easier to add new materials
 
     This data was taken from the source (typically via refractiveindex.info),
-    truncated to the range we are getting results for (400-800 nm), and
-    then fit with a simple Drude model (simultaneously for Re and Im components):
-      er[f] = epsInfinity - fp^2 / ( f^2 + i*g*f ) .
+    truncated to the range we are getting results for (200-1000 nm), and
+    then fit with a critical-points model (simultaneously for Re and Im components):
+      e[w] = e_Inf + sigma / (-i * e_0 * w) + Sum[ -c_p / (i*w + a_p) + c.c ]
 
-    Note that some of the fits are actually quite poor! This is just a rough
-    idea of what a particular metal will do and is not a great substitute for
-    a more elaborate simulation.
+      (see Prokopidis and Zografopoulos eq. 1)
 
-    Order is: epsilon infinity, conductivity, permeability, resistivity,
-    plasma frequency, damping rate: (eps, sigma, mu, sim, f_p, g)
-    values in meters, Hz - type units (not radians)
-
-   Current list of materials: 0 -> Al, 1 -> Au, 2 -> Ag, 3 -> Cu, 4 -> Silica
+   Current list of materials: 0 -> Al, 1 -> Au, 2 -> Ag, 3 -> Cu, 4 -> Silica,
+   5 -> Silicon,
 **/
 
 
 #ifndef MATERIAL_DATA
 #define MATERIAL_DATA
 
-struct Material {
-  double permittivity; // used als for epsilon Infinity
-  double conductivity;
-  double permeability;
-  double resistivity;
-  double plasmaFreq;
-  double dampingRate;
+// Maximumum number of poles we'll ever potentially need
+#define MAX_POLES (8)
+
+#include <complex.h>
+
+#define PLANCK_H 4.135667e-15 // eV/sec
+#define EPS0 8.854187e-12
+#define SPEEDC 2.99792458e8 // m/sec
+#define CONVERSION 6.28319/PLANCK_H // Conversion for constants that have units of energy (2 Pi/h) to get to rad/sec
+
+struct cpParams {
+  complex double ap;
+  complex double cp;
 };
 
-static const struct Material materialData[5] = {
-  {  //0, Al, Cheng 2016
-    .permittivity = 4.01771,
-    .conductivity = 3.77e+7,
+struct Material {
+  int num_poles;
+  double epsInf;
+  double permeability;
+  double conductivity;
+
+  struct cpParams params[MAX_POLES];
+};
+
+
+
+static const struct Material materialData[6] = {
+  { //0, Al, Vial, 2011
+    .num_poles = 2,
+    .epsInf = 1.0,
     .permeability = 1.0,
-    .resistivity = 2.65e-8,
-    .plasmaFreq = 22.4842e+14,
-    .dampingRate = 5.309e+14
-  }, { //1, Gold, Johnson and Christy 1974
-    .permittivity = 2.32842,
-    .conductivity = 4.11e+7,
+    .conductivity = 413.505 * EPS0 * CONVERSION,
+    .params[0] = {
+      .ap = (-0.272493 + I*1.44484)*CONVERSION,
+      .cp = (3.80577 - I*5.88315)*CONVERSION,
+    },
+    .params[1] = {
+      .ap = (-0.116623 + I*0.133088)*CONVERSION,
+      .cp = (-209.786 - I*295.234)*CONVERSION,
+    },
+  },
+  { //1, Au, Johnson and Christy
+    .num_poles = 2,
+    .epsInf = 1.0,
     .permeability = 1.0,
-    .resistivity = 2.44e-8,
-    .plasmaFreq = 12.0356e+14,
-    .dampingRate = 2.3138e+14
-  }, { //2, Silver, Wu XXX
-    .permittivity = 7.19906e-9,
-    .conductivity = 6.30e+7,
+    .conductivity = 5.19039 * EPS0 * CONVERSION,
+    .params[0] = {
+      .ap = (-0.994406 + I*2.45951)*CONVERSION,
+      .cp = (7.01819 - I*0.31594)*CONVERSION,
+    },
+    .params[1] = {
+      .ap = (-0.0219569 + I*0.224007)*CONVERSION,
+      .cp = (-0.67478 - I*155.767)*CONVERSION,
+    },
+  },
+  { //2, Ag, Johnson and Christy
+    .num_poles = 2,
+    .epsInf = 2.53778,
     .permeability = 1.0,
-    .resistivity = 1.59e-8,
-    .plasmaFreq = 9.71771e+14,
-    .dampingRate = 0.31469e+14
-  }, { //3, Copper, Johnson and Christy 1974
-    .permittivity = 1.81405e-7,
-    .conductivity = 5.69e+7,
+    .conductivity = 7.34706 * EPS0 * CONVERSION,
+    .params[0] = {
+      .ap = (-0.00238268 - I*0.166134)*CONVERSION,
+      .cp = (-3.17139 + I*246.321)*CONVERSION,
+    },
+    .params[1] = {
+      .ap = (-0.393139 + I*4.27188)*CONVERSION,
+      .cp = (0.945098 - I*1.37423)*CONVERSION,
+    },
+    .params[2] = {
+      .ap = (0.301984 - I*0.000248021)*CONVERSION,
+      .cp = (63.264 + I*13.8324)*CONVERSION,
+    },
+  },
+  { //3, Cu, J&C
+    .num_poles = 2,
+    .epsInf = 1.98801,
     .permeability = 1.0,
-    .resistivity = 1.68e-8,
-    .plasmaFreq = 17.9867e+14,
-    .dampingRate = 12.9089e+14
-  }, { //4, Silica, fixed eps = 2.136 -> n = 1.46
-    .permittivity = 2.136,
+    .conductivity = 27.8466 * EPS0 * CONVERSION,
+    .params[0] = {
+      .ap = (-0.607993 + I*2.0456)*CONVERSION,
+      .cp = (3.84516 + I*1.37118)*CONVERSION,
+    },
+    .params[1] = {
+      .ap = (-0.0173655 - I*0.134845)*CONVERSION,
+      .cp = (-9.84239 + I*261.159)*CONVERSION,
+    },
+  },
+  { //4, SiO2
+    .num_poles = 0,
+    .epsInf = 2.2201, // constant n = 1.49
+    .permeability = 1.0,
     .conductivity = 0.0,
+  },
+  { //5, Si, Green, 2008
+    .num_poles = 3,
+    .epsInf = 1.30676,
     .permeability = 1.0,
-    .resistivity = 0.0,
-    .plasmaFreq = HUGE_VAL,
-    .dampingRate = 0.0
-  }
+    .conductivity = 0.0471157 * EPS0 * CONVERSION,
+    .params[0] = {
+      .ap = (-0.116424 + I*3.3587)*CONVERSION,
+      .cp = (1.96042 - I*2.20821)*CONVERSION,
+    },
+    .params[1] = {
+      .ap = (-0.381842 + I*4.26879)*CONVERSION,
+      .cp = (-0.578006 - I*13.8223)*CONVERSION,
+    },
+    .params[2] = {
+      .ap = (-0.37732 - I*3.6481)*CONVERSION,
+      .cp = (1.38221 + I*4.59924)*CONVERSION,
+    },
+  },
 };
 
 #endif

@@ -108,9 +108,13 @@ void WriteDFTFile (struct AuxIndexFields *Fields) {
   fprintf(tranDataPtr, "#endif"); // End if block
   fclose(tranDataPtr);
 
-  // For Reflectance data, we need four more arrays, two for Re/Im(Ey(index,w,{x})) and
-  // two for Re/Im(Hz(index,w,{x})). The position dependence is suppressed, as they
-  // are actually constant with position
+  /* For Reflectance data, we need four more arrays, two for Re/Im(Ey(index,w,{x})) and
+     two for Re/Im(Hz(index,w,{x})). The position dependence is suppressed, as they
+     are actually constant with position. Note that this assumption assumes that
+     the source is a uniform line source. If it is not, this does not work and
+     needs to retain the position dependence.
+   */
+   
   fprintf(reflDataPtr, "static const double emptyReEyRefl[%i][%i] = {\n{\n", numInd, numFreqs );
   writeFieldVals(reflDataPtr, Fields->nReEy, numInd, numFreqs);
 

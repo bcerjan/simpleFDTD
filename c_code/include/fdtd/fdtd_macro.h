@@ -24,21 +24,16 @@
 
 // Main Region Fields:
 #define HzG(G) G->hz
-#define DahzG(G) G->dahz
-#define DbhzG(G) G->dbhz
-
 #define ExG(G) G->ex
-#define CaexG(G) G->caex
-#define CbexG(G) G->cbex
-
 #define EyG(G) G->ey
-#define CaeyG(G) G->caey
-#define CbeyG(G) G->cbey
+#define ExOldG(G) G->exOld
+#define EyOldG(G) G->eyOld
+#define HzOldG(G) G->hzOld
 
-// PML H-field
-#define HzyG(G) G->hzy
-#define DahzyG(G) G->dahzy
-#define DbhzyG(G) G->dbhzy
+
+#define QxG(G) G->qx
+#define QyG(G) G->qy
+#define QSumCG(G) G->qSumC
 
 // Constants:
 #define xSizeG(G) G->xSize
@@ -53,13 +48,30 @@
 #define SpeedOfLightG(G) G->speedOfLight
 #define EnvIndexG(G) G->envIndex
 
-// Drude Metals (Polarization Current)
-#define JxG(G) G->jx
-#define JyG(G) G->jy
-#define CjjG(G) G->cjj
-#define CjeG(G) G->cje
-#define ExOldG(G) G->exOld
-#define EyOldG(G) G->eyOld
+// Update Equation Constants:
+#define HeConstG(G) G->heConst
+#define EhConstG(G) G->ehConst
+#define EqConstG(G) G->eqConst
+#define ABConstG(G) G->ABConst
+#define QConst1G(G) G->qConst1
+#define QConst2G(G) G->qConst2
+#define QxSumG(G) G->qxSum
+#define QySumG(G) G->qySum
+#define IConst1G(G) G->iConst1
+#define IConst2G(G) G->iConst2
+#define Number_polesG(G) G->number_poles
+
+// Tridiagonal values:
+#define AexG(G) G->aex
+#define BexG(G) G->bex
+#define CexG(G) G->cex
+#define AhzG(G) G->ahz
+#define BhzG(G) G->bhz
+#define ChzG(G) G->chz
+
+// Absorbing boundary factor:
+#define AbsConstG(G) G->absConst
+
 
 // Values for tracking DFT:
 #define ReflXPosG(G) G->reflXPos
@@ -88,6 +100,11 @@
 #define RegionDataG(G) G->regionData
 
 #define ObjectLocsG(G) G->object_locs
+#define ObjectXMaxG(G) G->objectXMax
+#define ObjectYMaxG(G) G->objectYMax
+#define ObjectXMinG(G) G->objectXMin
+#define ObjectYMinG(G) G->objectYMin
+
 #define RefractiveIndexIndexG(G) G->refractiveIndexIndex
 
 // Variables for tracking loop state in emscripten
@@ -97,21 +114,16 @@
 // Now we assume that our grid will be called 'g'
 
 #define hz HzG(g)
-#define dahz DahzG(g)
-#define dbhz DbhzG(g)
-
 #define ex ExG(g)
-#define caex CaexG(g)
-#define cbex CbexG(g)
-
 #define ey EyG(g)
-#define caey CaeyG(g)
-#define cbey CbeyG(g)
 
-// PML H-field
-#define hzy HzyG(g)
-#define dahzy DahzyG(g)
-#define dbhzy DbhzyG(g)
+#define exOld ExOldG(g)
+#define eyOld EyOldG(g)
+#define hzOld HzOldG(g)
+
+#define qx QxG(g)
+#define qy QyG(g)
+#define qSumC QSumCG(g)
 
 // Constants:
 #define xSize xSizeG(g)
@@ -126,13 +138,27 @@
 #define speedOfLight SpeedOfLightG(g)
 #define envIndex EnvIndexG(g)
 
-// Drude Metals (Polarization Current)
-#define jx JxG(g)
-#define jy JyG(g)
-#define cjj CjjG(g)
-#define cje CjeG(g)
-#define exOld ExOldG(g)
-#define eyOld EyOldG(g)
+// Update Equation Constants:
+#define heConst HeConstG(g)
+#define ehConst EhConstG(g)
+#define eqConst EqConstG(g)
+#define ABConst ABConstG(g)
+#define qConst1 QConst1G(g)
+#define qConst2 QConst2G(g)
+#define qxSum QxSumG(g)
+#define qySum QySumG(g)
+#define iConst1 IConst1G(g)
+#define iConst2 IConst2G(g)
+#define number_poles Number_polesG(g)
+// Tridiagonal values:
+#define aex AexG(g)
+#define bex BexG(g)
+#define cex CexG(g)
+#define ahz AhzG(g)
+#define bhz BhzG(g)
+#define chz ChzG(g)
+
+#define absConst AbsConstG(g)
 
 // Values for tracking DFT:
 #define reflXPos ReflXPosG(g)
@@ -161,6 +187,12 @@
 #define regionData RegionDataG(g)
 
 #define object_locs ObjectLocsG(g)
+#define objectXMax ObjectXMaxG(g)
+#define objectYMax ObjectYMaxG(g)
+#define objectXMin ObjectXMinG(g)
+#define objectYMin ObjectYMinG(g)
+
+
 #define refractiveIndexIndex RefractiveIndexIndexG(g)
 
 // For emscripten animation:

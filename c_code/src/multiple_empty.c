@@ -41,9 +41,15 @@ int main() {
   int n,i,j;
   int outInterval = 0;
   double backInd, temp;
+
+  int metalChoice = 0;
+  float *ptr;
+  materialInit(metalChoice, 0, 1.0, 1.0, 1.0, ptr);
+  
   // Divide by 10 to get actual background refractive index
   int minInd = 10;
   int maxInd = 40 + 1; // +1 is so you can write the max index you actually want
+
   int numInd = maxInd - minInd;
   struct AuxIndexFields *Fields = malloc(sizeof(struct AuxIndexFields));
 
@@ -66,14 +72,20 @@ int main() {
     temp = (double  )(i + minInd);
     backInd = temp / 10.0;
 
-    InitializeFdtd(g, 0, -1, 100.0, 100.0, backInd, 0.0); // First int for metal, second for object shape
+    InitializeFdtd(g, -1, 100.0, 100.0, backInd, 0.0); // First int for metal, second for object shape
+
+    printf( "Starting index loop: %i of %i\n", i+1, numInd );
 
     // Run simulation loop for this background index:
     for (n = 0; n < maximumIter; n++) {
-      HFieldUpdate(g, n);
+
+
+      StoreFields(g);
       EFieldUpdate(g);
-      JFieldUpdate(g);
-      lineSource(g, ABCSIZECONSTANT + 20, n);
+      lineSource(g, xSource, n);
+      QFieldUpdate(g);
+      HFieldUpdate(g);
+
       //printf("ey at src: %f\n", ey[20][25]);
       DFTUpdate(g, n);
 
@@ -96,7 +108,7 @@ int main() {
       Fields->nImHz[i][j] = imHzReflDFT[j][ySize/2];
     } /* jForLoop */
 
-    printf( "Finished index loop\n" );
+
 
     freeGrid(g);
   } /* iForLoop */

@@ -33,7 +33,7 @@ void ezIncInit(struct Grid *g, double environmentIndex) {
 
 /* Calculate source function at given time and location */
 double ezInc(double time, double location) {
-  double delay = 1.5; // Dealy time for soiurce turn-on. 1.5 -> 10^-8 when we start the simulation
+  double delay = 1.5; // Delay time for soiurce turn-on. 1.5 -> 10^-8 when we start the simulation
   double arg = M_PI*((cdtds * time - location) / ppw - delay); // magic 800 is bad, figure out why this is wrong...
   arg = arg * arg;
 
@@ -44,7 +44,7 @@ double ezInc(double time, double location) {
 void lineSource(struct Grid *g, int x_ind, int time) {
   int j;
   double t = time;
-  if(time < 500) {
+  if(time < 200) {
     for (j = 0; j < ySize; j++) {
       ey[x_ind][j] = ezInc(t, 0.0); // Y-Polarized source field
     } /* jForLoop */
