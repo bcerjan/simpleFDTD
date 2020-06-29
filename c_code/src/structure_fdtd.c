@@ -35,7 +35,7 @@ int main() {
   struct Grid *g;
   g = AllocateGridMemory();
 
-  int metalChoice = -1;
+  int metalChoice = 0;
   float ptr[4] = {0.0};
   ptr[0] = 1.0;
   ptr[1] = 2.0;
@@ -45,7 +45,7 @@ int main() {
 
   printf( "Allocated Grid\n" );
 
-  InitializeFdtd(g, 0, 100.0, 100.0, environmentIndex, 1.0); // object shape, xSize (nm), ySize (nm), and dielectric environment
+  InitializeFdtd(g, 0, 100000.0, 100000.0, environmentIndex, 1.0); // object shape, xSize (nm), ySize (nm), and dielectric environment
   printf( "Initialized Grid\n" );
 
   maximumIteration = NUMBEROFITERATIONCONSTANT;
@@ -53,8 +53,8 @@ int main() {
   int n,k;
   int outInterval = 0;
 
-  for (n = 0; n < maximumIteration; n++) {
-  //for (n = 0; n < 5; n++) {
+  //for (n = 0; n < maximumIteration; n++) {
+  for (n = 0; n < 5; n++) {
 
     StoreFields(g);
     EFieldUpdate(g);
@@ -131,10 +131,10 @@ int main() {
   // Scale our DFT's by the empty run:
   finishFullDFT(g);
 
-  for (n = 0; n < NUMBERDFTFREQS; n++) {
+  /*for (n = 0; n < NUMBERDFTFREQS; n++) {
     printf("reflDFT[%i]: %.17g\n",n,reflDFT[n] );
     printf("tranDFT[%i]: %.17g\n",n,tranDFT[n] );
-  }
+  }*/
 
   printf( "Finished loop\n" );
 
