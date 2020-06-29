@@ -326,9 +326,10 @@ printf("Strucutre Init...\n" );
       x_size = objectXSize * dx / dxnm;
       x_steps = objectXSize * 1.0e-9 / dx; // Assumes units are in nm
       objectXMax = xCenter + (int )ceil(x_steps/2.0);
-      if (objectXMax > 2*xSize-tranXPos+1) { objectXMax = 2*xSize-tranXPos+1; }
+      if (objectXMax > xSize-tranXPos-1) { objectXMax = xSize-tranXPos-1; }
       objectXMin = xCenter - (int )floor(x_steps/2.0);
-      if (objectXMin < reflXPos+1) { objectYMax = reflXPos+1; }
+      printf("obj x min 1: %i\n", objectXMin );
+      if (objectXMin < reflXPos+1) { objectXMin = reflXPos+1; }
     } /* ifBlock */
 
     if( objectYSize < 0.0 ) {
